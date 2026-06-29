@@ -1,11 +1,12 @@
 import { Route, Routes } from 'react-router-dom';
+import { LoginPage, RequireAuth, RequireRole } from '../../session';
 import { AppLayout } from '../layout/AppLayout';
 
 function HomePage() {
   return (
     <>
-      <h2>Стартовая страница</h2>
-      <p>Базовый каркас приложения готов к подключению следующих фаз.</p>
+      <h2>Start page</h2>
+      <p>The base application shell is ready for the next phases.</p>
     </>
   );
 }
@@ -13,8 +14,8 @@ function HomePage() {
 function TeacherPage() {
   return (
     <>
-      <h2>Контур преподавателя</h2>
-      <p>Здесь появятся каталог СУБД, конструктор схемы, данные и задания.</p>
+      <h2>Teacher workspace</h2>
+      <p>DBMS catalog, schema builder, datasets, and tasks will appear here.</p>
     </>
   );
 }
@@ -22,8 +23,8 @@ function TeacherPage() {
 function StudentPage() {
   return (
     <>
-      <h2>Контур студента</h2>
-      <p>Здесь появятся задания, SQL-редактор, проверка решений и история попыток.</p>
+      <h2>Student workspace</h2>
+      <p>Tasks, SQL editor, solution checks, and attempt history will appear here.</p>
     </>
   );
 }
@@ -31,8 +32,8 @@ function StudentPage() {
 function NotFoundPage() {
   return (
     <>
-      <h2>Страница не найдена</h2>
-      <p>Проверьте адрес или вернитесь на стартовую страницу.</p>
+      <h2>Page not found</h2>
+      <p>Check the address or return to the start page.</p>
     </>
   );
 }
@@ -42,8 +43,27 @@ export function AppRouter() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
-        <Route path="teacher" element={<TeacherPage />} />
-        <Route path="student" element={<StudentPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route
+          path="teacher"
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={['Teacher', 'Admin']}>
+                <TeacherPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="student"
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={['Student', 'Admin']}>
+                <StudentPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

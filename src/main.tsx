@@ -7,4 +7,6 @@ if (!rootElement) {
   throw new Error('Root element #root was not found');
 }
 
-mount(rootElement, readStandaloneConfig());
+const config = await readStandaloneConfig();
+
+mount(rootElement, config);

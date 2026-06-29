@@ -23,7 +23,10 @@ import type {
   TokenResponse
 } from '../model';
 
+import { identityFetch } from '../../../shared/http/identity-fetch';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -65,36 +68,29 @@ export const getRegisterUrl = () => {
  */
 export const register = async (registerRequest: RegisterRequest, options?: RequestInit): Promise<registerResponse> => {
 
-  const res = await fetch(getRegisterUrl(),
+  return identityFetch<registerResponse>(getRegisterUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(registerRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: registerResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as registerResponse
-}
+);}
 
 
 
 
 
 export const getRegisterMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext> => {
 
 const mutationKey = ['register'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -102,7 +98,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof register>>, {data: RegisterRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  register(data,fetchOptions)
+          return  register(data,requestOptions)
         }
 
 
@@ -120,7 +116,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Регистрация нового пользователя
  */
 export const useRegister = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof register>>,
         TError,
@@ -162,36 +158,29 @@ export const getRefreshUrl = () => {
  */
 export const refresh = async (refreshRequest: RefreshRequest, options?: RequestInit): Promise<refreshResponse> => {
 
-  const res = await fetch(getRefreshUrl(),
+  return identityFetch<refreshResponse>(getRefreshUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(refreshRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: refreshResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as refreshResponse
-}
+);}
 
 
 
 
 
 export const getRefreshMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,{data: RefreshRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,{data: RefreshRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,{data: RefreshRequest}, TContext> => {
 
 const mutationKey = ['refresh'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -199,7 +188,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof refresh>>, {data: RefreshRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  refresh(data,fetchOptions)
+          return  refresh(data,requestOptions)
         }
 
 
@@ -217,7 +206,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Обновление токенов
  */
 export const useRefresh = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,{data: RefreshRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,{data: RefreshRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof refresh>>,
         TError,
@@ -252,36 +241,29 @@ export const getLogoutUrl = () => {
  */
 export const logout = async (refreshRequest: RefreshRequest, options?: RequestInit): Promise<logoutResponse> => {
 
-  const res = await fetch(getLogoutUrl(),
+  return identityFetch<logoutResponse>(getLogoutUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(refreshRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: logoutResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as logoutResponse
-}
+);}
 
 
 
 
 
 export const getLogoutMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,{data: RefreshRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,{data: RefreshRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,{data: RefreshRequest}, TContext> => {
 
 const mutationKey = ['logout'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -289,7 +271,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, {data: RefreshRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  logout(data,fetchOptions)
+          return  logout(data,requestOptions)
         }
 
 
@@ -307,7 +289,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Выход из системы
  */
 export const useLogout = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,{data: RefreshRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,{data: RefreshRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof logout>>,
         TError,
@@ -354,36 +336,29 @@ export const getLoginUrl = () => {
  */
 export const login = async (loginRequest: LoginRequest, options?: RequestInit): Promise<loginResponse> => {
 
-  const res = await fetch(getLoginUrl(),
+  return identityFetch<loginResponse>(getLoginUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(loginRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: loginResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as loginResponse
-}
+);}
 
 
 
 
 
 export const getLoginMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext> => {
 
 const mutationKey = ['login'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -391,7 +366,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, {data: LoginRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  login(data,fetchOptions)
+          return  login(data,requestOptions)
         }
 
 
@@ -409,7 +384,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Аутентификация пользователя
  */
 export const useLogin = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof login>>,
         TError,

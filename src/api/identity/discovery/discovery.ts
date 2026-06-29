@@ -20,7 +20,10 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
+import { identityFetch } from '../../../shared/http/identity-fetch';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -65,21 +68,14 @@ export const getJwksUrl = () => {
  */
 export const jwks = async ( options?: RequestInit): Promise<jwksResponse> => {
 
-  const res = await fetch(getJwksUrl(),
+  return identityFetch<jwksResponse>(getJwksUrl(),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: jwksResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as jwksResponse
-}
+);}
 
 
 
@@ -92,16 +88,16 @@ export const getJwksQueryKey = () => {
     }
 
 
-export const getJwksQueryOptions = <TData = Awaited<ReturnType<typeof jwks>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof jwks>>, TError, TData>>, fetch?: RequestInit}
+export const getJwksQueryOptions = <TData = Awaited<ReturnType<typeof jwks>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof jwks>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getJwksQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof jwks>>> = ({ signal }) => jwks({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof jwks>>> = ({ signal }) => jwks({ signal, ...requestOptions });
 
 
 
@@ -121,7 +117,7 @@ export function useJwks<TData = Awaited<ReturnType<typeof jwks>>, TError = unkno
           TError,
           Awaited<ReturnType<typeof jwks>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useJwks<TData = Awaited<ReturnType<typeof jwks>>, TError = unknown>(
@@ -131,11 +127,11 @@ export function useJwks<TData = Awaited<ReturnType<typeof jwks>>, TError = unkno
           TError,
           Awaited<ReturnType<typeof jwks>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useJwks<TData = Awaited<ReturnType<typeof jwks>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof jwks>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof jwks>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -143,7 +139,7 @@ export function useJwks<TData = Awaited<ReturnType<typeof jwks>>, TError = unkno
  */
 
 export function useJwks<TData = Awaited<ReturnType<typeof jwks>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof jwks>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof jwks>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -185,21 +181,14 @@ export const getOpenIdConfigurationUrl = () => {
  */
 export const openIdConfiguration = async ( options?: RequestInit): Promise<openIdConfigurationResponse> => {
 
-  const res = await fetch(getOpenIdConfigurationUrl(),
+  return identityFetch<openIdConfigurationResponse>(getOpenIdConfigurationUrl(),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: openIdConfigurationResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as openIdConfigurationResponse
-}
+);}
 
 
 
@@ -212,16 +201,16 @@ export const getOpenIdConfigurationQueryKey = () => {
     }
 
 
-export const getOpenIdConfigurationQueryOptions = <TData = Awaited<ReturnType<typeof openIdConfiguration>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof openIdConfiguration>>, TError, TData>>, fetch?: RequestInit}
+export const getOpenIdConfigurationQueryOptions = <TData = Awaited<ReturnType<typeof openIdConfiguration>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof openIdConfiguration>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getOpenIdConfigurationQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof openIdConfiguration>>> = ({ signal }) => openIdConfiguration({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof openIdConfiguration>>> = ({ signal }) => openIdConfiguration({ signal, ...requestOptions });
 
 
 
@@ -241,7 +230,7 @@ export function useOpenIdConfiguration<TData = Awaited<ReturnType<typeof openIdC
           TError,
           Awaited<ReturnType<typeof openIdConfiguration>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOpenIdConfiguration<TData = Awaited<ReturnType<typeof openIdConfiguration>>, TError = unknown>(
@@ -251,11 +240,11 @@ export function useOpenIdConfiguration<TData = Awaited<ReturnType<typeof openIdC
           TError,
           Awaited<ReturnType<typeof openIdConfiguration>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOpenIdConfiguration<TData = Awaited<ReturnType<typeof openIdConfiguration>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof openIdConfiguration>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof openIdConfiguration>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -263,7 +252,7 @@ export function useOpenIdConfiguration<TData = Awaited<ReturnType<typeof openIdC
  */
 
 export function useOpenIdConfiguration<TData = Awaited<ReturnType<typeof openIdConfiguration>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof openIdConfiguration>>, TError, TData>>, fetch?: RequestInit}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof openIdConfiguration>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

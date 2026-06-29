@@ -44,7 +44,10 @@ import type {
   UpdatePhysicalTypeRequest
 } from '../model';
 
+import { sqlmoduleFetch } from '../../../shared/http/sqlmodule-fetch';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -101,36 +104,29 @@ export const getCreatePhysicalTypeUrl = () => {
  */
 export const createPhysicalType = async (createPhysicalTypeRequest: CreatePhysicalTypeRequest, options?: RequestInit): Promise<createPhysicalTypeResponse> => {
 
-  const res = await fetch(getCreatePhysicalTypeUrl(),
+  return sqlmoduleFetch<createPhysicalTypeResponse>(getCreatePhysicalTypeUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createPhysicalTypeRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createPhysicalTypeResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createPhysicalTypeResponse
-}
+);}
 
 
 
 
 
 export const getCreatePhysicalTypeMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPhysicalType>>, TError,{data: CreatePhysicalTypeRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPhysicalType>>, TError,{data: CreatePhysicalTypeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createPhysicalType>>, TError,{data: CreatePhysicalTypeRequest}, TContext> => {
 
 const mutationKey = ['createPhysicalType'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -138,7 +134,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPhysicalType>>, {data: CreatePhysicalTypeRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createPhysicalType(data,fetchOptions)
+          return  createPhysicalType(data,requestOptions)
         }
 
 
@@ -156,7 +152,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Создать физический тип данных
  */
 export const useCreatePhysicalType = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPhysicalType>>, TError,{data: CreatePhysicalTypeRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPhysicalType>>, TError,{data: CreatePhysicalTypeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createPhysicalType>>,
         TError,
@@ -205,21 +201,14 @@ export const getGetAllPhysicalTypesUrl = (params?: GetAllPhysicalTypesParams,) =
  */
 export const getAllPhysicalTypes = async (params?: GetAllPhysicalTypesParams, options?: RequestInit): Promise<getAllPhysicalTypesResponse> => {
 
-  const res = await fetch(getGetAllPhysicalTypesUrl(params),
+  return sqlmoduleFetch<getAllPhysicalTypesResponse>(getGetAllPhysicalTypesUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAllPhysicalTypesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAllPhysicalTypesResponse
-}
+);}
 
 
 
@@ -232,16 +221,16 @@ export const getGetAllPhysicalTypesQueryKey = (params?: GetAllPhysicalTypesParam
     }
 
 
-export const getGetAllPhysicalTypesQueryOptions = <TData = Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError = HttpValidationProblemDetails>(params?: GetAllPhysicalTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAllPhysicalTypesQueryOptions = <TData = Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError = HttpValidationProblemDetails>(params?: GetAllPhysicalTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllPhysicalTypesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllPhysicalTypes>>> = ({ signal }) => getAllPhysicalTypes(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllPhysicalTypes>>> = ({ signal }) => getAllPhysicalTypes(params, { signal, ...requestOptions });
 
 
 
@@ -261,7 +250,7 @@ export function useGetAllPhysicalTypes<TData = Awaited<ReturnType<typeof getAllP
           TError,
           Awaited<ReturnType<typeof getAllPhysicalTypes>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllPhysicalTypes<TData = Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError = HttpValidationProblemDetails>(
@@ -271,11 +260,11 @@ export function useGetAllPhysicalTypes<TData = Awaited<ReturnType<typeof getAllP
           TError,
           Awaited<ReturnType<typeof getAllPhysicalTypes>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllPhysicalTypes<TData = Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError = HttpValidationProblemDetails>(
- params?: GetAllPhysicalTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllPhysicalTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -283,7 +272,7 @@ export function useGetAllPhysicalTypes<TData = Awaited<ReturnType<typeof getAllP
  */
 
 export function useGetAllPhysicalTypes<TData = Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError = HttpValidationProblemDetails>(
- params?: GetAllPhysicalTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllPhysicalTypesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllPhysicalTypes>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -337,36 +326,29 @@ export const getDeletePhysicalTypeUrl = (id: string,) => {
  */
 export const deletePhysicalType = async (id: string, options?: RequestInit): Promise<deletePhysicalTypeResponse> => {
 
-  const res = await fetch(getDeletePhysicalTypeUrl(id),
+  return sqlmoduleFetch<deletePhysicalTypeResponse>(getDeletePhysicalTypeUrl(id),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deletePhysicalTypeResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deletePhysicalTypeResponse
-}
+);}
 
 
 
 
 
 export const getDeletePhysicalTypeMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePhysicalType>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePhysicalType>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deletePhysicalType>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deletePhysicalType'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -374,7 +356,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePhysicalType>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
-          return  deletePhysicalType(id,fetchOptions)
+          return  deletePhysicalType(id,requestOptions)
         }
 
 
@@ -392,7 +374,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Удалить физический тип данных
  */
 export const useDeletePhysicalType = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePhysicalType>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePhysicalType>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deletePhysicalType>>,
         TError,
@@ -434,21 +416,14 @@ export const getGetPhysicalTypeByIdUrl = (id: string,) => {
  */
 export const getPhysicalTypeById = async (id: string, options?: RequestInit): Promise<getPhysicalTypeByIdResponse> => {
 
-  const res = await fetch(getGetPhysicalTypeByIdUrl(id),
+  return sqlmoduleFetch<getPhysicalTypeByIdResponse>(getGetPhysicalTypeByIdUrl(id),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getPhysicalTypeByIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getPhysicalTypeByIdResponse
-}
+);}
 
 
 
@@ -461,16 +436,16 @@ export const getGetPhysicalTypeByIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetPhysicalTypeByIdQueryOptions = <TData = Awaited<ReturnType<typeof getPhysicalTypeById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPhysicalTypeById>>, TError, TData>>, fetch?: RequestInit}
+export const getGetPhysicalTypeByIdQueryOptions = <TData = Awaited<ReturnType<typeof getPhysicalTypeById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPhysicalTypeById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetPhysicalTypeByIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPhysicalTypeById>>> = ({ signal }) => getPhysicalTypeById(id, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPhysicalTypeById>>> = ({ signal }) => getPhysicalTypeById(id, { signal, ...requestOptions });
 
 
 
@@ -490,7 +465,7 @@ export function useGetPhysicalTypeById<TData = Awaited<ReturnType<typeof getPhys
           TError,
           Awaited<ReturnType<typeof getPhysicalTypeById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetPhysicalTypeById<TData = Awaited<ReturnType<typeof getPhysicalTypeById>>, TError = ProblemDetails>(
@@ -500,11 +475,11 @@ export function useGetPhysicalTypeById<TData = Awaited<ReturnType<typeof getPhys
           TError,
           Awaited<ReturnType<typeof getPhysicalTypeById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetPhysicalTypeById<TData = Awaited<ReturnType<typeof getPhysicalTypeById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPhysicalTypeById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPhysicalTypeById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -512,7 +487,7 @@ export function useGetPhysicalTypeById<TData = Awaited<ReturnType<typeof getPhys
  */
 
 export function useGetPhysicalTypeById<TData = Awaited<ReturnType<typeof getPhysicalTypeById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPhysicalTypeById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPhysicalTypeById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -567,36 +542,29 @@ export const getUpdatePhysicalTypeUrl = (id: string,) => {
 export const updatePhysicalType = async (id: string,
     updatePhysicalTypeRequest: UpdatePhysicalTypeRequest, options?: RequestInit): Promise<updatePhysicalTypeResponse> => {
 
-  const res = await fetch(getUpdatePhysicalTypeUrl(id),
+  return sqlmoduleFetch<updatePhysicalTypeResponse>(getUpdatePhysicalTypeUrl(id),
   {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updatePhysicalTypeRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updatePhysicalTypeResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as updatePhysicalTypeResponse
-}
+);}
 
 
 
 
 
 export const getUpdatePhysicalTypeMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePhysicalType>>, TError,{id: string;data: UpdatePhysicalTypeRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePhysicalType>>, TError,{id: string;data: UpdatePhysicalTypeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updatePhysicalType>>, TError,{id: string;data: UpdatePhysicalTypeRequest}, TContext> => {
 
 const mutationKey = ['updatePhysicalType'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -604,7 +572,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePhysicalType>>, {id: string;data: UpdatePhysicalTypeRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updatePhysicalType(id,data,fetchOptions)
+          return  updatePhysicalType(id,data,requestOptions)
         }
 
 
@@ -622,7 +590,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Обновить физический тип данных
  */
 export const useUpdatePhysicalType = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePhysicalType>>, TError,{id: string;data: UpdatePhysicalTypeRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePhysicalType>>, TError,{id: string;data: UpdatePhysicalTypeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updatePhysicalType>>,
         TError,
@@ -669,36 +637,29 @@ export const getCreateParameterDefinitionUrl = () => {
  */
 export const createParameterDefinition = async (createParameterDefinitionRequest: CreateParameterDefinitionRequest, options?: RequestInit): Promise<createParameterDefinitionResponse> => {
 
-  const res = await fetch(getCreateParameterDefinitionUrl(),
+  return sqlmoduleFetch<createParameterDefinitionResponse>(getCreateParameterDefinitionUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createParameterDefinitionRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createParameterDefinitionResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createParameterDefinitionResponse
-}
+);}
 
 
 
 
 
 export const getCreateParameterDefinitionMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createParameterDefinition>>, TError,{data: CreateParameterDefinitionRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createParameterDefinition>>, TError,{data: CreateParameterDefinitionRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createParameterDefinition>>, TError,{data: CreateParameterDefinitionRequest}, TContext> => {
 
 const mutationKey = ['createParameterDefinition'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -706,7 +667,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createParameterDefinition>>, {data: CreateParameterDefinitionRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createParameterDefinition(data,fetchOptions)
+          return  createParameterDefinition(data,requestOptions)
         }
 
 
@@ -724,7 +685,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Создать определение параметра
  */
 export const useCreateParameterDefinition = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createParameterDefinition>>, TError,{data: CreateParameterDefinitionRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createParameterDefinition>>, TError,{data: CreateParameterDefinitionRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createParameterDefinition>>,
         TError,
@@ -773,21 +734,14 @@ export const getGetAllParameterDefinitionsUrl = (params?: GetAllParameterDefinit
  */
 export const getAllParameterDefinitions = async (params?: GetAllParameterDefinitionsParams, options?: RequestInit): Promise<getAllParameterDefinitionsResponse> => {
 
-  const res = await fetch(getGetAllParameterDefinitionsUrl(params),
+  return sqlmoduleFetch<getAllParameterDefinitionsResponse>(getGetAllParameterDefinitionsUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAllParameterDefinitionsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAllParameterDefinitionsResponse
-}
+);}
 
 
 
@@ -800,16 +754,16 @@ export const getGetAllParameterDefinitionsQueryKey = (params?: GetAllParameterDe
     }
 
 
-export const getGetAllParameterDefinitionsQueryOptions = <TData = Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError = HttpValidationProblemDetails>(params?: GetAllParameterDefinitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAllParameterDefinitionsQueryOptions = <TData = Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError = HttpValidationProblemDetails>(params?: GetAllParameterDefinitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllParameterDefinitionsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllParameterDefinitions>>> = ({ signal }) => getAllParameterDefinitions(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllParameterDefinitions>>> = ({ signal }) => getAllParameterDefinitions(params, { signal, ...requestOptions });
 
 
 
@@ -829,7 +783,7 @@ export function useGetAllParameterDefinitions<TData = Awaited<ReturnType<typeof 
           TError,
           Awaited<ReturnType<typeof getAllParameterDefinitions>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllParameterDefinitions<TData = Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError = HttpValidationProblemDetails>(
@@ -839,11 +793,11 @@ export function useGetAllParameterDefinitions<TData = Awaited<ReturnType<typeof 
           TError,
           Awaited<ReturnType<typeof getAllParameterDefinitions>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllParameterDefinitions<TData = Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError = HttpValidationProblemDetails>(
- params?: GetAllParameterDefinitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllParameterDefinitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -851,7 +805,7 @@ export function useGetAllParameterDefinitions<TData = Awaited<ReturnType<typeof 
  */
 
 export function useGetAllParameterDefinitions<TData = Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError = HttpValidationProblemDetails>(
- params?: GetAllParameterDefinitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllParameterDefinitionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllParameterDefinitions>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -900,36 +854,29 @@ export const getDeleteParameterDefinitionUrl = (id: string,) => {
  */
 export const deleteParameterDefinition = async (id: string, options?: RequestInit): Promise<deleteParameterDefinitionResponse> => {
 
-  const res = await fetch(getDeleteParameterDefinitionUrl(id),
+  return sqlmoduleFetch<deleteParameterDefinitionResponse>(getDeleteParameterDefinitionUrl(id),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteParameterDefinitionResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteParameterDefinitionResponse
-}
+);}
 
 
 
 
 
 export const getDeleteParameterDefinitionMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteParameterDefinition>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteParameterDefinition>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteParameterDefinition>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deleteParameterDefinition'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -937,7 +884,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteParameterDefinition>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteParameterDefinition(id,fetchOptions)
+          return  deleteParameterDefinition(id,requestOptions)
         }
 
 
@@ -955,7 +902,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Удалить определение параметра
  */
 export const useDeleteParameterDefinition = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteParameterDefinition>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteParameterDefinition>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteParameterDefinition>>,
         TError,
@@ -997,21 +944,14 @@ export const getGetParameterDefinitionByIdUrl = (id: string,) => {
  */
 export const getParameterDefinitionById = async (id: string, options?: RequestInit): Promise<getParameterDefinitionByIdResponse> => {
 
-  const res = await fetch(getGetParameterDefinitionByIdUrl(id),
+  return sqlmoduleFetch<getParameterDefinitionByIdResponse>(getGetParameterDefinitionByIdUrl(id),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getParameterDefinitionByIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getParameterDefinitionByIdResponse
-}
+);}
 
 
 
@@ -1024,16 +964,16 @@ export const getGetParameterDefinitionByIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetParameterDefinitionByIdQueryOptions = <TData = Awaited<ReturnType<typeof getParameterDefinitionById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParameterDefinitionById>>, TError, TData>>, fetch?: RequestInit}
+export const getGetParameterDefinitionByIdQueryOptions = <TData = Awaited<ReturnType<typeof getParameterDefinitionById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParameterDefinitionById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetParameterDefinitionByIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getParameterDefinitionById>>> = ({ signal }) => getParameterDefinitionById(id, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getParameterDefinitionById>>> = ({ signal }) => getParameterDefinitionById(id, { signal, ...requestOptions });
 
 
 
@@ -1053,7 +993,7 @@ export function useGetParameterDefinitionById<TData = Awaited<ReturnType<typeof 
           TError,
           Awaited<ReturnType<typeof getParameterDefinitionById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetParameterDefinitionById<TData = Awaited<ReturnType<typeof getParameterDefinitionById>>, TError = ProblemDetails>(
@@ -1063,11 +1003,11 @@ export function useGetParameterDefinitionById<TData = Awaited<ReturnType<typeof 
           TError,
           Awaited<ReturnType<typeof getParameterDefinitionById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetParameterDefinitionById<TData = Awaited<ReturnType<typeof getParameterDefinitionById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParameterDefinitionById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParameterDefinitionById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1075,7 +1015,7 @@ export function useGetParameterDefinitionById<TData = Awaited<ReturnType<typeof 
  */
 
 export function useGetParameterDefinitionById<TData = Awaited<ReturnType<typeof getParameterDefinitionById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParameterDefinitionById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getParameterDefinitionById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1130,36 +1070,29 @@ export const getUpdateParameterDefinitionUrl = (id: string,) => {
 export const updateParameterDefinition = async (id: string,
     updateParameterDefinitionRequest: UpdateParameterDefinitionRequest, options?: RequestInit): Promise<updateParameterDefinitionResponse> => {
 
-  const res = await fetch(getUpdateParameterDefinitionUrl(id),
+  return sqlmoduleFetch<updateParameterDefinitionResponse>(getUpdateParameterDefinitionUrl(id),
   {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateParameterDefinitionRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateParameterDefinitionResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as updateParameterDefinitionResponse
-}
+);}
 
 
 
 
 
 export const getUpdateParameterDefinitionMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateParameterDefinition>>, TError,{id: string;data: UpdateParameterDefinitionRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateParameterDefinition>>, TError,{id: string;data: UpdateParameterDefinitionRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateParameterDefinition>>, TError,{id: string;data: UpdateParameterDefinitionRequest}, TContext> => {
 
 const mutationKey = ['updateParameterDefinition'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1167,7 +1100,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateParameterDefinition>>, {id: string;data: UpdateParameterDefinitionRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateParameterDefinition(id,data,fetchOptions)
+          return  updateParameterDefinition(id,data,requestOptions)
         }
 
 
@@ -1185,7 +1118,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Обновить определение параметра
  */
 export const useUpdateParameterDefinition = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateParameterDefinition>>, TError,{id: string;data: UpdateParameterDefinitionRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateParameterDefinition>>, TError,{id: string;data: UpdateParameterDefinitionRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateParameterDefinition>>,
         TError,
@@ -1228,36 +1161,29 @@ export const getValidateDbmsDictionaryUrl = () => {
 
 export const validateDbmsDictionary = async (createDbmsDictionaryRequest: CreateDbmsDictionaryRequest, options?: RequestInit): Promise<validateDbmsDictionaryResponse> => {
 
-  const res = await fetch(getValidateDbmsDictionaryUrl(),
+  return sqlmoduleFetch<validateDbmsDictionaryResponse>(getValidateDbmsDictionaryUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createDbmsDictionaryRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: validateDbmsDictionaryResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as validateDbmsDictionaryResponse
-}
+);}
 
 
 
 
 
 export const getValidateDbmsDictionaryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof validateDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext> => {
 
 const mutationKey = ['validateDbmsDictionary'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1265,7 +1191,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof validateDbmsDictionary>>, {data: CreateDbmsDictionaryRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  validateDbmsDictionary(data,fetchOptions)
+          return  validateDbmsDictionary(data,requestOptions)
         }
 
 
@@ -1280,7 +1206,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
     export type ValidateDbmsDictionaryMutationError = HttpValidationProblemDetails | ProblemDetails
 
     export const useValidateDbmsDictionary = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof validateDbmsDictionary>>,
         TError,
@@ -1329,36 +1255,29 @@ export const getUpdateDbmsDictionaryUrl = (id: string,) => {
 export const updateDbmsDictionary = async (id: string,
     updateDbmsDictionaryRequest: UpdateDbmsDictionaryRequest, options?: RequestInit): Promise<updateDbmsDictionaryResponse> => {
 
-  const res = await fetch(getUpdateDbmsDictionaryUrl(id),
+  return sqlmoduleFetch<updateDbmsDictionaryResponse>(getUpdateDbmsDictionaryUrl(id),
   {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateDbmsDictionaryRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateDbmsDictionaryResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateDbmsDictionaryResponse
-}
+);}
 
 
 
 
 
 export const getUpdateDbmsDictionaryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDbmsDictionary>>, TError,{id: string;data: UpdateDbmsDictionaryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDbmsDictionary>>, TError,{id: string;data: UpdateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateDbmsDictionary>>, TError,{id: string;data: UpdateDbmsDictionaryRequest}, TContext> => {
 
 const mutationKey = ['updateDbmsDictionary'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1366,7 +1285,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDbmsDictionary>>, {id: string;data: UpdateDbmsDictionaryRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateDbmsDictionary(id,data,fetchOptions)
+          return  updateDbmsDictionary(id,data,requestOptions)
         }
 
 
@@ -1381,7 +1300,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
     export type UpdateDbmsDictionaryMutationError = HttpValidationProblemDetails | ProblemDetails
 
     export const useUpdateDbmsDictionary = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDbmsDictionary>>, TError,{id: string;data: UpdateDbmsDictionaryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDbmsDictionary>>, TError,{id: string;data: UpdateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateDbmsDictionary>>,
         TError,
@@ -1419,21 +1338,14 @@ export const getGetDbmsDictionaryByIdUrl = (id: string,) => {
 
 export const getDbmsDictionaryById = async (id: string, options?: RequestInit): Promise<getDbmsDictionaryByIdResponse> => {
 
-  const res = await fetch(getGetDbmsDictionaryByIdUrl(id),
+  return sqlmoduleFetch<getDbmsDictionaryByIdResponse>(getGetDbmsDictionaryByIdUrl(id),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getDbmsDictionaryByIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getDbmsDictionaryByIdResponse
-}
+);}
 
 
 
@@ -1446,16 +1358,16 @@ export const getGetDbmsDictionaryByIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetDbmsDictionaryByIdQueryOptions = <TData = Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError, TData>>, fetch?: RequestInit}
+export const getGetDbmsDictionaryByIdQueryOptions = <TData = Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetDbmsDictionaryByIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDbmsDictionaryById>>> = ({ signal }) => getDbmsDictionaryById(id, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDbmsDictionaryById>>> = ({ signal }) => getDbmsDictionaryById(id, { signal, ...requestOptions });
 
 
 
@@ -1475,7 +1387,7 @@ export function useGetDbmsDictionaryById<TData = Awaited<ReturnType<typeof getDb
           TError,
           Awaited<ReturnType<typeof getDbmsDictionaryById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetDbmsDictionaryById<TData = Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError = ProblemDetails>(
@@ -1485,16 +1397,16 @@ export function useGetDbmsDictionaryById<TData = Awaited<ReturnType<typeof getDb
           TError,
           Awaited<ReturnType<typeof getDbmsDictionaryById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetDbmsDictionaryById<TData = Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useGetDbmsDictionaryById<TData = Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsDictionaryById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1544,36 +1456,29 @@ export const getDeleteDbmsDictionaryUrl = (id: string,) => {
 
 export const deleteDbmsDictionary = async (id: string, options?: RequestInit): Promise<deleteDbmsDictionaryResponse> => {
 
-  const res = await fetch(getDeleteDbmsDictionaryUrl(id),
+  return sqlmoduleFetch<deleteDbmsDictionaryResponse>(getDeleteDbmsDictionaryUrl(id),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteDbmsDictionaryResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteDbmsDictionaryResponse
-}
+);}
 
 
 
 
 
 export const getDeleteDbmsDictionaryMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDbmsDictionary>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDbmsDictionary>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteDbmsDictionary>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deleteDbmsDictionary'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1581,7 +1486,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDbmsDictionary>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteDbmsDictionary(id,fetchOptions)
+          return  deleteDbmsDictionary(id,requestOptions)
         }
 
 
@@ -1596,7 +1501,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
     export type DeleteDbmsDictionaryMutationError = ProblemDetails
 
     export const useDeleteDbmsDictionary = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDbmsDictionary>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDbmsDictionary>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteDbmsDictionary>>,
         TError,
@@ -1641,21 +1546,14 @@ export const getGetAllDbmsDictionariesUrl = (params?: GetAllDbmsDictionariesPara
 
 export const getAllDbmsDictionaries = async (params?: GetAllDbmsDictionariesParams, options?: RequestInit): Promise<getAllDbmsDictionariesResponse> => {
 
-  const res = await fetch(getGetAllDbmsDictionariesUrl(params),
+  return sqlmoduleFetch<getAllDbmsDictionariesResponse>(getGetAllDbmsDictionariesUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAllDbmsDictionariesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAllDbmsDictionariesResponse
-}
+);}
 
 
 
@@ -1668,16 +1566,16 @@ export const getGetAllDbmsDictionariesQueryKey = (params?: GetAllDbmsDictionarie
     }
 
 
-export const getGetAllDbmsDictionariesQueryOptions = <TData = Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError = HttpValidationProblemDetails>(params?: GetAllDbmsDictionariesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAllDbmsDictionariesQueryOptions = <TData = Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError = HttpValidationProblemDetails>(params?: GetAllDbmsDictionariesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllDbmsDictionariesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllDbmsDictionaries>>> = ({ signal }) => getAllDbmsDictionaries(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllDbmsDictionaries>>> = ({ signal }) => getAllDbmsDictionaries(params, { signal, ...requestOptions });
 
 
 
@@ -1697,7 +1595,7 @@ export function useGetAllDbmsDictionaries<TData = Awaited<ReturnType<typeof getA
           TError,
           Awaited<ReturnType<typeof getAllDbmsDictionaries>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllDbmsDictionaries<TData = Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError = HttpValidationProblemDetails>(
@@ -1707,16 +1605,16 @@ export function useGetAllDbmsDictionaries<TData = Awaited<ReturnType<typeof getA
           TError,
           Awaited<ReturnType<typeof getAllDbmsDictionaries>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllDbmsDictionaries<TData = Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError = HttpValidationProblemDetails>(
- params?: GetAllDbmsDictionariesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllDbmsDictionariesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useGetAllDbmsDictionaries<TData = Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError = HttpValidationProblemDetails>(
- params?: GetAllDbmsDictionariesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllDbmsDictionariesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDbmsDictionaries>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1766,36 +1664,29 @@ export const getCreateDbmsDictionaryUrl = () => {
 
 export const createDbmsDictionary = async (createDbmsDictionaryRequest: CreateDbmsDictionaryRequest, options?: RequestInit): Promise<createDbmsDictionaryResponse> => {
 
-  const res = await fetch(getCreateDbmsDictionaryUrl(),
+  return sqlmoduleFetch<createDbmsDictionaryResponse>(getCreateDbmsDictionaryUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createDbmsDictionaryRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createDbmsDictionaryResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createDbmsDictionaryResponse
-}
+);}
 
 
 
 
 
 export const getCreateDbmsDictionaryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext> => {
 
 const mutationKey = ['createDbmsDictionary'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1803,7 +1694,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDbmsDictionary>>, {data: CreateDbmsDictionaryRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createDbmsDictionary(data,fetchOptions)
+          return  createDbmsDictionary(data,requestOptions)
         }
 
 
@@ -1818,7 +1709,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
     export type CreateDbmsDictionaryMutationError = HttpValidationProblemDetails | ProblemDetails
 
     export const useCreateDbmsDictionary = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createDbmsDictionary>>,
         TError,

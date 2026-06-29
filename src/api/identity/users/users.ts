@@ -20,7 +20,10 @@ import type {
   ProblemDetails
 } from '../model';
 
+import { identityFetch } from '../../../shared/http/identity-fetch';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -73,36 +76,29 @@ export const getAssignRoleUrl = (id: string,) => {
 export const assignRole = async (id: string,
     assignRoleRequest: AssignRoleRequest, options?: RequestInit): Promise<assignRoleResponse> => {
 
-  const res = await fetch(getAssignRoleUrl(id),
+  return identityFetch<assignRoleResponse>(getAssignRoleUrl(id),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(assignRoleRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: assignRoleResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as assignRoleResponse
-}
+);}
 
 
 
 
 
 export const getAssignRoleMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignRole>>, TError,{id: string;data: AssignRoleRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignRole>>, TError,{id: string;data: AssignRoleRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof assignRole>>, TError,{id: string;data: AssignRoleRequest}, TContext> => {
 
 const mutationKey = ['assignRole'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -110,7 +106,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignRole>>, {id: string;data: AssignRoleRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  assignRole(id,data,fetchOptions)
+          return  assignRole(id,data,requestOptions)
         }
 
 
@@ -128,7 +124,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Присвоение роли пользователю
  */
 export const useAssignRole = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignRole>>, TError,{id: string;data: AssignRoleRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignRole>>, TError,{id: string;data: AssignRoleRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof assignRole>>,
         TError,

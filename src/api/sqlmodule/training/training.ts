@@ -50,7 +50,10 @@ import type {
   UpdateTopicRequest
 } from '../model';
 
+import { sqlmoduleFetch } from '../../../shared/http/sqlmodule-fetch';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -107,36 +110,29 @@ export const getCreateTopicUrl = () => {
  */
 export const createTopic = async (createTopicRequest: CreateTopicRequest, options?: RequestInit): Promise<createTopicResponse> => {
 
-  const res = await fetch(getCreateTopicUrl(),
+  return sqlmoduleFetch<createTopicResponse>(getCreateTopicUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createTopicRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createTopicResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createTopicResponse
-}
+);}
 
 
 
 
 
 export const getCreateTopicMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTopic>>, TError,{data: CreateTopicRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTopic>>, TError,{data: CreateTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createTopic>>, TError,{data: CreateTopicRequest}, TContext> => {
 
 const mutationKey = ['createTopic'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -144,7 +140,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTopic>>, {data: CreateTopicRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createTopic(data,fetchOptions)
+          return  createTopic(data,requestOptions)
         }
 
 
@@ -162,7 +158,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Создать тему
  */
 export const useCreateTopic = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTopic>>, TError,{data: CreateTopicRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTopic>>, TError,{data: CreateTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createTopic>>,
         TError,
@@ -211,21 +207,14 @@ export const getGetAllTopicsUrl = (params?: GetAllTopicsParams,) => {
  */
 export const getAllTopics = async (params?: GetAllTopicsParams, options?: RequestInit): Promise<getAllTopicsResponse> => {
 
-  const res = await fetch(getGetAllTopicsUrl(params),
+  return sqlmoduleFetch<getAllTopicsResponse>(getGetAllTopicsUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAllTopicsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAllTopicsResponse
-}
+);}
 
 
 
@@ -238,16 +227,16 @@ export const getGetAllTopicsQueryKey = (params?: GetAllTopicsParams,) => {
     }
 
 
-export const getGetAllTopicsQueryOptions = <TData = Awaited<ReturnType<typeof getAllTopics>>, TError = HttpValidationProblemDetails>(params?: GetAllTopicsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllTopics>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAllTopicsQueryOptions = <TData = Awaited<ReturnType<typeof getAllTopics>>, TError = HttpValidationProblemDetails>(params?: GetAllTopicsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllTopics>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllTopicsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllTopics>>> = ({ signal }) => getAllTopics(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllTopics>>> = ({ signal }) => getAllTopics(params, { signal, ...requestOptions });
 
 
 
@@ -267,7 +256,7 @@ export function useGetAllTopics<TData = Awaited<ReturnType<typeof getAllTopics>>
           TError,
           Awaited<ReturnType<typeof getAllTopics>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllTopics<TData = Awaited<ReturnType<typeof getAllTopics>>, TError = HttpValidationProblemDetails>(
@@ -277,11 +266,11 @@ export function useGetAllTopics<TData = Awaited<ReturnType<typeof getAllTopics>>
           TError,
           Awaited<ReturnType<typeof getAllTopics>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllTopics<TData = Awaited<ReturnType<typeof getAllTopics>>, TError = HttpValidationProblemDetails>(
- params?: GetAllTopicsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllTopics>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllTopicsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllTopics>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -289,7 +278,7 @@ export function useGetAllTopics<TData = Awaited<ReturnType<typeof getAllTopics>>
  */
 
 export function useGetAllTopics<TData = Awaited<ReturnType<typeof getAllTopics>>, TError = HttpValidationProblemDetails>(
- params?: GetAllTopicsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllTopics>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllTopicsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllTopics>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -343,36 +332,29 @@ export const getDeleteTopicUrl = (id: string,) => {
  */
 export const deleteTopic = async (id: string, options?: RequestInit): Promise<deleteTopicResponse> => {
 
-  const res = await fetch(getDeleteTopicUrl(id),
+  return sqlmoduleFetch<deleteTopicResponse>(getDeleteTopicUrl(id),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteTopicResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteTopicResponse
-}
+);}
 
 
 
 
 
 export const getDeleteTopicMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTopic>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTopic>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteTopic>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deleteTopic'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -380,7 +362,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTopic>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteTopic(id,fetchOptions)
+          return  deleteTopic(id,requestOptions)
         }
 
 
@@ -398,7 +380,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Удалить тему
  */
 export const useDeleteTopic = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTopic>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTopic>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteTopic>>,
         TError,
@@ -440,21 +422,14 @@ export const getGetTopicByIdUrl = (id: string,) => {
  */
 export const getTopicById = async (id: string, options?: RequestInit): Promise<getTopicByIdResponse> => {
 
-  const res = await fetch(getGetTopicByIdUrl(id),
+  return sqlmoduleFetch<getTopicByIdResponse>(getGetTopicByIdUrl(id),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getTopicByIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getTopicByIdResponse
-}
+);}
 
 
 
@@ -467,16 +442,16 @@ export const getGetTopicByIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetTopicByIdQueryOptions = <TData = Awaited<ReturnType<typeof getTopicById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTopicById>>, TError, TData>>, fetch?: RequestInit}
+export const getGetTopicByIdQueryOptions = <TData = Awaited<ReturnType<typeof getTopicById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTopicById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetTopicByIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTopicById>>> = ({ signal }) => getTopicById(id, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTopicById>>> = ({ signal }) => getTopicById(id, { signal, ...requestOptions });
 
 
 
@@ -496,7 +471,7 @@ export function useGetTopicById<TData = Awaited<ReturnType<typeof getTopicById>>
           TError,
           Awaited<ReturnType<typeof getTopicById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetTopicById<TData = Awaited<ReturnType<typeof getTopicById>>, TError = ProblemDetails>(
@@ -506,11 +481,11 @@ export function useGetTopicById<TData = Awaited<ReturnType<typeof getTopicById>>
           TError,
           Awaited<ReturnType<typeof getTopicById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetTopicById<TData = Awaited<ReturnType<typeof getTopicById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTopicById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTopicById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -518,7 +493,7 @@ export function useGetTopicById<TData = Awaited<ReturnType<typeof getTopicById>>
  */
 
 export function useGetTopicById<TData = Awaited<ReturnType<typeof getTopicById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTopicById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTopicById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -573,36 +548,29 @@ export const getUpdateTopicUrl = (id: string,) => {
 export const updateTopic = async (id: string,
     updateTopicRequest: UpdateTopicRequest, options?: RequestInit): Promise<updateTopicResponse> => {
 
-  const res = await fetch(getUpdateTopicUrl(id),
+  return sqlmoduleFetch<updateTopicResponse>(getUpdateTopicUrl(id),
   {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateTopicRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateTopicResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as updateTopicResponse
-}
+);}
 
 
 
 
 
 export const getUpdateTopicMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTopic>>, TError,{id: string;data: UpdateTopicRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTopic>>, TError,{id: string;data: UpdateTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateTopic>>, TError,{id: string;data: UpdateTopicRequest}, TContext> => {
 
 const mutationKey = ['updateTopic'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -610,7 +578,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTopic>>, {id: string;data: UpdateTopicRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateTopic(id,data,fetchOptions)
+          return  updateTopic(id,data,requestOptions)
         }
 
 
@@ -628,7 +596,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Обновить тему
  */
 export const useUpdateTopic = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTopic>>, TError,{id: string;data: UpdateTopicRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTopic>>, TError,{id: string;data: UpdateTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateTopic>>,
         TError,
@@ -676,36 +644,29 @@ export const getMoveTopicUrl = (id: string,) => {
 export const moveTopic = async (id: string,
     moveTopicRequest: MoveTopicRequest, options?: RequestInit): Promise<moveTopicResponse> => {
 
-  const res = await fetch(getMoveTopicUrl(id),
+  return sqlmoduleFetch<moveTopicResponse>(getMoveTopicUrl(id),
   {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(moveTopicRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: moveTopicResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as moveTopicResponse
-}
+);}
 
 
 
 
 
 export const getMoveTopicMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveTopic>>, TError,{id: string;data: MoveTopicRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveTopic>>, TError,{id: string;data: MoveTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof moveTopic>>, TError,{id: string;data: MoveTopicRequest}, TContext> => {
 
 const mutationKey = ['moveTopic'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -713,7 +674,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof moveTopic>>, {id: string;data: MoveTopicRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  moveTopic(id,data,fetchOptions)
+          return  moveTopic(id,data,requestOptions)
         }
 
 
@@ -731,7 +692,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Переместить тему
  */
 export const useMoveTopic = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveTopic>>, TError,{id: string;data: MoveTopicRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveTopic>>, TError,{id: string;data: MoveTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof moveTopic>>,
         TError,
@@ -778,36 +739,29 @@ export const getCreateSqlTaskUrl = () => {
  */
 export const createSqlTask = async (createSqlTaskRequest: CreateSqlTaskRequest, options?: RequestInit): Promise<createSqlTaskResponse> => {
 
-  const res = await fetch(getCreateSqlTaskUrl(),
+  return sqlmoduleFetch<createSqlTaskResponse>(getCreateSqlTaskUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createSqlTaskRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createSqlTaskResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createSqlTaskResponse
-}
+);}
 
 
 
 
 
 export const getCreateSqlTaskMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlTask>>, TError,{data: CreateSqlTaskRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlTask>>, TError,{data: CreateSqlTaskRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createSqlTask>>, TError,{data: CreateSqlTaskRequest}, TContext> => {
 
 const mutationKey = ['createSqlTask'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -815,7 +769,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSqlTask>>, {data: CreateSqlTaskRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createSqlTask(data,fetchOptions)
+          return  createSqlTask(data,requestOptions)
         }
 
 
@@ -833,7 +787,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Создать SQL-задание
  */
 export const useCreateSqlTask = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlTask>>, TError,{data: CreateSqlTaskRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlTask>>, TError,{data: CreateSqlTaskRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createSqlTask>>,
         TError,
@@ -882,21 +836,14 @@ export const getGetAllSqlTasksUrl = (params?: GetAllSqlTasksParams,) => {
  */
 export const getAllSqlTasks = async (params?: GetAllSqlTasksParams, options?: RequestInit): Promise<getAllSqlTasksResponse> => {
 
-  const res = await fetch(getGetAllSqlTasksUrl(params),
+  return sqlmoduleFetch<getAllSqlTasksResponse>(getGetAllSqlTasksUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAllSqlTasksResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAllSqlTasksResponse
-}
+);}
 
 
 
@@ -909,16 +856,16 @@ export const getGetAllSqlTasksQueryKey = (params?: GetAllSqlTasksParams,) => {
     }
 
 
-export const getGetAllSqlTasksQueryOptions = <TData = Awaited<ReturnType<typeof getAllSqlTasks>>, TError = HttpValidationProblemDetails>(params?: GetAllSqlTasksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlTasks>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAllSqlTasksQueryOptions = <TData = Awaited<ReturnType<typeof getAllSqlTasks>>, TError = HttpValidationProblemDetails>(params?: GetAllSqlTasksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlTasks>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllSqlTasksQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllSqlTasks>>> = ({ signal }) => getAllSqlTasks(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllSqlTasks>>> = ({ signal }) => getAllSqlTasks(params, { signal, ...requestOptions });
 
 
 
@@ -938,7 +885,7 @@ export function useGetAllSqlTasks<TData = Awaited<ReturnType<typeof getAllSqlTas
           TError,
           Awaited<ReturnType<typeof getAllSqlTasks>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllSqlTasks<TData = Awaited<ReturnType<typeof getAllSqlTasks>>, TError = HttpValidationProblemDetails>(
@@ -948,11 +895,11 @@ export function useGetAllSqlTasks<TData = Awaited<ReturnType<typeof getAllSqlTas
           TError,
           Awaited<ReturnType<typeof getAllSqlTasks>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllSqlTasks<TData = Awaited<ReturnType<typeof getAllSqlTasks>>, TError = HttpValidationProblemDetails>(
- params?: GetAllSqlTasksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlTasks>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllSqlTasksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlTasks>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -960,7 +907,7 @@ export function useGetAllSqlTasks<TData = Awaited<ReturnType<typeof getAllSqlTas
  */
 
 export function useGetAllSqlTasks<TData = Awaited<ReturnType<typeof getAllSqlTasks>>, TError = HttpValidationProblemDetails>(
- params?: GetAllSqlTasksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlTasks>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllSqlTasksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlTasks>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1014,36 +961,29 @@ export const getDeleteSqlTaskUrl = (id: string,) => {
  */
 export const deleteSqlTask = async (id: string, options?: RequestInit): Promise<deleteSqlTaskResponse> => {
 
-  const res = await fetch(getDeleteSqlTaskUrl(id),
+  return sqlmoduleFetch<deleteSqlTaskResponse>(getDeleteSqlTaskUrl(id),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteSqlTaskResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteSqlTaskResponse
-}
+);}
 
 
 
 
 
 export const getDeleteSqlTaskMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSqlTask>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSqlTask>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteSqlTask>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deleteSqlTask'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1051,7 +991,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSqlTask>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteSqlTask(id,fetchOptions)
+          return  deleteSqlTask(id,requestOptions)
         }
 
 
@@ -1069,7 +1009,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Удалить SQL-задание
  */
 export const useDeleteSqlTask = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSqlTask>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSqlTask>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteSqlTask>>,
         TError,
@@ -1111,21 +1051,14 @@ export const getGetSqlTaskByIdUrl = (id: string,) => {
  */
 export const getSqlTaskById = async (id: string, options?: RequestInit): Promise<getSqlTaskByIdResponse> => {
 
-  const res = await fetch(getGetSqlTaskByIdUrl(id),
+  return sqlmoduleFetch<getSqlTaskByIdResponse>(getGetSqlTaskByIdUrl(id),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getSqlTaskByIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getSqlTaskByIdResponse
-}
+);}
 
 
 
@@ -1138,16 +1071,16 @@ export const getGetSqlTaskByIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetSqlTaskByIdQueryOptions = <TData = Awaited<ReturnType<typeof getSqlTaskById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlTaskById>>, TError, TData>>, fetch?: RequestInit}
+export const getGetSqlTaskByIdQueryOptions = <TData = Awaited<ReturnType<typeof getSqlTaskById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlTaskById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetSqlTaskByIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSqlTaskById>>> = ({ signal }) => getSqlTaskById(id, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSqlTaskById>>> = ({ signal }) => getSqlTaskById(id, { signal, ...requestOptions });
 
 
 
@@ -1167,7 +1100,7 @@ export function useGetSqlTaskById<TData = Awaited<ReturnType<typeof getSqlTaskBy
           TError,
           Awaited<ReturnType<typeof getSqlTaskById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetSqlTaskById<TData = Awaited<ReturnType<typeof getSqlTaskById>>, TError = ProblemDetails>(
@@ -1177,11 +1110,11 @@ export function useGetSqlTaskById<TData = Awaited<ReturnType<typeof getSqlTaskBy
           TError,
           Awaited<ReturnType<typeof getSqlTaskById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetSqlTaskById<TData = Awaited<ReturnType<typeof getSqlTaskById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlTaskById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlTaskById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1189,7 +1122,7 @@ export function useGetSqlTaskById<TData = Awaited<ReturnType<typeof getSqlTaskBy
  */
 
 export function useGetSqlTaskById<TData = Awaited<ReturnType<typeof getSqlTaskById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlTaskById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlTaskById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1244,36 +1177,29 @@ export const getUpdateSqlTaskUrl = (id: string,) => {
 export const updateSqlTask = async (id: string,
     updateSqlTaskRequest: UpdateSqlTaskRequest, options?: RequestInit): Promise<updateSqlTaskResponse> => {
 
-  const res = await fetch(getUpdateSqlTaskUrl(id),
+  return sqlmoduleFetch<updateSqlTaskResponse>(getUpdateSqlTaskUrl(id),
   {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateSqlTaskRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateSqlTaskResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as updateSqlTaskResponse
-}
+);}
 
 
 
 
 
 export const getUpdateSqlTaskMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlTask>>, TError,{id: string;data: UpdateSqlTaskRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlTask>>, TError,{id: string;data: UpdateSqlTaskRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSqlTask>>, TError,{id: string;data: UpdateSqlTaskRequest}, TContext> => {
 
 const mutationKey = ['updateSqlTask'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1281,7 +1207,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSqlTask>>, {id: string;data: UpdateSqlTaskRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateSqlTask(id,data,fetchOptions)
+          return  updateSqlTask(id,data,requestOptions)
         }
 
 
@@ -1299,7 +1225,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Обновить SQL-задание
  */
 export const useUpdateSqlTask = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlTask>>, TError,{id: string;data: UpdateSqlTaskRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlTask>>, TError,{id: string;data: UpdateSqlTaskRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateSqlTask>>,
         TError,
@@ -1341,36 +1267,29 @@ export const getCreateSqlQueryUrl = () => {
  */
 export const createSqlQuery = async (createSqlQueryRequest: CreateSqlQueryRequest, options?: RequestInit): Promise<createSqlQueryResponse> => {
 
-  const res = await fetch(getCreateSqlQueryUrl(),
+  return sqlmoduleFetch<createSqlQueryResponse>(getCreateSqlQueryUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createSqlQueryRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createSqlQueryResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createSqlQueryResponse
-}
+);}
 
 
 
 
 
 export const getCreateSqlQueryMutationOptions = <TError = HttpValidationProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlQuery>>, TError,{data: CreateSqlQueryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlQuery>>, TError,{data: CreateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createSqlQuery>>, TError,{data: CreateSqlQueryRequest}, TContext> => {
 
 const mutationKey = ['createSqlQuery'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1378,7 +1297,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSqlQuery>>, {data: CreateSqlQueryRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  createSqlQuery(data,fetchOptions)
+          return  createSqlQuery(data,requestOptions)
         }
 
 
@@ -1396,7 +1315,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Создать эталонный SQL-запрос
  */
 export const useCreateSqlQuery = <TError = HttpValidationProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlQuery>>, TError,{data: CreateSqlQueryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlQuery>>, TError,{data: CreateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createSqlQuery>>,
         TError,
@@ -1445,21 +1364,14 @@ export const getGetAllSqlQueriesUrl = (params?: GetAllSqlQueriesParams,) => {
  */
 export const getAllSqlQueries = async (params?: GetAllSqlQueriesParams, options?: RequestInit): Promise<getAllSqlQueriesResponse> => {
 
-  const res = await fetch(getGetAllSqlQueriesUrl(params),
+  return sqlmoduleFetch<getAllSqlQueriesResponse>(getGetAllSqlQueriesUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAllSqlQueriesResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAllSqlQueriesResponse
-}
+);}
 
 
 
@@ -1472,16 +1384,16 @@ export const getGetAllSqlQueriesQueryKey = (params?: GetAllSqlQueriesParams,) =>
     }
 
 
-export const getGetAllSqlQueriesQueryOptions = <TData = Awaited<ReturnType<typeof getAllSqlQueries>>, TError = HttpValidationProblemDetails>(params?: GetAllSqlQueriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlQueries>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAllSqlQueriesQueryOptions = <TData = Awaited<ReturnType<typeof getAllSqlQueries>>, TError = HttpValidationProblemDetails>(params?: GetAllSqlQueriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlQueries>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllSqlQueriesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllSqlQueries>>> = ({ signal }) => getAllSqlQueries(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllSqlQueries>>> = ({ signal }) => getAllSqlQueries(params, { signal, ...requestOptions });
 
 
 
@@ -1501,7 +1413,7 @@ export function useGetAllSqlQueries<TData = Awaited<ReturnType<typeof getAllSqlQ
           TError,
           Awaited<ReturnType<typeof getAllSqlQueries>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllSqlQueries<TData = Awaited<ReturnType<typeof getAllSqlQueries>>, TError = HttpValidationProblemDetails>(
@@ -1511,11 +1423,11 @@ export function useGetAllSqlQueries<TData = Awaited<ReturnType<typeof getAllSqlQ
           TError,
           Awaited<ReturnType<typeof getAllSqlQueries>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllSqlQueries<TData = Awaited<ReturnType<typeof getAllSqlQueries>>, TError = HttpValidationProblemDetails>(
- params?: GetAllSqlQueriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlQueries>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllSqlQueriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlQueries>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1523,7 +1435,7 @@ export function useGetAllSqlQueries<TData = Awaited<ReturnType<typeof getAllSqlQ
  */
 
 export function useGetAllSqlQueries<TData = Awaited<ReturnType<typeof getAllSqlQueries>>, TError = HttpValidationProblemDetails>(
- params?: GetAllSqlQueriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlQueries>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllSqlQueriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllSqlQueries>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1577,36 +1489,29 @@ export const getDeleteSqlQueryUrl = (id: string,) => {
  */
 export const deleteSqlQuery = async (id: string, options?: RequestInit): Promise<deleteSqlQueryResponse> => {
 
-  const res = await fetch(getDeleteSqlQueryUrl(id),
+  return sqlmoduleFetch<deleteSqlQueryResponse>(getDeleteSqlQueryUrl(id),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteSqlQueryResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteSqlQueryResponse
-}
+);}
 
 
 
 
 
 export const getDeleteSqlQueryMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSqlQuery>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSqlQuery>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteSqlQuery>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deleteSqlQuery'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1614,7 +1519,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSqlQuery>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteSqlQuery(id,fetchOptions)
+          return  deleteSqlQuery(id,requestOptions)
         }
 
 
@@ -1632,7 +1537,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Удалить SQL-запрос
  */
 export const useDeleteSqlQuery = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSqlQuery>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSqlQuery>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteSqlQuery>>,
         TError,
@@ -1674,21 +1579,14 @@ export const getGetSqlQueryByIdUrl = (id: string,) => {
  */
 export const getSqlQueryById = async (id: string, options?: RequestInit): Promise<getSqlQueryByIdResponse> => {
 
-  const res = await fetch(getGetSqlQueryByIdUrl(id),
+  return sqlmoduleFetch<getSqlQueryByIdResponse>(getGetSqlQueryByIdUrl(id),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getSqlQueryByIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getSqlQueryByIdResponse
-}
+);}
 
 
 
@@ -1701,16 +1599,16 @@ export const getGetSqlQueryByIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetSqlQueryByIdQueryOptions = <TData = Awaited<ReturnType<typeof getSqlQueryById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlQueryById>>, TError, TData>>, fetch?: RequestInit}
+export const getGetSqlQueryByIdQueryOptions = <TData = Awaited<ReturnType<typeof getSqlQueryById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlQueryById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetSqlQueryByIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSqlQueryById>>> = ({ signal }) => getSqlQueryById(id, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSqlQueryById>>> = ({ signal }) => getSqlQueryById(id, { signal, ...requestOptions });
 
 
 
@@ -1730,7 +1628,7 @@ export function useGetSqlQueryById<TData = Awaited<ReturnType<typeof getSqlQuery
           TError,
           Awaited<ReturnType<typeof getSqlQueryById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetSqlQueryById<TData = Awaited<ReturnType<typeof getSqlQueryById>>, TError = ProblemDetails>(
@@ -1740,11 +1638,11 @@ export function useGetSqlQueryById<TData = Awaited<ReturnType<typeof getSqlQuery
           TError,
           Awaited<ReturnType<typeof getSqlQueryById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetSqlQueryById<TData = Awaited<ReturnType<typeof getSqlQueryById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlQueryById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlQueryById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -1752,7 +1650,7 @@ export function useGetSqlQueryById<TData = Awaited<ReturnType<typeof getSqlQuery
  */
 
 export function useGetSqlQueryById<TData = Awaited<ReturnType<typeof getSqlQueryById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlQueryById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSqlQueryById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -1807,36 +1705,29 @@ export const getUpdateSqlQueryUrl = (id: string,) => {
 export const updateSqlQuery = async (id: string,
     updateSqlQueryRequest: UpdateSqlQueryRequest, options?: RequestInit): Promise<updateSqlQueryResponse> => {
 
-  const res = await fetch(getUpdateSqlQueryUrl(id),
+  return sqlmoduleFetch<updateSqlQueryResponse>(getUpdateSqlQueryUrl(id),
   {
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateSqlQueryRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateSqlQueryResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as updateSqlQueryResponse
-}
+);}
 
 
 
 
 
 export const getUpdateSqlQueryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlQuery>>, TError,{id: string;data: UpdateSqlQueryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlQuery>>, TError,{id: string;data: UpdateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSqlQuery>>, TError,{id: string;data: UpdateSqlQueryRequest}, TContext> => {
 
 const mutationKey = ['updateSqlQuery'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1844,7 +1735,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSqlQuery>>, {id: string;data: UpdateSqlQueryRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateSqlQuery(id,data,fetchOptions)
+          return  updateSqlQuery(id,data,requestOptions)
         }
 
 
@@ -1862,7 +1753,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Обновить SQL-запрос
  */
 export const useUpdateSqlQuery = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlQuery>>, TError,{id: string;data: UpdateSqlQueryRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlQuery>>, TError,{id: string;data: UpdateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateSqlQuery>>,
         TError,
@@ -1904,36 +1795,29 @@ export const getDeleteAttemptUrl = (id: string,) => {
  */
 export const deleteAttempt = async (id: string, options?: RequestInit): Promise<deleteAttemptResponse> => {
 
-  const res = await fetch(getDeleteAttemptUrl(id),
+  return sqlmoduleFetch<deleteAttemptResponse>(getDeleteAttemptUrl(id),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteAttemptResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteAttemptResponse
-}
+);}
 
 
 
 
 
 export const getDeleteAttemptMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAttempt>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAttempt>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteAttempt>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deleteAttempt'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -1941,7 +1825,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAttempt>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteAttempt(id,fetchOptions)
+          return  deleteAttempt(id,requestOptions)
         }
 
 
@@ -1959,7 +1843,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Удалить попытку
  */
 export const useDeleteAttempt = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAttempt>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAttempt>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteAttempt>>,
         TError,
@@ -2001,21 +1885,14 @@ export const getGetAttemptByIdUrl = (id: string,) => {
  */
 export const getAttemptById = async (id: string, options?: RequestInit): Promise<getAttemptByIdResponse> => {
 
-  const res = await fetch(getGetAttemptByIdUrl(id),
+  return sqlmoduleFetch<getAttemptByIdResponse>(getGetAttemptByIdUrl(id),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAttemptByIdResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAttemptByIdResponse
-}
+);}
 
 
 
@@ -2028,16 +1905,16 @@ export const getGetAttemptByIdQueryKey = (id: string,) => {
     }
 
 
-export const getGetAttemptByIdQueryOptions = <TData = Awaited<ReturnType<typeof getAttemptById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttemptById>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAttemptByIdQueryOptions = <TData = Awaited<ReturnType<typeof getAttemptById>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttemptById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAttemptByIdQueryKey(id);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAttemptById>>> = ({ signal }) => getAttemptById(id, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAttemptById>>> = ({ signal }) => getAttemptById(id, { signal, ...requestOptions });
 
 
 
@@ -2057,7 +1934,7 @@ export function useGetAttemptById<TData = Awaited<ReturnType<typeof getAttemptBy
           TError,
           Awaited<ReturnType<typeof getAttemptById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAttemptById<TData = Awaited<ReturnType<typeof getAttemptById>>, TError = ProblemDetails>(
@@ -2067,11 +1944,11 @@ export function useGetAttemptById<TData = Awaited<ReturnType<typeof getAttemptBy
           TError,
           Awaited<ReturnType<typeof getAttemptById>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAttemptById<TData = Awaited<ReturnType<typeof getAttemptById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttemptById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttemptById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -2079,7 +1956,7 @@ export function useGetAttemptById<TData = Awaited<ReturnType<typeof getAttemptBy
  */
 
 export function useGetAttemptById<TData = Awaited<ReturnType<typeof getAttemptById>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttemptById>>, TError, TData>>, fetch?: RequestInit}
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAttemptById>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -2135,21 +2012,14 @@ export const getGetAllAttemptsUrl = (params?: GetAllAttemptsParams,) => {
  */
 export const getAllAttempts = async (params?: GetAllAttemptsParams, options?: RequestInit): Promise<getAllAttemptsResponse> => {
 
-  const res = await fetch(getGetAllAttemptsUrl(params),
+  return sqlmoduleFetch<getAllAttemptsResponse>(getGetAllAttemptsUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAllAttemptsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAllAttemptsResponse
-}
+);}
 
 
 
@@ -2162,16 +2032,16 @@ export const getGetAllAttemptsQueryKey = (params?: GetAllAttemptsParams,) => {
     }
 
 
-export const getGetAllAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAllAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllAttemptsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllAttempts>>> = ({ signal }) => getAllAttempts(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllAttempts>>> = ({ signal }) => getAllAttempts(params, { signal, ...requestOptions });
 
 
 
@@ -2191,7 +2061,7 @@ export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttemp
           TError,
           Awaited<ReturnType<typeof getAllAttempts>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(
@@ -2201,11 +2071,11 @@ export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttemp
           TError,
           Awaited<ReturnType<typeof getAllAttempts>>
         > , 'initialData'
-      >, fetch?: RequestInit}
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(
- params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -2213,7 +2083,7 @@ export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttemp
  */
 
 export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(
- params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, fetch?: RequestInit}
+ params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -2272,36 +2142,29 @@ export const getSubmitAttemptUrl = () => {
  */
 export const submitAttempt = async (submitAttemptRequest: SubmitAttemptRequest, options?: RequestInit): Promise<submitAttemptResponse> => {
 
-  const res = await fetch(getSubmitAttemptUrl(),
+  return sqlmoduleFetch<submitAttemptResponse>(getSubmitAttemptUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(submitAttemptRequest)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: submitAttemptResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as submitAttemptResponse
-}
+);}
 
 
 
 
 
 export const getSubmitAttemptMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAttempt>>, TError,{data: SubmitAttemptRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAttempt>>, TError,{data: SubmitAttemptRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof submitAttempt>>, TError,{data: SubmitAttemptRequest}, TContext> => {
 
 const mutationKey = ['submitAttempt'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -2309,7 +2172,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitAttempt>>, {data: SubmitAttemptRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  submitAttempt(data,fetchOptions)
+          return  submitAttempt(data,requestOptions)
         }
 
 
@@ -2327,7 +2190,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Отправить попытку выполнения задания
  */
 export const useSubmitAttempt = <TError = HttpValidationProblemDetails | ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAttempt>>, TError,{data: SubmitAttemptRequest}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAttempt>>, TError,{data: SubmitAttemptRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof submitAttempt>>,
         TError,

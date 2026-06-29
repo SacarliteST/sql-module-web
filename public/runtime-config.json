@@ -1,0 +1,5 @@
+{
+  "sqlModuleApiUrl": "http://localhost:5000",
+  "identityApiUrl": "http://localhost:5001",
+  "basePath": "/"
+}

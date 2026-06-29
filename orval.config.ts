@@ -12,6 +12,12 @@ export default defineConfig({
       client: 'react-query',
       httpClient: 'fetch',
       clean: true,
+      override: {
+        mutator: {
+          path: './src/shared/http/sqlmodule-fetch.ts',
+          name: 'sqlmoduleFetch',
+        },
+      },
     },
   },
   identity: {
@@ -25,6 +31,12 @@ export default defineConfig({
       client: 'react-query',
       httpClient: 'fetch',
       clean: true,
+      override: {
+        mutator: {
+          path: './src/shared/http/identity-fetch.ts',
+          name: 'identityFetch',
+        },
+      },
     },
   },
 });
