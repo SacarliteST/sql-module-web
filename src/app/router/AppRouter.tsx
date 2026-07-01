@@ -1,14 +1,17 @@
-import { Route, Routes } from 'react-router-dom';
-import { LoginPage, RequireAuth, RequireRole } from '../../session';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import {
+  LoginPage,
+  RequireAuth,
+  RequireRole,
+  getDefaultSessionRoute,
+  useSessionStore,
+} from '../../session';
 import { AppLayout } from '../layout/AppLayout';
 
-function HomePage() {
-  return (
-    <>
-      <h2>Start page</h2>
-      <p>The base application shell is ready for the next phases.</p>
-    </>
-  );
+function EntryRedirect() {
+  const user = useSessionStore((state) => state.user);
+
+  return <Navigate to={getDefaultSessionRoute(user)} replace />;
 }
 
 function TeacherPage() {
@@ -16,6 +19,16 @@ function TeacherPage() {
     <>
       <h2>Teacher workspace</h2>
       <p>DBMS catalog, schema builder, datasets, and tasks will appear here.</p>
+    </>
+  );
+}
+
+function AdminPage() {
+  return (
+    <>
+      <h2>Admin workspace</h2>
+      <p>User management and platform administration are handled outside SQLModule.</p>
+      <p>This placeholder confirms that the Admin role was recognized successfully.</p>
     </>
   );
 }
@@ -42,8 +55,18 @@ export function AppRouter() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route index element={<HomePage />} />
+        <Route index element={<EntryRedirect />} />
         <Route path="login" element={<LoginPage />} />
+        <Route
+          path="admin"
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={['Admin']}>
+                <AdminPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
         <Route
           path="teacher"
           element={

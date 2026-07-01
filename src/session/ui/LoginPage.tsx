@@ -5,12 +5,16 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useLogin } from '../../api/identity/auth/auth';
-import { decodeSessionUser, useSessionStore } from '../index';
+import {
+  createSessionUserFromTokenResponse,
+  getDefaultSessionRoute,
+  useSessionStore,
+} from '../index';
 import './LoginPage.css';
 
 const loginSchema = z.object({
-  email: z.email('Введите корректный email'),
-  password: z.string().min(1, 'Введите пароль'),
+  email: z.email('Enter a valid email'),
+  password: z.string().min(1, 'Enter password'),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -36,24 +40,31 @@ export function LoginPage() {
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
 
-    const response = await loginMutation.mutateAsync({
-      data: values,
-    });
+    const response = await loginMutation
+      .mutateAsync({
+        data: values,
+      })
+      .catch(() => null);
+
+    if (!response) {
+      setFormError('Identity service is unavailable. Check runtime config and service port.');
+      return;
+    }
 
     if (response.status === 401) {
-      setFormError('Неверный email или пароль');
+      setFormError('Invalid email or password');
       return;
     }
 
     if (response.status !== 200 || !response.data.accessToken) {
-      setFormError('Не удалось войти. Попробуйте позже.');
+      setFormError('Could not sign in. Try again later.');
       return;
     }
 
-    const user = decodeSessionUser(response.data.accessToken);
+    const user = createSessionUserFromTokenResponse(response.data);
 
     if (!user) {
-      setFormError('Не удалось прочитать данные пользователя из токена.');
+      setFormError('Could not read user data from token.');
       return;
     }
 
@@ -61,39 +72,48 @@ export function LoginPage() {
       accessToken: response.data.accessToken,
       user,
     });
-    navigate('/');
+    navigate(getDefaultSessionRoute(user), { replace: true });
   });
 
   return (
     <section className="login-page">
-      <h2 className="login-page__title">Вход</h2>
-      <p className="login-page__subtitle">Standalone-режим SQLModule</p>
+      <div className="login-page__card">
+        <div className="login-page__brand" aria-hidden="true">
+          SQL
+        </div>
+        <h2 className="login-page__title">Sign in</h2>
+        <p className="login-page__subtitle">
+          Use your Scoodle account to open the SQLModule workspace for your role.
+        </p>
 
-      <form className="login-page__form" onSubmit={onSubmit}>
-        {formError ? (
-          <Alert color="red" variant="light">
-            {formError}
-          </Alert>
-        ) : null}
+        <form className="login-page__form" onSubmit={onSubmit}>
+          {formError ? (
+            <Alert color="red" variant="light">
+              {formError}
+            </Alert>
+          ) : null}
 
-        <TextInput
-          label="Email"
-          placeholder="user@example.com"
-          error={errors.email?.message}
-          {...register('email')}
-        />
+          <TextInput
+            label="Email"
+            placeholder="admin@scoodle.local"
+            size="md"
+            error={errors.email?.message}
+            {...register('email')}
+          />
 
-        <PasswordInput
-          label="Пароль"
-          placeholder="Введите пароль"
-          error={errors.password?.message}
-          {...register('password')}
-        />
+          <PasswordInput
+            label="Password"
+            placeholder="Enter password"
+            size="md"
+            error={errors.password?.message}
+            {...register('password')}
+          />
 
-        <Button type="submit" loading={loginMutation.isPending}>
-          Войти
-        </Button>
-      </form>
+          <Button className="login-page__submit" type="submit" size="md" loading={loginMutation.isPending}>
+            Sign in
+          </Button>
+        </form>
+      </div>
     </section>
   );
 }
