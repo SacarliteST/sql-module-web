@@ -1,4 +1,4 @@
-import { Button } from '@mantine/core';
+import { Badge, Button, Group, Text } from '@mantine/core';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../session';
 import './AppLayout.css';
@@ -24,13 +24,12 @@ export function AppLayout() {
   const navigationItems = [
     {
       to: '/',
-      label: 'Home',
+      label: 'Главная',
       visible: status === 'authenticated',
     },
-    { to: '/login', label: 'Login', visible: status === 'anonymous' },
-    { to: '/admin', label: 'Admin', visible: canSeeAdmin(userRoles) },
-    { to: '/teacher', label: 'Teacher', visible: canSeeTeacher(userRoles) },
-    { to: '/student', label: 'Student', visible: canSeeStudent(userRoles) },
+    { to: '/admin', label: 'Администратор', visible: canSeeAdmin(userRoles) },
+    { to: '/teacher', label: 'Преподаватель', visible: canSeeTeacher(userRoles) },
+    { to: '/student', label: 'Студент', visible: canSeeStudent(userRoles) },
   ];
 
   const handleLogout = () => {
@@ -42,27 +41,43 @@ export function AppLayout() {
     <div className="app-shell">
       <header className="app-shell__header">
         <div className="app-shell__header-inner">
-          <h1 className="app-shell__title">SQLModule</h1>
-        </div>
-        <nav className="app-shell__nav" aria-label="Primary navigation">
-          {navigationItems
-            .filter((item) => item.visible)
-            .map((item) => (
-              <NavLink key={`${item.label}:${item.to}`} to={item.to} className="app-shell__nav-link">
-                {item.label}
-              </NavLink>
-            ))}
+          <Group gap="md">
+            <h1 className="app-shell__title">SQL Module</h1>
+            {status === 'authenticated' && user ? (
+              <Text c="gray.4" size="sm">
+                {user.name ?? user.email ?? user.id}
+              </Text>
+            ) : null}
+          </Group>
           {status === 'authenticated' ? (
-            <Button size="xs" variant="subtle" onClick={handleLogout}>
-              Logout
+            <Group gap={6}>
+              {userRoles.map((role) => (
+                <Badge color="blue" key={role} radius="sm" variant="light">
+                  {role}
+                </Badge>
+              ))}
+            </Group>
+          ) : null}
+        </div>
+        <div className="app-shell__nav-row">
+          <nav className="app-shell__nav" aria-label="Primary navigation">
+            {navigationItems
+              .filter((item) => item.visible)
+              .map((item) => (
+                <NavLink key={`${item.label}:${item.to}`} to={item.to} className="app-shell__nav-link">
+                  {item.label}
+                </NavLink>
+              ))}
+          </nav>
+          {status === 'authenticated' ? (
+            <Button color="gray" size="xs" variant="outline" onClick={handleLogout}>
+              Выйти
             </Button>
           ) : null}
-        </nav>
+        </div>
       </header>
       <main className="app-shell__main">
-        <div className="app-shell__panel">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   );

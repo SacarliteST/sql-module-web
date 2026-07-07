@@ -6,49 +6,13 @@ import {
   getDefaultSessionRoute,
   useSessionStore,
 } from '../../session';
+import { AdminHomePage, NotFoundPage, StudentHomePage, TeacherHomePage } from '../../pages';
 import { AppLayout } from '../layout/AppLayout';
 
 function EntryRedirect() {
   const user = useSessionStore((state) => state.user);
 
   return <Navigate to={getDefaultSessionRoute(user)} replace />;
-}
-
-function TeacherPage() {
-  return (
-    <>
-      <h2>Teacher workspace</h2>
-      <p>DBMS catalog, schema builder, datasets, and tasks will appear here.</p>
-    </>
-  );
-}
-
-function AdminPage() {
-  return (
-    <>
-      <h2>Admin workspace</h2>
-      <p>User management and platform administration are handled outside SQLModule.</p>
-      <p>This placeholder confirms that the Admin role was recognized successfully.</p>
-    </>
-  );
-}
-
-function StudentPage() {
-  return (
-    <>
-      <h2>Student workspace</h2>
-      <p>Tasks, SQL editor, solution checks, and attempt history will appear here.</p>
-    </>
-  );
-}
-
-function NotFoundPage() {
-  return (
-    <>
-      <h2>Page not found</h2>
-      <p>Check the address or return to the start page.</p>
-    </>
-  );
 }
 
 export function AppRouter() {
@@ -62,7 +26,7 @@ export function AppRouter() {
           element={
             <RequireAuth>
               <RequireRole allowedRoles={['Admin']}>
-                <AdminPage />
+                <AdminHomePage />
               </RequireRole>
             </RequireAuth>
           }
@@ -72,7 +36,7 @@ export function AppRouter() {
           element={
             <RequireAuth>
               <RequireRole allowedRoles={['Teacher', 'Admin']}>
-                <TeacherPage />
+                <TeacherHomePage />
               </RequireRole>
             </RequireAuth>
           }
@@ -82,7 +46,7 @@ export function AppRouter() {
           element={
             <RequireAuth>
               <RequireRole allowedRoles={['Student', 'Admin']}>
-                <StudentPage />
+                <StudentHomePage />
               </RequireRole>
             </RequireAuth>
           }

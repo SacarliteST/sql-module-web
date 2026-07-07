@@ -1,10 +1,11 @@
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
+import { EmptyState, Page } from '../../shared/ui';
 import type { UserRole } from '../model';
 import { useSessionStore } from '../store';
 
 type RequireRoleProps = PropsWithChildren<{
   allowedRoles: UserRole[];
-  fallback?: React.ReactNode;
+  fallback?: ReactNode;
 }>;
 
 function hasAllowedRole(userRoles: UserRole[], allowedRoles: UserRole[]): boolean {
@@ -23,9 +24,8 @@ export function RequireRole({ allowedRoles, children, fallback }: RequireRolePro
 
 export function AccessDeniedPage() {
   return (
-    <>
-      <h2>Нет доступа</h2>
-      <p>У вашей роли нет прав для просмотра этого раздела.</p>
-    </>
+    <Page>
+      <EmptyState title="Нет доступа" description="У вашей роли нет прав для просмотра этого раздела." />
+    </Page>
   );
 }

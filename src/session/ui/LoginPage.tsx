@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Alert, Button, PasswordInput, TextInput } from '@mantine/core';
+import { Alert, Button, Paper, PasswordInput, Stack, TextInput, Title } from '@mantine/core';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -13,8 +13,8 @@ import {
 import './LoginPage.css';
 
 const loginSchema = z.object({
-  email: z.email('Enter a valid email'),
-  password: z.string().min(1, 'Enter password'),
+  email: z.email('Введите корректный email'),
+  password: z.string().min(1, 'Введите пароль'),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -47,24 +47,24 @@ export function LoginPage() {
       .catch(() => null);
 
     if (!response) {
-      setFormError('Identity service is unavailable. Check runtime config and service port.');
+      setFormError('IdentityService недоступен. Проверьте адрес сервиса и runtime config.');
       return;
     }
 
     if (response.status === 401) {
-      setFormError('Invalid email or password');
+      setFormError('Неверный email или пароль.');
       return;
     }
 
     if (response.status !== 200 || !response.data.accessToken) {
-      setFormError('Could not sign in. Try again later.');
+      setFormError('Не удалось выполнить вход. Повторите попытку позже.');
       return;
     }
 
     const user = createSessionUserFromTokenResponse(response.data);
 
     if (!user) {
-      setFormError('Could not read user data from token.');
+      setFormError('Не удалось прочитать данные пользователя из токена.');
       return;
     }
 
@@ -77,42 +77,42 @@ export function LoginPage() {
 
   return (
     <section className="login-page">
-      <div className="login-page__card">
-        <div className="login-page__brand" aria-hidden="true">
-          SQL
-        </div>
-        <h2 className="login-page__title">Sign in</h2>
-        <p className="login-page__subtitle">
-          Use your Scoodle account to open the SQLModule workspace for your role.
-        </p>
+      <div className="login-page__inner">
+        <Paper className="login-page__card" p="xl" radius="sm" shadow="sm" withBorder>
+          <Title className="login-page__title" order={2} size="h3" ta="center">
+            Вход в систему
+          </Title>
 
-        <form className="login-page__form" onSubmit={onSubmit}>
-          {formError ? (
-            <Alert color="red" variant="light">
-              {formError}
-            </Alert>
-          ) : null}
+          <form onSubmit={onSubmit}>
+            <Stack gap="md" mt="lg">
+              {formError ? (
+                <Alert color="red" variant="light">
+                  {formError}
+                </Alert>
+              ) : null}
 
-          <TextInput
-            label="Email"
-            placeholder="admin@scoodle.local"
-            size="md"
-            error={errors.email?.message}
-            {...register('email')}
-          />
+              <TextInput
+                label="Email"
+                placeholder="admin@scoodle.local"
+                size="md"
+                error={errors.email?.message}
+                {...register('email')}
+              />
 
-          <PasswordInput
-            label="Password"
-            placeholder="Enter password"
-            size="md"
-            error={errors.password?.message}
-            {...register('password')}
-          />
+              <PasswordInput
+                label="Пароль"
+                placeholder="Введите пароль"
+                size="md"
+                error={errors.password?.message}
+                {...register('password')}
+              />
 
-          <Button className="login-page__submit" type="submit" size="md" loading={loginMutation.isPending}>
-            Sign in
-          </Button>
-        </form>
+              <Button fullWidth type="submit" size="md" loading={loginMutation.isPending}>
+                Войти
+              </Button>
+            </Stack>
+          </form>
+        </Paper>
       </div>
     </section>
   );
