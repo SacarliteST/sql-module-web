@@ -45,6 +45,32 @@ export type AdminUserActivity = {
   tone: AdminActivityEvent['tone'];
 };
 
+export type AdminIntegrationSetting = {
+  id: string;
+  label: string;
+  value: string;
+  source: string;
+};
+
+export type AdminConnectionCheck = {
+  id: string;
+  service: string;
+  status: AdminServiceState;
+  latency: string;
+};
+
+export type AdminSystemInfoItem = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+export type AdminWorkMode = {
+  current: 'Standalone' | 'Embedded';
+  available: Array<'Standalone' | 'Embedded'>;
+  description: string;
+};
+
 export const adminOverviewMetrics: AdminOverviewMetric[] = [
   { id: 'users', label: 'Пользователи', value: '1 248', to: '/admin/users' },
   { id: 'teachers', label: 'Преподаватели', value: '42' },
@@ -227,6 +253,47 @@ export const adminUserActivities: AdminUserActivity[] = [
     occurredAt: '2026-06-30 12:10',
     tone: 'info',
   },
+];
+
+export const adminIntegrationSettings: AdminIntegrationSetting[] = [
+  {
+    id: 'identity-service-url',
+    label: 'Identity Service URL',
+    value: 'http://localhost:5101',
+    source: 'runtime config',
+  },
+  {
+    id: 'sql-module-api-url',
+    label: 'SQL Module API URL',
+    value: 'http://localhost:5001',
+    source: 'runtime config',
+  },
+  {
+    id: 'base-path',
+    label: 'Base Path',
+    value: '/',
+    source: 'runtime config',
+  },
+];
+
+export const adminConnectionChecks: AdminConnectionCheck[] = [
+  { id: 'identity', service: 'Identity Service', status: 'available', latency: '24ms' },
+  { id: 'sql-module-api', service: 'SQL Module API', status: 'available', latency: '31ms' },
+  { id: 'database', service: 'База данных', status: 'checking', latency: '88ms' },
+];
+
+export const adminWorkMode: AdminWorkMode = {
+  current: 'Standalone',
+  available: ['Standalone', 'Embedded'],
+  description:
+    'Режим определяет, запускается ли SQL-модуль самостоятельно или встраивается в родительскую систему тестирования.',
+};
+
+export const adminSystemInfo: AdminSystemInfoItem[] = [
+  { id: 'frontend-version', label: 'Версия интерфейса', value: '0.0.0-local' },
+  { id: 'environment', label: 'Окружение', value: 'Development' },
+  { id: 'last-updated', label: 'Последнее обновление', value: '2026-07-20 14:30' },
+  { id: 'build', label: 'Build', value: 'local-dev' },
 ];
 
 export function getAdminUserStatusLabel(status: AdminUserStatus) {
