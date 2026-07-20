@@ -6,10 +6,10 @@
  * OpenAPI spec version: v1
  */
 
-/**
- * Запрос на аутентификацию пользователя.
- */
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
+export type ListUsersParams = {
+Page?: number;
+PageSize?: number;
+Search?: string;
+Role?: string;
+Status?: string;
+};

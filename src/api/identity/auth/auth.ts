@@ -20,7 +20,8 @@ import type {
   ProblemDetails,
   RefreshRequest,
   RegisterRequest,
-  TokenResponse
+  TokenResponse,
+  ValidationProblemDetails
 } from '../model';
 
 import { identityFetch } from '../../../shared/http/identity-fetch';
@@ -41,7 +42,7 @@ export type registerResponse409 = {
 }
 
 export type registerResponse422 = {
-  data: ProblemDetails
+  data: ValidationProblemDetails
   status: 422
 }
 
@@ -81,7 +82,7 @@ export const register = async (registerRequest: RegisterRequest, options?: Reque
 
 
 
-export const getRegisterMutationOptions = <TError = ProblemDetails,
+export const getRegisterMutationOptions = <TError = ProblemDetails | ValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext> => {
 
@@ -110,12 +111,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>
     export type RegisterMutationBody = RegisterRequest
-    export type RegisterMutationError = ProblemDetails
+    export type RegisterMutationError = ProblemDetails | ValidationProblemDetails
 
     /**
  * @summary Регистрация нового пользователя
  */
-export const useRegister = <TError = ProblemDetails,
+export const useRegister = <TError = ProblemDetails | ValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof register>>,
@@ -309,7 +310,7 @@ export type loginResponse401 = {
 }
 
 export type loginResponse422 = {
-  data: ProblemDetails
+  data: ValidationProblemDetails
   status: 422
 }
 
@@ -349,7 +350,7 @@ export const login = async (loginRequest: LoginRequest, options?: RequestInit): 
 
 
 
-export const getLoginMutationOptions = <TError = ProblemDetails,
+export const getLoginMutationOptions = <TError = ProblemDetails | ValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext> => {
 
@@ -378,12 +379,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>
     export type LoginMutationBody = LoginRequest
-    export type LoginMutationError = ProblemDetails
+    export type LoginMutationError = ProblemDetails | ValidationProblemDetails
 
     /**
  * @summary Аутентификация пользователя
  */
-export const useLogin = <TError = ProblemDetails,
+export const useLogin = <TError = ProblemDetails | ValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof login>>,

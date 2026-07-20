@@ -6,9 +6,10 @@
  * OpenAPI spec version: v1
  */
 
-/**
- * Запрос на присвоение роли пользователю (только для Admin).
- */
-export interface AssignRoleRequest {
-  role?: string;
-}
+export type GetUserActivityParams = {
+Page?: number;
+PageSize?: number;
+EventType?: string;
+From?: string;
+To?: string;
+};

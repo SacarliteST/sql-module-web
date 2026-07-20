@@ -64,7 +64,7 @@ export function AppRouter() {
           path="teacher"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Teacher', 'Admin']}>
+              <RequireRole allowedRoles={['Teacher']}>
                 <TeacherHomePage />
               </RequireRole>
             </RequireAuth>
@@ -74,7 +74,7 @@ export function AppRouter() {
           path="teacher/topics"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Teacher', 'Admin']}>
+              <RequireRole allowedRoles={['Teacher']}>
                 <TeacherTopicsPage />
               </RequireRole>
             </RequireAuth>
@@ -84,7 +84,7 @@ export function AppRouter() {
           path="teacher/databases"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Teacher', 'Admin']}>
+              <RequireRole allowedRoles={['Teacher']}>
                 <TeacherDatabasesPage />
               </RequireRole>
             </RequireAuth>
@@ -94,7 +94,7 @@ export function AppRouter() {
           path="student"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Student', 'Admin']}>
+              <RequireRole allowedRoles={['Student']}>
                 <StudentHomePage />
               </RequireRole>
             </RequireAuth>

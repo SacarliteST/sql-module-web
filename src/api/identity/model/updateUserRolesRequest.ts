@@ -5,11 +5,11 @@
  * Сервис аутентификации и авторизации платформы Scoodle.
  * OpenAPI spec version: v1
  */
+import type { UserRole } from './userRole';
 
 /**
- * Запрос на аутентификацию пользователя.
+ * Запрос на атомарную замену полного набора ролей пользователя.
  */
-export interface LoginRequest {
-  email: string;
-  password: string;
+export interface UpdateUserRolesRequest {
+  roles: UserRole[];
 }

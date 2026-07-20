@@ -6,9 +6,22 @@
  * OpenAPI spec version: v1
  */
 
-export * from './assignRoleRequest';
+export * from './auditEventDto';
+export * from './auditEventDtoPagedResponse';
+export * from './blockUserRequest';
+export * from './createUserRequest';
+export * from './getUserActivityParams';
+export * from './listAuditEventsParams';
+export * from './listUsersParams';
 export * from './loginRequest';
 export * from './problemDetails';
 export * from './refreshRequest';
 export * from './registerRequest';
 export * from './tokenResponse';
+export * from './updateUserRolesRequest';
+export * from './userDetailsDto';
+export * from './userListItemDto';
+export * from './userListItemDtoPagedResponse';
+export * from './userRole';
+export * from './validationProblemDetails';
+export * from './validationProblemDetailsErrors';

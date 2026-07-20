@@ -6,10 +6,12 @@
  * OpenAPI spec version: v1
  */
 
-/**
- * Запрос на аутентификацию пользователя.
- */
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
+export type ListAuditEventsParams = {
+Page?: number;
+PageSize?: number;
+ActorUserId?: string;
+TargetUserId?: string;
+EventType?: string;
+From?: string;
+To?: string;
+};

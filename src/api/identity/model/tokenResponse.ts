@@ -10,11 +10,11 @@
  * Ответ с парой JWT/refresh токенов и данными аутентифицированного пользователя.
  */
 export interface TokenResponse {
-  accessToken?: string;
-  accessExpiresAt?: string;
-  refreshToken?: string;
-  refreshExpiresAt?: string;
-  userId?: string;
-  email?: string;
-  roles?: string[];
+  accessToken: string;
+  accessExpiresAt: string;
+  refreshToken: string;
+  refreshExpiresAt: string;
+  userId: string;
+  email: string;
+  roles: string[];
 }

@@ -6,18 +6,33 @@
  * OpenAPI spec version: v1
  */
 import {
-  useMutation
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
-  AssignRoleRequest,
-  ProblemDetails
+  BlockUserRequest,
+  CreateUserRequest,
+  ListUsersParams,
+  ProblemDetails,
+  UpdateUserRolesRequest,
+  UserDetailsDto,
+  UserListItemDtoPagedResponse,
+  ValidationProblemDetails
 } from '../model';
 
 import { identityFetch } from '../../../shared/http/identity-fetch';
@@ -27,41 +42,61 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
-export type assignRoleResponse204 = {
+const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === 'queryKey') continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
+
+export type updateUserRolesResponse204 = {
   data: void
   status: 204
 }
 
-export type assignRoleResponse401 = {
+export type updateUserRolesResponse401 = {
   data: ProblemDetails
   status: 401
 }
 
-export type assignRoleResponse403 = {
+export type updateUserRolesResponse403 = {
   data: ProblemDetails
   status: 403
 }
 
-export type assignRoleResponse404 = {
+export type updateUserRolesResponse404 = {
   data: ProblemDetails
   status: 404
 }
 
-export type assignRoleResponse409 = {
+export type updateUserRolesResponse409 = {
   data: ProblemDetails
   status: 409
 }
 
-export type assignRoleResponseSuccess = (assignRoleResponse204) & {
+export type updateUserRolesResponse422 = {
+  data: ValidationProblemDetails
+  status: 422
+}
+
+export type updateUserRolesResponseSuccess = (updateUserRolesResponse204) & {
   headers: Headers;
 };
-export type assignRoleResponseError = (assignRoleResponse401 | assignRoleResponse403 | assignRoleResponse404 | assignRoleResponse409) & {
+export type updateUserRolesResponseError = (updateUserRolesResponse401 | updateUserRolesResponse403 | updateUserRolesResponse404 | updateUserRolesResponse409 | updateUserRolesResponse422) & {
   headers: Headers;
 };
 
-export type assignRoleResponse = (assignRoleResponseSuccess | assignRoleResponseError)
+export type updateUserRolesResponse = (updateUserRolesResponseSuccess | updateUserRolesResponseError)
 
-export const getAssignRoleUrl = (id: string,) => {
+export const getUpdateUserRolesUrl = (id: string,) => {
 
 
 
@@ -70,18 +105,18 @@ export const getAssignRoleUrl = (id: string,) => {
 }
 
 /**
- * Только для Admin. Присваивает существующую роль указанному пользователю.
- * @summary Присвоение роли пользователю
+ * Атомарно заменяет полный набор ролей. Только для Admin.
+ * @summary Замена ролей пользователя
  */
-export const assignRole = async (id: string,
-    assignRoleRequest: AssignRoleRequest, options?: RequestInit): Promise<assignRoleResponse> => {
+export const updateUserRoles = async (id: string,
+    updateUserRolesRequest: UpdateUserRolesRequest, options?: RequestInit): Promise<updateUserRolesResponse> => {
 
-  return identityFetch<assignRoleResponse>(getAssignRoleUrl(id),
+  return identityFetch<updateUserRolesResponse>(getUpdateUserRolesUrl(id),
   {
     ...options,
-    method: 'POST',
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(assignRoleRequest)
+    body: JSON.stringify(updateUserRolesRequest)
   }
 );}
 
@@ -89,11 +124,11 @@ export const assignRole = async (id: string,
 
 
 
-export const getAssignRoleMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignRole>>, TError,{id: string;data: AssignRoleRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof assignRole>>, TError,{id: string;data: AssignRoleRequest}, TContext> => {
+export const getUpdateUserRolesMutationOptions = <TError = ProblemDetails | ValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserRoles>>, TError,{id: string;data: UpdateUserRolesRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUserRoles>>, TError,{id: string;data: UpdateUserRolesRequest}, TContext> => {
 
-const mutationKey = ['assignRole'];
+const mutationKey = ['updateUserRoles'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -103,10 +138,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignRole>>, {id: string;data: AssignRoleRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUserRoles>>, {id: string;data: UpdateUserRolesRequest}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  assignRole(id,data,requestOptions)
+          return  updateUserRoles(id,data,requestOptions)
         }
 
 
@@ -116,20 +151,603 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type AssignRoleMutationResult = NonNullable<Awaited<ReturnType<typeof assignRole>>>
-    export type AssignRoleMutationBody = AssignRoleRequest
-    export type AssignRoleMutationError = ProblemDetails
+    export type UpdateUserRolesMutationResult = NonNullable<Awaited<ReturnType<typeof updateUserRoles>>>
+    export type UpdateUserRolesMutationBody = UpdateUserRolesRequest
+    export type UpdateUserRolesMutationError = ProblemDetails | ValidationProblemDetails
 
     /**
- * @summary Присвоение роли пользователю
+ * @summary Замена ролей пользователя
  */
-export const useAssignRole = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignRole>>, TError,{id: string;data: AssignRoleRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
+export const useUpdateUserRoles = <TError = ProblemDetails | ValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserRoles>>, TError,{id: string;data: UpdateUserRolesRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof assignRole>>,
+        Awaited<ReturnType<typeof updateUserRoles>>,
         TError,
-        {id: string;data: AssignRoleRequest},
+        {id: string;data: UpdateUserRolesRequest},
         TContext
       > => {
-      return useMutation(getAssignRoleMutationOptions(options), queryClient);
+      return useMutation(getUpdateUserRolesMutationOptions(options), queryClient);
+    }
+    export type unblockUserResponse204 = {
+  data: void
+  status: 204
+}
+
+export type unblockUserResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type unblockUserResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type unblockUserResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type unblockUserResponseSuccess = (unblockUserResponse204) & {
+  headers: Headers;
+};
+export type unblockUserResponseError = (unblockUserResponse401 | unblockUserResponse403 | unblockUserResponse404) & {
+  headers: Headers;
+};
+
+export type unblockUserResponse = (unblockUserResponseSuccess | unblockUserResponseError)
+
+export const getUnblockUserUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/users/${id}/unblock`
+}
+
+/**
+ * Снимает блокировку и очищает её административные метаданные. Только для Admin.
+ * @summary Разблокировка пользователя
+ */
+export const unblockUser = async (id: string, options?: RequestInit): Promise<unblockUserResponse> => {
+
+  return identityFetch<unblockUserResponse>(getUnblockUserUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getUnblockUserMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unblockUser>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof identityFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unblockUser>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['unblockUser'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unblockUser>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  unblockUser(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnblockUserMutationResult = NonNullable<Awaited<ReturnType<typeof unblockUser>>>
+
+    export type UnblockUserMutationError = ProblemDetails
+
+    /**
+ * @summary Разблокировка пользователя
+ */
+export const useUnblockUser = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unblockUser>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unblockUser>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getUnblockUserMutationOptions(options), queryClient);
+    }
+    export type listUsersResponse200 = {
+  data: UserListItemDtoPagedResponse
+  status: 200
+}
+
+export type listUsersResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type listUsersResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type listUsersResponse422 = {
+  data: ValidationProblemDetails
+  status: 422
+}
+
+export type listUsersResponseSuccess = (listUsersResponse200) & {
+  headers: Headers;
+};
+export type listUsersResponseError = (listUsersResponse401 | listUsersResponse403 | listUsersResponse422) & {
+  headers: Headers;
+};
+
+export type listUsersResponse = (listUsersResponseSuccess | listUsersResponseError)
+
+export const getListUsersUrl = (params?: ListUsersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/users?${stringifiedParams}` : `/api/v1/users`
+}
+
+/**
+ * Возвращает постраничный список пользователей. Только для Admin.
+ * @summary Список пользователей
+ */
+export const listUsers = async (params?: ListUsersParams, options?: RequestInit): Promise<listUsersResponse> => {
+
+  return identityFetch<listUsersResponse>(getListUsersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListUsersQueryKey = (params?: ListUsersParams,) => {
+    return [
+    `/api/v1/users`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListUsersQueryOptions = <TData = Awaited<ReturnType<typeof listUsers>>, TError = ProblemDetails | ValidationProblemDetails>(params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUsersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsers>>> = ({ signal }) => listUsers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listUsers>>>
+export type ListUsersQueryError = ProblemDetails | ValidationProblemDetails
+
+
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ProblemDetails | ValidationProblemDetails>(
+ params: undefined |  ListUsersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listUsers>>,
+          TError,
+          Awaited<ReturnType<typeof listUsers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ProblemDetails | ValidationProblemDetails>(
+ params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listUsers>>,
+          TError,
+          Awaited<ReturnType<typeof listUsers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ProblemDetails | ValidationProblemDetails>(
+ params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Список пользователей
+ */
+
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ProblemDetails | ValidationProblemDetails>(
+ params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListUsersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type createUserResponse201 = {
+  data: UserDetailsDto
+  status: 201
+}
+
+export type createUserResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type createUserResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type createUserResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type createUserResponse422 = {
+  data: ValidationProblemDetails
+  status: 422
+}
+
+export type createUserResponseSuccess = (createUserResponse201) & {
+  headers: Headers;
+};
+export type createUserResponseError = (createUserResponse401 | createUserResponse403 | createUserResponse409 | createUserResponse422) & {
+  headers: Headers;
+};
+
+export type createUserResponse = (createUserResponseSuccess | createUserResponseError)
+
+export const getCreateUserUrl = () => {
+
+
+
+
+  return `/api/v1/users`
+}
+
+/**
+ * Создаёт пользователя с полным набором ролей без выдачи токенов. Только для Admin.
+ * @summary Административное создание пользователя
+ */
+export const createUser = async (createUserRequest: CreateUserRequest, options?: RequestInit): Promise<createUserResponse> => {
+
+  return identityFetch<createUserResponse>(getCreateUserUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createUserRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateUserMutationOptions = <TError = ProblemDetails | ValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,{data: CreateUserRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,{data: CreateUserRequest}, TContext> => {
+
+const mutationKey = ['createUser'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createUser>>, {data: CreateUserRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createUser(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateUserMutationResult = NonNullable<Awaited<ReturnType<typeof createUser>>>
+    export type CreateUserMutationBody = CreateUserRequest
+    export type CreateUserMutationError = ProblemDetails | ValidationProblemDetails
+
+    /**
+ * @summary Административное создание пользователя
+ */
+export const useCreateUser = <TError = ProblemDetails | ValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,{data: CreateUserRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createUser>>,
+        TError,
+        {data: CreateUserRequest},
+        TContext
+      > => {
+      return useMutation(getCreateUserMutationOptions(options), queryClient);
+    }
+    export type getUserDetailsResponse200 = {
+  data: UserDetailsDto
+  status: 200
+}
+
+export type getUserDetailsResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getUserDetailsResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getUserDetailsResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getUserDetailsResponseSuccess = (getUserDetailsResponse200) & {
+  headers: Headers;
+};
+export type getUserDetailsResponseError = (getUserDetailsResponse401 | getUserDetailsResponse403 | getUserDetailsResponse404) & {
+  headers: Headers;
+};
+
+export type getUserDetailsResponse = (getUserDetailsResponseSuccess | getUserDetailsResponseError)
+
+export const getGetUserDetailsUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/users/${id}`
+}
+
+/**
+ * Возвращает пользователя и его роли. Только для Admin.
+ * @summary Карточка пользователя
+ */
+export const getUserDetails = async (id: string, options?: RequestInit): Promise<getUserDetailsResponse> => {
+
+  return identityFetch<getUserDetailsResponse>(getGetUserDetailsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetUserDetailsQueryKey = (id: string,) => {
+    return [
+    `/api/v1/users/${id}`
+    ] as const;
+    }
+
+
+export const getGetUserDetailsQueryOptions = <TData = Awaited<ReturnType<typeof getUserDetails>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDetails>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUserDetailsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUserDetails>>> = ({ signal }) => getUserDetails(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUserDetails>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetUserDetailsQueryResult = NonNullable<Awaited<ReturnType<typeof getUserDetails>>>
+export type GetUserDetailsQueryError = ProblemDetails
+
+
+export function useGetUserDetails<TData = Awaited<ReturnType<typeof getUserDetails>>, TError = ProblemDetails>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDetails>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUserDetails>>,
+          TError,
+          Awaited<ReturnType<typeof getUserDetails>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUserDetails<TData = Awaited<ReturnType<typeof getUserDetails>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDetails>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUserDetails>>,
+          TError,
+          Awaited<ReturnType<typeof getUserDetails>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUserDetails<TData = Awaited<ReturnType<typeof getUserDetails>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDetails>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Карточка пользователя
+ */
+
+export function useGetUserDetails<TData = Awaited<ReturnType<typeof getUserDetails>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDetails>>, TError, TData>>, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetUserDetailsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type blockUserResponse204 = {
+  data: void
+  status: 204
+}
+
+export type blockUserResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type blockUserResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type blockUserResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type blockUserResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type blockUserResponse422 = {
+  data: ValidationProblemDetails
+  status: 422
+}
+
+export type blockUserResponseSuccess = (blockUserResponse204) & {
+  headers: Headers;
+};
+export type blockUserResponseError = (blockUserResponse401 | blockUserResponse403 | blockUserResponse404 | blockUserResponse409 | blockUserResponse422) & {
+  headers: Headers;
+};
+
+export type blockUserResponse = (blockUserResponseSuccess | blockUserResponseError)
+
+export const getBlockUserUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/users/${id}/block`
+}
+
+/**
+ * Блокирует вход и отзывает активные refresh-токены. Только для Admin.
+ * @summary Блокировка пользователя
+ */
+export const blockUser = async (id: string,
+    blockUserRequest: BlockUserRequest, options?: RequestInit): Promise<blockUserResponse> => {
+
+  return identityFetch<blockUserResponse>(getBlockUserUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(blockUserRequest)
+  }
+);}
+
+
+
+
+
+export const getBlockUserMutationOptions = <TError = ProblemDetails | ValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof blockUser>>, TError,{id: string;data: BlockUserRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof blockUser>>, TError,{id: string;data: BlockUserRequest}, TContext> => {
+
+const mutationKey = ['blockUser'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof blockUser>>, {id: string;data: BlockUserRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  blockUser(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BlockUserMutationResult = NonNullable<Awaited<ReturnType<typeof blockUser>>>
+    export type BlockUserMutationBody = BlockUserRequest
+    export type BlockUserMutationError = ProblemDetails | ValidationProblemDetails
+
+    /**
+ * @summary Блокировка пользователя
+ */
+export const useBlockUser = <TError = ProblemDetails | ValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof blockUser>>, TError,{id: string;data: BlockUserRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof blockUser>>,
+        TError,
+        {id: string;data: BlockUserRequest},
+        TContext
+      > => {
+      return useMutation(getBlockUserMutationOptions(options), queryClient);
     }

@@ -10,5 +10,5 @@
  * Запрос на обновление токенов по refresh-токену.
  */
 export interface RefreshRequest {
-  refreshToken?: string;
+  refreshToken: string;
 }

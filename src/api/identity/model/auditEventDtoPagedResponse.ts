@@ -5,11 +5,14 @@
  * Сервис аутентификации и авторизации платформы Scoodle.
  * OpenAPI spec version: v1
  */
+import type { AuditEventDto } from './auditEventDto';
 
 /**
- * Запрос на аутентификацию пользователя.
+ * Постраничный ответ API.
  */
-export interface LoginRequest {
-  email: string;
-  password: string;
+export interface AuditEventDtoPagedResponse {
+  items: AuditEventDto[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
 }

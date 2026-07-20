@@ -7,11 +7,16 @@
  */
 
 /**
- * Запрос на регистрацию нового пользователя.
+ * Пользователь в административном списке.
  */
-export interface RegisterRequest {
+export interface UserListItemDto {
+  id: string;
   email: string;
-  password: string;
   /** @nullable */
   displayName?: string | null;
+  roles: string[];
+  status: string;
+  createdAt: string;
+  /** @nullable */
+  lastLoginAt?: string | null;
 }

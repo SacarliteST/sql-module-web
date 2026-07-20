@@ -7,9 +7,9 @@
  */
 
 /**
- * Запрос на аутентификацию пользователя.
+ * Причина административной блокировки пользователя.
  */
-export interface LoginRequest {
-  email: string;
-  password: string;
+export interface BlockUserRequest {
+  /** @nullable */
+  reason?: string | null;
 }

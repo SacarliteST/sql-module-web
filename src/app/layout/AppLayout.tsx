@@ -4,11 +4,11 @@ import { useSessionStore } from '../../session';
 import './AppLayout.css';
 
 function canSeeTeacher(roles: string[]): boolean {
-  return roles.includes('Teacher') || roles.includes('Admin');
+  return roles.includes('Teacher');
 }
 
 function canSeeStudent(roles: string[]): boolean {
-  return roles.includes('Student') || roles.includes('Admin');
+  return roles.includes('Student');
 }
 
 function canSeeAdmin(roles: string[]): boolean {
