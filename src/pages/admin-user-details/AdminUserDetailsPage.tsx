@@ -1,98 +1,265 @@
 import {
-  Anchor,
+  Alert,
   Badge,
-  Box,
   Button,
-  Divider,
+  Checkbox,
   Grid,
   Group,
+  Modal,
+  Pagination,
   Stack,
-  Switch,
   Text,
+  Textarea,
   Title,
-} from '@mantine/core';
-import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { UserRole, type UserRole as UserRoleType } from "../../api/identity/model";
+import { useGetUserActivity } from "../../api/identity/audit/audit";
+import { useGetUserDetails } from "../../api/identity/users/users";
 import {
-  AdminContourTabs,
-  adminUserActivities,
-  adminUsers,
-  type AdminUserRole,
-  getAdminEventToneColor,
-  getAdminUserStatusColor,
-  getAdminUserStatusLabel,
-} from '../../features/admin-contour';
-import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
+  formatUserDateTime,
+  formatUserRole,
+  formatUserStatus,
+  getUserDisplayName,
+  getUserStatusTone,
+} from "../../entities/user";
+import { AdminContourTabs } from "../../features/admin-contour";
+import {
+  AdminUsersApiError,
+  blockAdminUser,
+  getAdminUsersErrorMessage,
+  replaceAdminUserRoles,
+  unblockAdminUser,
+} from "../../features/admin-users";
+import {
+  AppCard,
+  ConfirmModal,
+  EmptyState,
+  FormActions,
+  Page,
+  PageBreadcrumbs,
+  PageHeader,
+} from "../../shared/ui";
 
-const roleDescriptions: Record<AdminUserRole, string> = {
-  Admin: 'Полный доступ к системе, пользователям и административным настройкам.',
-  Teacher: 'Доступ к созданию учебных материалов, заданий и учебных баз.',
-  Student: 'Доступ к прохождению курсов, решению задач и просмотру статистики.',
+const editableRoles = [UserRole.Admin, UserRole.Teacher, UserRole.Student];
+const activityPageSize = 5;
+
+const auditEventLabels: Record<string, string> = {
+  UserCreated: "Пользователь создан",
+  UserRolesUpdated: "Роли изменены",
+  UserBlocked: "Пользователь заблокирован",
+  UserUnblocked: "Пользователь разблокирован",
+  LoginSucceeded: "Успешный вход",
+  LoginFailed: "Ошибка входа",
+  RefreshTokenIssued: "Сессия обновлена",
+  RefreshTokenRevoked: "Сессия отозвана",
 };
 
-const roleOrder: AdminUserRole[] = ['Admin', 'Teacher', 'Student'];
+const formatAuditEventType = (eventType: string): string =>
+  auditEventLabels[eventType] ?? eventType;
+
+const getAdminUserMutationErrorMessage = (error: unknown) =>
+  error instanceof AdminUsersApiError
+    ? getAdminUsersErrorMessage(error.problem, error.status)
+    : "IdentityService недоступен. Проверьте, что сервис запущен.";
+
+function UserDetailsSkeleton() {
+  return (
+    <AppCard>
+      <EmptyState
+        title="Загружаем пользователя"
+        description="Получаем карточку пользователя из IdentityService."
+      />
+    </AppCard>
+  );
+}
+
+function UserNotFound() {
+  return (
+    <AppCard>
+      <EmptyState
+        title="Пользователь не найден"
+        description="Проверьте ссылку или вернитесь к списку пользователей."
+        actions={
+          <Button component={Link} to="/admin/users" variant="outline">
+            К списку пользователей
+          </Button>
+        }
+      />
+    </AppCard>
+  );
+}
 
 export function AdminUserDetailsPage() {
   const { userId } = useParams();
-  const user = adminUsers.find((item) => item.id === userId);
-  const [selectedRoles, setSelectedRoles] = useState<AdminUserRole[]>(user?.roles ?? []);
+  const safeUserId = userId ?? "";
+  const queryClient = useQueryClient();
+  const [rolesModalOpened, rolesModal] = useDisclosure(false);
+  const [blockModalOpened, blockModal] = useDisclosure(false);
+  const [unblockModalOpened, unblockModal] = useDisclosure(false);
+  const [selectedRoles, setSelectedRoles] = useState<UserRoleType[]>([]);
+  const [rolesError, setRolesError] = useState<string | null>(null);
+  const [blockReason, setBlockReason] = useState("");
+  const [blockError, setBlockError] = useState<string | null>(null);
+  const [unblockError, setUnblockError] = useState<string | null>(null);
+  const [activityPage, setActivityPage] = useState(1);
 
-  const userActivities = useMemo(() => {
-    if (!user) {
-      return [];
-    }
+  const userQuery = useGetUserDetails(safeUserId, {
+    query: {
+      enabled: Boolean(userId),
+      retry: false,
+    },
+  });
 
-    return adminUserActivities.filter((event) => event.userId === user.id).slice(0, 5);
-  }, [user]);
+  const activityQuery = useGetUserActivity(
+    safeUserId,
+    {
+      Page: activityPage,
+      PageSize: activityPageSize,
+    },
+    {
+      query: {
+        enabled: Boolean(userId),
+        retry: false,
+      },
+    },
+  );
 
-  const toggleRole = (role: AdminUserRole) => {
-    setSelectedRoles((currentRoles) =>
-      currentRoles.includes(role)
-        ? currentRoles.filter((currentRole) => currentRole !== role)
-        : [...currentRoles, role],
-    );
+  const response = userQuery.data;
+  const user = response?.status === 200 ? response.data : null;
+  const apiError = response && response.status !== 200 ? response.data : null;
+  const apiErrorStatus = response && response.status !== 200 ? response.status : undefined;
+  const pageTitle = user ? getUserDisplayName(user) : "Карточка пользователя";
+  const isBlocked = user ? user.status === "Blocked" || Boolean(user.blockedAt) : false;
+  const activityResponse = activityQuery.data;
+  const activity = activityResponse?.status === 200 ? activityResponse.data : null;
+  const activityError =
+    activityResponse && activityResponse.status !== 200 ? activityResponse.data : null;
+  const activityErrorStatus =
+    activityResponse && activityResponse.status !== 200 ? activityResponse.status : undefined;
+  const activityTotalPages = Math.max(
+    1,
+    Math.ceil((activity?.totalCount ?? 0) / activityPageSize),
+  );
+
+  const refreshUserQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: [`/api/v1/users/${safeUserId}`] }),
+      queryClient.invalidateQueries({ queryKey: [`/api/v1/users/${safeUserId}/activity`] }),
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/users"] }),
+    ]);
   };
 
-  if (!user) {
-    return (
-      <Page>
-        <PageBreadcrumbs
-          items={[
-            { label: 'Главная', to: '/' },
-            { label: 'Администратор', to: '/admin' },
-            { label: 'Пользователи', to: '/admin/users' },
-            { label: 'Пользователь не найден' },
-          ]}
-        />
-        <AppCard>
-          <EmptyState
-            title="Пользователь не найден"
-            description="Проверьте ссылку или вернитесь к списку пользователей."
-          />
-          <Group justify="center" mt="md">
-            <Button component={Link} to="/admin/users" variant="outline">
-              К списку пользователей
-            </Button>
-          </Group>
-        </AppCard>
-      </Page>
+  const updateRolesMutation = useMutation({
+    mutationFn: () => replaceAdminUserRoles(safeUserId, selectedRoles),
+    onSuccess: async () => {
+      await refreshUserQueries();
+      setRolesError(null);
+      rolesModal.close();
+    },
+    onError: (error) => {
+      setRolesError(getAdminUserMutationErrorMessage(error));
+    },
+  });
+
+  const blockUserMutation = useMutation({
+    mutationFn: () => blockAdminUser(safeUserId, blockReason),
+    onSuccess: async () => {
+      await refreshUserQueries();
+      setBlockError(null);
+      setBlockReason("");
+      blockModal.close();
+    },
+    onError: (error) => {
+      setBlockError(getAdminUserMutationErrorMessage(error));
+    },
+  });
+
+  const unblockUserMutation = useMutation({
+    mutationFn: () => unblockAdminUser(safeUserId),
+    onSuccess: async () => {
+      await refreshUserQueries();
+      setUnblockError(null);
+      unblockModal.close();
+    },
+    onError: (error) => {
+      setUnblockError(getAdminUserMutationErrorMessage(error));
+    },
+  });
+
+  const openRolesModal = () => {
+    if (!user) {
+      return;
+    }
+
+    setSelectedRoles(
+      user.roles.filter((role): role is UserRoleType =>
+        editableRoles.includes(role as UserRoleType),
+      ),
     );
-  }
+    setRolesError(null);
+    rolesModal.open();
+  };
+
+  const closeRolesModal = () => {
+    if (!updateRolesMutation.isPending) {
+      rolesModal.close();
+    }
+  };
+
+  const openBlockModal = () => {
+    setBlockReason("");
+    setBlockError(null);
+    blockModal.open();
+  };
+
+  const closeBlockModal = () => {
+    if (!blockUserMutation.isPending) {
+      blockModal.close();
+    }
+  };
+
+  const openUnblockModal = () => {
+    setUnblockError(null);
+    unblockModal.open();
+  };
+
+  const closeUnblockModal = () => {
+    if (!unblockUserMutation.isPending) {
+      unblockModal.close();
+    }
+  };
+
+  const submitRoles = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setRolesError(null);
+
+    if (selectedRoles.length === 0) {
+      setRolesError("Выберите хотя бы одну роль.");
+      return;
+    }
+
+    updateRolesMutation.mutate();
+  };
 
   return (
     <Page>
       <PageBreadcrumbs
         items={[
-          { label: 'Главная', to: '/' },
-          { label: 'Администратор', to: '/admin' },
-          { label: 'Пользователи', to: '/admin/users' },
-          { label: user.email },
+          { label: "Главная", to: "/" },
+          { label: "Администратор", to: "/admin" },
+          { label: "Пользователи", to: "/admin/users" },
+          { label: user?.email ?? "Карточка пользователя" },
         ]}
       />
 
       <Stack gap="md">
         <Group justify="space-between" align="flex-end" gap="md" wrap="wrap">
-          <PageHeader title="Карточка пользователя" description={user.email} />
+          <PageHeader title={pageTitle} description={user?.email ?? safeUserId} />
           <Button component={Link} to="/admin/users" size="sm" variant="outline">
             Назад к списку
           </Button>
@@ -100,157 +267,307 @@ export function AdminUserDetailsPage() {
         <AdminContourTabs />
       </Stack>
 
-      <Grid gutter="md" align="flex-start">
-        <Grid.Col span={{ base: 12, md: 8 }}>
-          <Stack gap="md">
-            <AppCard p="md">
-              <Stack gap="md">
-                <Title order={3} size="h5">
-                  Основная информация
-                </Title>
-                <Grid gutter="md">
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <Text c="dimmed" size="xs" tt="uppercase">
-                      Имя пользователя
-                    </Text>
-                    <Text fw={600}>{user.name}</Text>
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <Text c="dimmed" size="xs" tt="uppercase">
-                      Email
-                    </Text>
-                    <Text fw={600}>{user.email}</Text>
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <Text c="dimmed" size="xs" tt="uppercase">
-                      Статус
-                    </Text>
-                    <Badge color={getAdminUserStatusColor(user.status)} radius="sm" variant="dot">
-                      {getAdminUserStatusLabel(user.status)}
-                    </Badge>
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <Text c="dimmed" size="xs" tt="uppercase">
-                      Дата создания
-                    </Text>
-                    <Text fw={600}>{user.createdAt}</Text>
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <Text c="dimmed" size="xs" tt="uppercase">
-                      Последний вход
-                    </Text>
-                    <Text fw={600}>{user.lastLogin}</Text>
-                  </Grid.Col>
-                </Grid>
-              </Stack>
-            </AppCard>
-
-            <AppCard p="md">
-              <Stack gap="md">
-                <Group justify="space-between" align="center" gap="md" wrap="wrap">
+      {!userId ? (
+        <UserNotFound />
+      ) : userQuery.isPending ? (
+        <UserDetailsSkeleton />
+      ) : userQuery.isError ? (
+        <AppCard>
+          <EmptyState
+            title="IdentityService недоступен"
+            description="Проверьте, что сервис запущен и runtime config указывает на правильный адрес."
+          />
+        </AppCard>
+      ) : apiErrorStatus === 404 ? (
+        <UserNotFound />
+      ) : apiError ? (
+        <AppCard p="md">
+          <Alert color="red" variant="light">
+            {getAdminUsersErrorMessage(apiError, apiErrorStatus)}
+          </Alert>
+        </AppCard>
+      ) : user ? (
+        <Grid gutter="md" align="flex-start">
+          <Grid.Col span={{ base: 12, md: 8 }}>
+            <Stack gap="md">
+              <AppCard p="md">
+                <Stack gap="md">
                   <Title order={3} size="h5">
-                    Роли доступа
+                    Основная информация
                   </Title>
-                  <Button size="xs" disabled>
-                    Сохранить роли
-                  </Button>
-                </Group>
-
-                <Stack gap="sm">
-                  {roleOrder.map((role) => (
-                    <Box
-                      key={role}
-                      p="sm"
-                      style={{
-                        border: '1px solid #dee2e6',
-                        borderRadius: 4,
-                        background: '#ffffff',
-                      }}
-                    >
-                      <Group justify="space-between" align="flex-start" gap="md" wrap="nowrap">
-                        <Stack gap={4}>
-                          <Text fw={600}>{role}</Text>
-                          <Text c="dimmed" size="sm">
-                            {roleDescriptions[role]}
-                          </Text>
-                        </Stack>
-                        <Switch
-                          checked={selectedRoles.includes(role)}
-                          onChange={() => toggleRole(role)}
-                          aria-label={`Переключить роль ${role}`}
-                        />
-                      </Group>
-                    </Box>
-                  ))}
+                  <Grid gutter="md">
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Имя пользователя
+                      </Text>
+                      <Text fw={600}>{getUserDisplayName(user)}</Text>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Email
+                      </Text>
+                      <Text fw={600}>{user.email}</Text>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Статус
+                      </Text>
+                      <Badge color={getUserStatusTone(user.status)} radius="sm" variant="dot">
+                        {formatUserStatus(user.status)}
+                      </Badge>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Идентификатор
+                      </Text>
+                      <Text fw={600}>{user.id}</Text>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Создан
+                      </Text>
+                      <Text fw={600}>{formatUserDateTime(user.createdAt)}</Text>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Обновлен
+                      </Text>
+                      <Text fw={600}>{formatUserDateTime(user.updatedAt)}</Text>
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Последний вход
+                      </Text>
+                      <Text fw={600}>{formatUserDateTime(user.lastLoginAt)}</Text>
+                    </Grid.Col>
+                  </Grid>
                 </Stack>
-              </Stack>
-            </AppCard>
-          </Stack>
-        </Grid.Col>
+              </AppCard>
 
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <Stack gap="md">
-            <AppCard p="md">
-              <Stack gap="md">
-                <Title order={3} size="h5">
-                  Активность
-                </Title>
+              <AppCard p="md">
+                <Stack gap="md">
+                  <Group justify="space-between" align="center" gap="md" wrap="wrap">
+                    <Title order={3} size="h5">
+                      Роли доступа
+                    </Title>
+                    <Button size="xs" variant="outline" onClick={openRolesModal}>
+                      Изменить роли
+                    </Button>
+                  </Group>
+                  {user.roles.length > 0 ? (
+                    <Group gap="xs">
+                      {user.roles.map((role) => (
+                        <Badge key={role} color="blue" radius="sm" variant="light">
+                          {formatUserRole(role)}
+                        </Badge>
+                      ))}
+                    </Group>
+                  ) : (
+                    <Text c="dimmed" size="sm">
+                      У пользователя нет назначенных ролей.
+                    </Text>
+                  )}
+                </Stack>
+              </AppCard>
+            </Stack>
+          </Grid.Col>
 
-                <Stack gap="sm">
-                  {userActivities.map((event, index) => (
-                    <Box key={event.id}>
-                      <Group align="flex-start" gap="sm" wrap="nowrap">
-                        <Box
-                          mt={6}
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Stack gap="md">
+              <AppCard p="md">
+                <Stack gap="md">
+                  <Title order={3} size="h5">
+                    Блокировка
+                  </Title>
+                  <Grid gutter="md">
+                    <Grid.Col span={12}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Дата блокировки
+                      </Text>
+                      <Text fw={600}>{formatUserDateTime(user.blockedAt)}</Text>
+                    </Grid.Col>
+                    <Grid.Col span={12}>
+                      <Text c="dimmed" size="xs" tt="uppercase">
+                        Причина
+                      </Text>
+                      <Text fw={600}>{user.blockReason?.trim() || "Не указано"}</Text>
+                    </Grid.Col>
+                  </Grid>
+                  {isBlocked ? (
+                    <Button size="sm" variant="outline" onClick={openUnblockModal}>
+                      Разблокировать пользователя
+                    </Button>
+                  ) : (
+                    <Button color="red" size="sm" onClick={openBlockModal}>
+                      Заблокировать пользователя
+                    </Button>
+                  )}
+                </Stack>
+              </AppCard>
+
+              <AppCard p="md">
+                <Stack gap="md">
+                  <Group justify="space-between" align="center" gap="md" wrap="wrap">
+                    <Title order={3} size="h5">
+                      Активность
+                    </Title>
+                    {activity ? (
+                      <Badge color="gray" radius="sm" variant="light">
+                        {activity.totalCount}
+                      </Badge>
+                    ) : null}
+                  </Group>
+
+                  {activityQuery.isPending ? (
+                    <Text c="dimmed" size="sm">
+                      Загружаем последние события пользователя.
+                    </Text>
+                  ) : activityQuery.isError ? (
+                    <Alert color="red" variant="light">
+                      IdentityService недоступен. Проверьте, что сервис запущен.
+                    </Alert>
+                  ) : activityError ? (
+                    <Alert color="red" variant="light">
+                      {getAdminUsersErrorMessage(activityError, activityErrorStatus)}
+                    </Alert>
+                  ) : activity && activity.items.length > 0 ? (
+                    <Stack gap="sm">
+                      {activity.items.map((event) => (
+                        <Stack
+                          key={event.id}
+                          gap={4}
+                          p="xs"
                           style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: 8,
-                            background: `var(--mantine-color-${getAdminEventToneColor(event.tone)}-6)`,
-                            flex: '0 0 auto',
+                            border: "1px solid var(--mantine-color-gray-3)",
+                            borderRadius: 4,
                           }}
-                        />
-                        <Stack gap={2} style={{ minWidth: 0 }}>
-                          <Text fw={600} size="sm">
-                            {event.title}
-                          </Text>
-                          <Text c="dimmed" size="xs">
-                            {event.description}
-                          </Text>
-                          <Text c="dimmed" size="xs">
-                            {event.occurredAt}
-                          </Text>
+                        >
+                          <Group gap="xs" justify="space-between" wrap="nowrap">
+                            <Badge color="blue" radius="sm" variant="light">
+                              {formatAuditEventType(event.eventType)}
+                            </Badge>
+                            <Text c="dimmed" size="xs" ta="right">
+                              {formatUserDateTime(event.createdAt)}
+                            </Text>
+                          </Group>
+                          <Text size="sm">{event.description}</Text>
                         </Stack>
-                      </Group>
-                      {index < userActivities.length - 1 ? <Divider mt="sm" /> : null}
-                    </Box>
-                  ))}
-                </Stack>
+                      ))}
 
-                <Anchor component={Link} to={`/admin/users/${user.id}/activity`} size="sm">
-                  Показать все
-                </Anchor>
-              </Stack>
-            </AppCard>
-
-            <AppCard p="md" style={{ borderColor: '#f1aeb5' }}>
-              <Stack gap="md">
-                <Stack gap={4}>
-                  <Title order={3} size="h5" c="red">
-                    Опасные действия
-                  </Title>
-                  <Text c="dimmed" size="sm">
-                    Блокировка пользователя временно ограничит доступ к системе и учебным материалам.
-                  </Text>
+                      {activityTotalPages > 1 ? (
+                        <Pagination
+                          size="xs"
+                          total={activityTotalPages}
+                          value={activityPage}
+                          onChange={setActivityPage}
+                        />
+                      ) : null}
+                    </Stack>
+                  ) : (
+                    <Text c="dimmed" size="sm">
+                      По пользователю пока нет событий.
+                    </Text>
+                  )}
                 </Stack>
-                <Button color="red" disabled>
-                  Заблокировать пользователя
-                </Button>
+              </AppCard>
+            </Stack>
+          </Grid.Col>
+        </Grid>
+      ) : (
+        <UserNotFound />
+      )}
+
+      <Modal
+        opened={rolesModalOpened}
+        onClose={closeRolesModal}
+        title="Изменить роли"
+        centered
+        size="md"
+      >
+        <form onSubmit={submitRoles}>
+          <Stack gap="md">
+            {rolesError ? (
+              <Alert color="red" variant="light">
+                {rolesError}
+              </Alert>
+            ) : null}
+
+            <Checkbox.Group
+              label="Роли пользователя"
+              value={selectedRoles}
+              onChange={(roles) => setSelectedRoles(roles as UserRoleType[])}
+              withAsterisk
+            >
+              <Stack gap="xs" mt="xs">
+                {editableRoles.map((role) => (
+                  <Checkbox
+                    key={role}
+                    value={role}
+                    label={formatUserRole(role)}
+                  />
+                ))}
               </Stack>
-            </AppCard>
+            </Checkbox.Group>
+
+            <Text c="dimmed" size="sm">
+              Будет сохранён полный набор выбранных ролей. Если бэк запрещает
+              снять последнего администратора или изменить собственные права,
+              ошибка появится здесь.
+            </Text>
+
+            <FormActions
+              cancelLabel="Отмена"
+              loading={updateRolesMutation.isPending}
+              onCancel={closeRolesModal}
+              submitLabel="Сохранить"
+            />
           </Stack>
-        </Grid.Col>
-      </Grid>
+        </form>
+      </Modal>
+
+      <ConfirmModal
+        opened={blockModalOpened}
+        title="Заблокировать пользователя"
+        message={`Пользователь ${user?.email ?? safeUserId} не сможет входить в систему до разблокировки.`}
+        confirmLabel="Заблокировать"
+        loading={blockUserMutation.isPending}
+        onCancel={closeBlockModal}
+        onConfirm={() => blockUserMutation.mutate()}
+      >
+        <Stack gap="sm">
+          {blockError ? (
+            <Alert color="red" variant="light">
+              {blockError}
+            </Alert>
+          ) : null}
+          <Textarea
+            label="Причина"
+            placeholder="Например: нарушение правил платформы"
+            value={blockReason}
+            autosize
+            minRows={3}
+            maxRows={5}
+            onChange={(event) => setBlockReason(event.currentTarget.value)}
+          />
+        </Stack>
+      </ConfirmModal>
+
+      <ConfirmModal
+        opened={unblockModalOpened}
+        title="Разблокировать пользователя"
+        message={`Пользователь ${user?.email ?? safeUserId} снова сможет входить в систему.`}
+        confirmColor="blue"
+        confirmLabel="Разблокировать"
+        loading={unblockUserMutation.isPending}
+        onCancel={closeUnblockModal}
+        onConfirm={() => unblockUserMutation.mutate()}
+      >
+        {unblockError ? (
+          <Alert color="red" variant="light">
+            {unblockError}
+          </Alert>
+        ) : null}
+      </ConfirmModal>
     </Page>
   );
 }

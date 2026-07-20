@@ -1,4 +1,5 @@
-import { Button, Group, Modal, Text } from '@mantine/core';
+import { Button, Group, Modal, Stack, Text } from '@mantine/core';
+import type { ReactNode } from 'react';
 
 type ConfirmModalProps = {
   opened: boolean;
@@ -6,6 +7,8 @@ type ConfirmModalProps = {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmColor?: string;
+  children?: ReactNode;
   loading?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -13,6 +16,8 @@ type ConfirmModalProps = {
 
 export function ConfirmModal({
   cancelLabel = 'Отмена',
+  children,
+  confirmColor = 'red',
   confirmLabel = 'Удалить',
   loading = false,
   message,
@@ -23,12 +28,15 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   return (
     <Modal centered opened={opened} title={title} onClose={onCancel}>
-      <Text size="sm">{message}</Text>
+      <Stack gap="md">
+        <Text size="sm">{message}</Text>
+        {children}
+      </Stack>
       <Group justify="flex-end" mt="lg">
         <Button variant="default" onClick={onCancel}>
           {cancelLabel}
         </Button>
-        <Button color="red" loading={loading} onClick={onConfirm}>
+        <Button color={confirmColor} loading={loading} onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </Group>
