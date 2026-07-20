@@ -15,7 +15,7 @@ import {
   getAdminServiceStatusLabel,
 } from '../../features/admin-contour';
 import type { AdminServiceState } from '../../features/admin-contour';
-import { getAdminUsersErrorMessage } from '../../features/admin-users';
+import { getAdminUsersErrorPresentation } from '../../features/admin-users';
 import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
 type OverviewMetric = {
@@ -162,6 +162,9 @@ export function AdminHomePage() {
     auditResponse && auditResponse.status !== 200 ? auditResponse.data : null;
   const auditErrorStatus =
     auditResponse && auditResponse.status !== 200 ? auditResponse.status : undefined;
+  const auditErrorPresentation = auditError
+    ? getAdminUsersErrorPresentation(auditError, auditErrorStatus)
+    : null;
   const usersResponse = usersQuery.data;
   const teachersResponse = teachersQuery.data;
   const studentsResponse = studentsQuery.data;
@@ -363,8 +366,8 @@ export function AdminHomePage() {
                 IdentityService недоступен. Проверьте, что сервис запущен.
               </Alert>
             ) : auditError ? (
-              <Alert color="red" variant="light">
-                {getAdminUsersErrorMessage(auditError, auditErrorStatus)}
+              <Alert color="red" title={auditErrorPresentation?.title} variant="light">
+                {auditErrorPresentation?.message}
               </Alert>
             ) : auditPage && auditPage.items.length > 0 ? (
               <Stack gap="sm">

@@ -7,6 +7,12 @@ import { z } from 'zod';
 import { useLogin } from '../../api/identity/auth/auth';
 import type { ProblemDetails } from '../../api/identity/model';
 import {
+  getIdentityProblemMessage,
+  getIdentityProblemPresentation,
+  getIdentityProblemStringValues,
+  type IdentityApiProblemPresentation,
+} from '../../shared/lib/identity-problem-details';
+import {
   createSessionUserFromTokenResponse,
   getDefaultSessionRoute,
   useSessionStore,
@@ -24,20 +30,9 @@ const blockedAccountMessage =
   'Учётная запись заблокирована. Обратитесь к администратору системы.';
 
 const isBlockedAccountProblem = (problem: ProblemDetails): boolean => {
-  const valuesToCheck = [
-    problem.type,
-    problem.title,
-    problem.detail,
-    problem.code,
-    problem.errorCode,
-    problem.reason,
-  ];
+  const valuesToCheck = getIdentityProblemStringValues(problem);
 
   return valuesToCheck.some((value) => {
-    if (typeof value !== 'string') {
-      return false;
-    }
-
     const normalizedValue = value.toLowerCase();
 
     return (
@@ -51,7 +46,7 @@ const isBlockedAccountProblem = (problem: ProblemDetails): boolean => {
 export function LoginPage() {
   const navigate = useNavigate();
   const setSession = useSessionStore((state) => state.setSession);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<IdentityApiProblemPresentation | null>(null);
   const loginMutation = useLogin();
 
   const {
@@ -76,29 +71,49 @@ export function LoginPage() {
       .catch(() => null);
 
     if (!response) {
-      setFormError('IdentityService недоступен. Проверьте адрес сервиса и runtime config.');
+      setFormError({
+        title: 'IdentityService недоступен',
+        message: 'Проверьте адрес сервиса и runtime config.',
+      });
       return;
     }
 
     if (response.status === 401 && isBlockedAccountProblem(response.data)) {
-      setFormError(blockedAccountMessage);
+      setFormError({
+        title: response.data.title?.trim() || 'Вход заблокирован',
+        message: response.data.detail?.trim() || blockedAccountMessage,
+      });
       return;
     }
 
     if (response.status === 401) {
-      setFormError('Неверный email или пароль.');
+      setFormError({
+        title: response.data.title?.trim() || 'Не удалось войти',
+        message: getIdentityProblemMessage(response.data, response.status),
+      });
       return;
     }
 
-    if (response.status !== 200 || !response.data.accessToken) {
-      setFormError('Не удалось выполнить вход. Повторите попытку позже.');
+    if (response.status !== 200) {
+      setFormError(getIdentityProblemPresentation(response.data, response.status));
+      return;
+    }
+
+    if (!response.data.accessToken) {
+      setFormError({
+        title: 'Ошибка токена',
+        message: 'IdentityService не вернул access token.',
+      });
       return;
     }
 
     const user = createSessionUserFromTokenResponse(response.data);
 
     if (!user) {
-      setFormError('Не удалось прочитать данные пользователя из токена.');
+      setFormError({
+        title: 'Ошибка токена',
+        message: 'Не удалось прочитать данные пользователя из токена.',
+      });
       return;
     }
 
@@ -120,8 +135,8 @@ export function LoginPage() {
           <form onSubmit={onSubmit}>
             <Stack gap="md" mt="lg">
               {formError ? (
-                <Alert color="red" variant="light">
-                  {formError}
+                <Alert color="red" title={formError.title} variant="light">
+                  {formError.message}
                 </Alert>
               ) : null}
 

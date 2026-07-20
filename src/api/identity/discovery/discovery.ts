@@ -63,8 +63,8 @@ export const getJwksUrl = () => {
 }
 
 /**
- * Returns the public RSA key used to verify JWT signatures. Issuer must match Authority configured in client services.
- * @summary JSON Web Key Set
+ * Возвращает открытый RSA-ключ для проверки подписи JWT. Issuer должен совпадать с Authority клиентского сервиса.
+ * @summary Набор открытых ключей JWKS
  */
 export const jwks = async ( options?: RequestInit): Promise<jwksResponse> => {
 
@@ -135,7 +135,7 @@ export function useJwks<TData = Awaited<ReturnType<typeof jwks>>, TError = unkno
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary JSON Web Key Set
+ * @summary Набор открытых ключей JWKS
  */
 
 export function useJwks<TData = Awaited<ReturnType<typeof jwks>>, TError = unknown>(
@@ -176,8 +176,8 @@ export const getOpenIdConfigurationUrl = () => {
 }
 
 /**
- * Minimal OIDC discovery document. Set Authority = Issuer in client JwtBearer options.
- * @summary OpenID Connect discovery document
+ * Возвращает метаданные OIDC. В сервисах-клиентах Authority должен совпадать с issuer.
+ * @summary Конфигурация OpenID Connect
  */
 export const openIdConfiguration = async ( options?: RequestInit): Promise<openIdConfigurationResponse> => {
 
@@ -248,7 +248,7 @@ export function useOpenIdConfiguration<TData = Awaited<ReturnType<typeof openIdC
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary OpenID Connect discovery document
+ * @summary Конфигурация OpenID Connect
  */
 
 export function useOpenIdConfiguration<TData = Awaited<ReturnType<typeof openIdConfiguration>>, TError = unknown>(

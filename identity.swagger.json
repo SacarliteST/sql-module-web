@@ -9,10 +9,10 @@
     "/api/v1/audit-events": {
       "get": {
         "tags": [
-          "Audit"
+          "Аудит"
         ],
         "summary": "Журнал аудита",
-        "description": "Возвращает постраничный журнал событий. Только для Admin.",
+        "description": "Возвращает постраничный журнал событий. Доступно только для роли Admin.",
         "operationId": "ListAuditEvents",
         "parameters": [
           {
@@ -118,10 +118,10 @@
     "/api/v1/users/{id}/activity": {
       "get": {
         "tags": [
-          "Audit"
+          "Аудит"
         ],
         "summary": "Активность пользователя",
-        "description": "Возвращает события пользователя как инициатора или объекта действия. Только для Admin.",
+        "description": "Возвращает события пользователя как инициатора или объекта действия. Доступно только для роли Admin.",
         "operationId": "GetUserActivity",
         "parameters": [
           {
@@ -230,7 +230,7 @@
     "/api/v1/auth/register": {
       "post": {
         "tags": [
-          "Auth"
+          "Аутентификация"
         ],
         "summary": "Регистрация нового пользователя",
         "description": "Создаёт пользователя с ролью Student и возвращает пару токенов.",
@@ -287,7 +287,7 @@
     "/api/v1/auth/refresh": {
       "post": {
         "tags": [
-          "Auth"
+          "Аутентификация"
         ],
         "summary": "Обновление токенов",
         "description": "Ротирует refresh-токен. Повторное использование отозванного токена инициирует отзыв всех сессий.",
@@ -327,6 +327,16 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -334,7 +344,7 @@
     "/api/v1/auth/logout": {
       "post": {
         "tags": [
-          "Auth"
+          "Аутентификация"
         ],
         "summary": "Выход из системы",
         "description": "Отзывает refresh-токен. Идемпотентно: повторный вызов возвращает 204.",
@@ -357,6 +367,16 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -364,7 +384,7 @@
     "/api/v1/auth/login": {
       "post": {
         "tags": [
-          "Auth"
+          "Аутентификация"
         ],
         "summary": "Аутентификация пользователя",
         "description": "Проверяет учётные данные и возвращает пару токенов.",
@@ -421,10 +441,10 @@
     "/.well-known/jwks.json": {
       "get": {
         "tags": [
-          "Discovery"
+          "Метаданные"
         ],
-        "summary": "JSON Web Key Set",
-        "description": "Returns the public RSA key used to verify JWT signatures. Issuer must match Authority configured in client services.",
+        "summary": "Набор открытых ключей JWKS",
+        "description": "Возвращает открытый RSA-ключ для проверки подписи JWT. Issuer должен совпадать с Authority клиентского сервиса.",
         "operationId": "Jwks",
         "responses": {
           "200": {
@@ -441,10 +461,10 @@
     "/.well-known/openid-configuration": {
       "get": {
         "tags": [
-          "Discovery"
+          "Метаданные"
         ],
-        "summary": "OpenID Connect discovery document",
-        "description": "Minimal OIDC discovery document. Set Authority = Issuer in client JwtBearer options.",
+        "summary": "Конфигурация OpenID Connect",
+        "description": "Возвращает метаданные OIDC. В сервисах-клиентах Authority должен совпадать с issuer.",
         "operationId": "OpenIdConfiguration",
         "responses": {
           "200": {
@@ -458,26 +478,13 @@
         }
       }
     },
-    "/health": {
-      "get": {
-        "tags": [
-          "Health"
-        ],
-        "operationId": "Health",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/v1/users/{id}/roles": {
       "put": {
         "tags": [
-          "Users"
+          "Пользователи"
         ],
         "summary": "Замена ролей пользователя",
-        "description": "Атомарно заменяет полный набор ролей. Только для Admin.",
+        "description": "Атомарно заменяет полный набор ролей. Доступно только для роли Admin.",
         "operationId": "UpdateUserRoles",
         "parameters": [
           {
@@ -565,10 +572,10 @@
     "/api/v1/users/{id}/unblock": {
       "post": {
         "tags": [
-          "Users"
+          "Пользователи"
         ],
         "summary": "Разблокировка пользователя",
-        "description": "Снимает блокировку и очищает её административные метаданные. Только для Admin.",
+        "description": "Снимает блокировку и очищает её административные метаданные. Доступно только для роли Admin.",
         "operationId": "UnblockUser",
         "parameters": [
           {
@@ -621,10 +628,10 @@
     "/api/v1/users": {
       "get": {
         "tags": [
-          "Users"
+          "Пользователи"
         ],
         "summary": "Список пользователей",
-        "description": "Возвращает постраничный список пользователей. Только для Admin.",
+        "description": "Возвращает постраничный список пользователей. Доступно только для роли Admin.",
         "operationId": "ListUsers",
         "parameters": [
           {
@@ -710,10 +717,10 @@
       },
       "post": {
         "tags": [
-          "Users"
+          "Пользователи"
         ],
         "summary": "Административное создание пользователя",
-        "description": "Создаёт пользователя с полным набором ролей без выдачи токенов. Только для Admin.",
+        "description": "Создаёт пользователя с полным набором ролей без выдачи токенов. Доступно только для роли Admin.",
         "operationId": "CreateUser",
         "requestBody": {
           "content": {
@@ -787,10 +794,10 @@
     "/api/v1/users/{id}": {
       "get": {
         "tags": [
-          "Users"
+          "Пользователи"
         ],
         "summary": "Карточка пользователя",
-        "description": "Возвращает пользователя и его роли. Только для Admin.",
+        "description": "Возвращает пользователя и его роли. Доступно только для роли Admin.",
         "operationId": "GetUserDetails",
         "parameters": [
           {
@@ -850,10 +857,10 @@
     "/api/v1/users/{id}/block": {
       "post": {
         "tags": [
-          "Users"
+          "Пользователи"
         ],
         "summary": "Блокировка пользователя",
-        "description": "Блокирует вход и отзывает активные refresh-токены. Только для Admin.",
+        "description": "Блокирует вход и отзывает активные refresh-токены. Доступно только для роли Admin.",
         "operationId": "BlockUser",
         "parameters": [
           {
@@ -934,6 +941,19 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Состояние"
+        ],
+        "operationId": "Health",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -1369,7 +1389,7 @@
     "securitySchemes": {
       "Bearer": {
         "type": "http",
-        "description": "Введите JWT access token без префикса Bearer.",
+        "description": "Введите JWT-токен доступа без префикса Bearer.",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
@@ -1382,19 +1402,19 @@
   ],
   "tags": [
     {
-      "name": "Audit"
+      "name": "Аудит"
     },
     {
-      "name": "Auth"
+      "name": "Аутентификация"
     },
     {
-      "name": "Discovery"
+      "name": "Метаданные"
     },
     {
-      "name": "Health"
+      "name": "Пользователи"
     },
     {
-      "name": "Users"
+      "name": "Состояние"
     }
   ]
 }

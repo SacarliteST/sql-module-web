@@ -19,7 +19,7 @@ import { useListAuditEvents } from "../../api/identity/audit/audit";
 import { auditEventTypeOptions, formatAuditEventType } from "../../entities/audit";
 import { formatUserDateTime } from "../../entities/user";
 import { AdminContourTabs } from "../../features/admin-contour";
-import { getAdminUsersErrorMessage } from "../../features/admin-users";
+import { getAdminUsersErrorPresentation } from "../../features/admin-users";
 import {
   AppCard,
   EmptyState,
@@ -67,6 +67,9 @@ export function AdminEventsPage() {
   const shownTo = Math.min(page * pageSize, totalCount);
   const apiError = response && response.status !== 200 ? response.data : null;
   const apiErrorStatus = response && response.status !== 200 ? response.status : undefined;
+  const apiErrorPresentation = apiError
+    ? getAdminUsersErrorPresentation(apiError, apiErrorStatus)
+    : null;
 
   const resetToFirstPage = () => setPage(1);
 
@@ -189,8 +192,8 @@ export function AdminEventsPage() {
           />
         ) : apiError ? (
           <Stack p="md">
-            <Alert color="red" variant="light">
-              {getAdminUsersErrorMessage(apiError, apiErrorStatus)}
+            <Alert color="red" title={apiErrorPresentation?.title} variant="light">
+              {apiErrorPresentation?.message}
             </Alert>
           </Stack>
         ) : events.length > 0 ? (

@@ -32,10 +32,11 @@ import { AdminContourTabs } from "../../features/admin-contour";
 import {
   AdminUsersApiError,
   blockAdminUser,
-  getAdminUsersErrorMessage,
+  getAdminUsersErrorPresentation,
   replaceAdminUserRoles,
   unblockAdminUser,
 } from "../../features/admin-users";
+import type { IdentityApiProblemPresentation } from "../../shared/lib/identity-problem-details";
 import {
   AppCard,
   ConfirmModal,
@@ -49,10 +50,15 @@ import {
 const editableRoles = [UserRole.Admin, UserRole.Teacher, UserRole.Student];
 const activityPageSize = 5;
 
-const getAdminUserMutationErrorMessage = (error: unknown) =>
+const getAdminUserMutationErrorPresentation = (
+  error: unknown,
+): IdentityApiProblemPresentation =>
   error instanceof AdminUsersApiError
-    ? getAdminUsersErrorMessage(error.problem, error.status)
-    : "IdentityService недоступен. Проверьте, что сервис запущен.";
+    ? getAdminUsersErrorPresentation(error.problem, error.status)
+    : {
+        title: "IdentityService недоступен",
+        message: "Проверьте, что сервис запущен.",
+      };
 
 function UserDetailsSkeleton() {
   return (
@@ -89,10 +95,10 @@ export function AdminUserDetailsPage() {
   const [blockModalOpened, blockModal] = useDisclosure(false);
   const [unblockModalOpened, unblockModal] = useDisclosure(false);
   const [selectedRoles, setSelectedRoles] = useState<UserRoleType[]>([]);
-  const [rolesError, setRolesError] = useState<string | null>(null);
+  const [rolesError, setRolesError] = useState<IdentityApiProblemPresentation | null>(null);
   const [blockReason, setBlockReason] = useState("");
-  const [blockError, setBlockError] = useState<string | null>(null);
-  const [unblockError, setUnblockError] = useState<string | null>(null);
+  const [blockError, setBlockError] = useState<IdentityApiProblemPresentation | null>(null);
+  const [unblockError, setUnblockError] = useState<IdentityApiProblemPresentation | null>(null);
   const [activityPage, setActivityPage] = useState(1);
 
   const userQuery = useGetUserDetails(safeUserId, {
@@ -120,6 +126,9 @@ export function AdminUserDetailsPage() {
   const user = response?.status === 200 ? response.data : null;
   const apiError = response && response.status !== 200 ? response.data : null;
   const apiErrorStatus = response && response.status !== 200 ? response.status : undefined;
+  const apiErrorPresentation = apiError
+    ? getAdminUsersErrorPresentation(apiError, apiErrorStatus)
+    : null;
   const pageTitle = user ? getUserDisplayName(user) : "Карточка пользователя";
   const isBlocked = user ? user.status === "Blocked" || Boolean(user.blockedAt) : false;
   const activityResponse = activityQuery.data;
@@ -128,6 +137,9 @@ export function AdminUserDetailsPage() {
     activityResponse && activityResponse.status !== 200 ? activityResponse.data : null;
   const activityErrorStatus =
     activityResponse && activityResponse.status !== 200 ? activityResponse.status : undefined;
+  const activityErrorPresentation = activityError
+    ? getAdminUsersErrorPresentation(activityError, activityErrorStatus)
+    : null;
   const activityTotalPages = Math.max(
     1,
     Math.ceil((activity?.totalCount ?? 0) / activityPageSize),
@@ -149,7 +161,7 @@ export function AdminUserDetailsPage() {
       rolesModal.close();
     },
     onError: (error) => {
-      setRolesError(getAdminUserMutationErrorMessage(error));
+      setRolesError(getAdminUserMutationErrorPresentation(error));
     },
   });
 
@@ -162,7 +174,7 @@ export function AdminUserDetailsPage() {
       blockModal.close();
     },
     onError: (error) => {
-      setBlockError(getAdminUserMutationErrorMessage(error));
+      setBlockError(getAdminUserMutationErrorPresentation(error));
     },
   });
 
@@ -174,7 +186,7 @@ export function AdminUserDetailsPage() {
       unblockModal.close();
     },
     onError: (error) => {
-      setUnblockError(getAdminUserMutationErrorMessage(error));
+      setUnblockError(getAdminUserMutationErrorPresentation(error));
     },
   });
 
@@ -226,7 +238,10 @@ export function AdminUserDetailsPage() {
     setRolesError(null);
 
     if (selectedRoles.length === 0) {
-      setRolesError("Выберите хотя бы одну роль.");
+      setRolesError({
+        title: "Ошибка валидации",
+        message: "Выберите хотя бы одну роль.",
+      });
       return;
     }
 
@@ -269,8 +284,8 @@ export function AdminUserDetailsPage() {
         <UserNotFound />
       ) : apiError ? (
         <AppCard p="md">
-          <Alert color="red" variant="light">
-            {getAdminUsersErrorMessage(apiError, apiErrorStatus)}
+          <Alert color="red" title={apiErrorPresentation?.title} variant="light">
+            {apiErrorPresentation?.message}
           </Alert>
         </AppCard>
       ) : user ? (
@@ -414,8 +429,8 @@ export function AdminUserDetailsPage() {
                       IdentityService недоступен. Проверьте, что сервис запущен.
                     </Alert>
                   ) : activityError ? (
-                    <Alert color="red" variant="light">
-                      {getAdminUsersErrorMessage(activityError, activityErrorStatus)}
+                    <Alert color="red" title={activityErrorPresentation?.title} variant="light">
+                      {activityErrorPresentation?.message}
                     </Alert>
                   ) : activity && activity.items.length > 0 ? (
                     <Stack gap="sm">
@@ -474,8 +489,8 @@ export function AdminUserDetailsPage() {
         <form onSubmit={submitRoles}>
           <Stack gap="md">
             {rolesError ? (
-              <Alert color="red" variant="light">
-                {rolesError}
+              <Alert color="red" title={rolesError.title} variant="light">
+                {rolesError.message}
               </Alert>
             ) : null}
 
@@ -523,8 +538,8 @@ export function AdminUserDetailsPage() {
       >
         <Stack gap="sm">
           {blockError ? (
-            <Alert color="red" variant="light">
-              {blockError}
+            <Alert color="red" title={blockError.title} variant="light">
+              {blockError.message}
             </Alert>
           ) : null}
           <Textarea
@@ -550,8 +565,8 @@ export function AdminUserDetailsPage() {
         onConfirm={() => unblockUserMutation.mutate()}
       >
         {unblockError ? (
-          <Alert color="red" variant="light">
-            {unblockError}
+          <Alert color="red" title={unblockError.title} variant="light">
+            {unblockError.message}
           </Alert>
         ) : null}
       </ConfirmModal>

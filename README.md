@@ -158,6 +158,7 @@ src/
 
 - `CONCEPT.md` - концепция SQL-модуля.
 - `ROADMAP.md` - дорожная карта.
+- `TECHNICAL_REQUIREMENTS.md` - технические и функциональные требования.
 - `DESIGN.md` - дизайн-ориентиры.
 - `AGENTS.md` - правила агентской разработки.
 - `docs/testing-system-ui-style.md` - стиль интерфейса родительской системы.

@@ -2,6 +2,13 @@ import type {
   ProblemDetails,
   ValidationProblemDetails,
 } from "../../../api/identity/model";
+import {
+  getIdentityProblemFieldErrors,
+  getIdentityProblemMessage,
+  getIdentityProblemPresentation,
+  getIdentityProblemTitle,
+  isIdentityValidationProblem,
+} from "../../../shared/lib/identity-problem-details";
 
 export type AdminUsersApiProblem = ProblemDetails | ValidationProblemDetails;
 
@@ -20,43 +27,23 @@ export class AdminUsersApiError extends Error {
 export const isValidationProblemDetails = (
   problem: AdminUsersApiProblem,
 ): problem is ValidationProblemDetails => {
-  return "errors" in problem;
+  return isIdentityValidationProblem(problem);
 };
+
+export const getAdminUsersErrorTitle = (
+  problem: AdminUsersApiProblem,
+  fallbackStatus?: number,
+): string => getIdentityProblemTitle(problem, fallbackStatus);
 
 export const getAdminUsersErrorMessage = (
   problem: AdminUsersApiProblem,
   fallbackStatus?: number,
-): string => {
-  if (problem.detail) {
-    return problem.detail;
-  }
+): string => getIdentityProblemMessage(problem, fallbackStatus);
 
-  if (problem.title) {
-    return problem.title;
-  }
-
-  if (fallbackStatus === 401) {
-    return "Необходимо войти в систему повторно.";
-  }
-
-  if (fallbackStatus === 403) {
-    return "Недостаточно прав для выполнения действия.";
-  }
-
-  if (fallbackStatus === 404) {
-    return "Пользователь не найден.";
-  }
-
-  if (fallbackStatus === 409) {
-    return "Действие конфликтует с текущим состоянием пользователя.";
-  }
-
-  if (fallbackStatus === 422) {
-    return "Проверьте корректность заполнения формы.";
-  }
-
-  return "Не удалось выполнить действие.";
-};
+export const getAdminUsersErrorPresentation = (
+  problem: AdminUsersApiProblem,
+  fallbackStatus?: number,
+) => getIdentityProblemPresentation(problem, fallbackStatus);
 
 export const getAdminUsersFieldErrors = (
   error: unknown,
@@ -65,9 +52,8 @@ export const getAdminUsersFieldErrors = (
     error instanceof AdminUsersApiError &&
     isValidationProblemDetails(error.problem)
   ) {
-    return error.problem.errors;
+    return getIdentityProblemFieldErrors(error.problem);
   }
 
   return {};
 };
-

@@ -37,9 +37,10 @@ import { AdminContourTabs } from "../../features/admin-contour";
 import {
   AdminUsersApiError,
   createAdminUser,
-  getAdminUsersErrorMessage,
+  getAdminUsersErrorPresentation,
   getAdminUsersFieldErrors,
 } from "../../features/admin-users";
+import type { IdentityApiProblemPresentation } from "../../shared/lib/identity-problem-details";
 import {
   AppCard,
   EmptyState,
@@ -79,7 +80,7 @@ export function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [createModalOpened, createModal] = useDisclosure(false);
-  const [createFormError, setCreateFormError] = useState<string | null>(null);
+  const [createFormError, setCreateFormError] = useState<IdentityApiProblemPresentation | null>(null);
 
   const listUsersParams = useMemo<ListUsersParams>(() => {
     return {
@@ -123,8 +124,11 @@ export function AdminUsersPage() {
     onError: (error) => {
       setCreateFormError(
         error instanceof AdminUsersApiError
-          ? getAdminUsersErrorMessage(error.problem, error.status)
-          : "IdentityService недоступен. Проверьте, что сервис запущен.",
+          ? getAdminUsersErrorPresentation(error.problem, error.status)
+          : {
+              title: "IdentityService недоступен",
+              message: "Проверьте, что сервис запущен.",
+            },
       );
 
       const fieldErrors = getAdminUsersFieldErrors(error);
@@ -157,6 +161,9 @@ export function AdminUsersPage() {
   const shownTo = Math.min(page * pageSize, totalCount);
   const apiError = response && response.status !== 200 ? response.data : null;
   const apiErrorStatus = response && response.status !== 200 ? response.status : undefined;
+  const apiErrorPresentation = apiError
+    ? getAdminUsersErrorPresentation(apiError, apiErrorStatus)
+    : null;
 
   const resetToFirstPage = () => setPage(1);
 
@@ -265,8 +272,8 @@ export function AdminUsersPage() {
           />
         ) : apiError ? (
           <Stack p="md">
-            <Alert color="red" variant="light">
-              {getAdminUsersErrorMessage(apiError, apiErrorStatus)}
+            <Alert color="red" title={apiErrorPresentation?.title} variant="light">
+              {apiErrorPresentation?.message}
             </Alert>
           </Stack>
         ) : users.length > 0 ? (
@@ -375,8 +382,8 @@ export function AdminUsersPage() {
         <form onSubmit={submitCreateUser}>
           <Stack gap="md">
             {createFormError ? (
-              <Alert color="red" variant="light">
-                {createFormError}
+              <Alert color="red" title={createFormError.title} variant="light">
+                {createFormError.message}
               </Alert>
             ) : null}
 

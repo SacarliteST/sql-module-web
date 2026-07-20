@@ -1,4 +1,45 @@
 import { defineConfig } from 'orval';
+import type { OpenApiDocument } from '@orval/core';
+
+const identityTagNames: Record<string, string> = {
+  Аудит: 'audit',
+  Аутентификация: 'auth',
+  Метаданные: 'discovery',
+  Пользователи: 'users',
+  Состояние: 'health',
+};
+
+const normalizeIdentityTags = (spec: OpenApiDocument): OpenApiDocument => {
+  const paths = spec.paths ?? {};
+
+  Object.values(paths).forEach((pathItem) => {
+    if (!pathItem || typeof pathItem !== 'object') {
+      return;
+    }
+
+    Object.values(pathItem).forEach((operation) => {
+      if (!operation || typeof operation !== 'object' || !('tags' in operation)) {
+        return;
+      }
+
+      const tags = operation.tags;
+
+      if (!Array.isArray(tags)) {
+        return;
+      }
+
+      operation.tags = tags.map((tag) => identityTagNames[tag] ?? tag);
+    });
+  });
+
+  return {
+    ...spec,
+    tags: spec.tags?.map((tag) => ({
+      ...tag,
+      name: identityTagNames[tag.name] ?? tag.name,
+    })),
+  };
+};
 
 export default defineConfig({
   sqlmodule: {
@@ -23,6 +64,9 @@ export default defineConfig({
   identity: {
     input: {
       target: './identity.swagger.json',
+      override: {
+        transformer: normalizeIdentityTags,
+      },
     },
     output: {
       mode: 'tags-split',

@@ -136,10 +136,15 @@ export type refreshResponse401 = {
   status: 401
 }
 
+export type refreshResponse422 = {
+  data: ValidationProblemDetails
+  status: 422
+}
+
 export type refreshResponseSuccess = (refreshResponse200) & {
   headers: Headers;
 };
-export type refreshResponseError = (refreshResponse401) & {
+export type refreshResponseError = (refreshResponse401 | refreshResponse422) & {
   headers: Headers;
 };
 
@@ -172,7 +177,7 @@ export const refresh = async (refreshRequest: RefreshRequest, options?: RequestI
 
 
 
-export const getRefreshMutationOptions = <TError = ProblemDetails,
+export const getRefreshMutationOptions = <TError = ProblemDetails | ValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,{data: RefreshRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,{data: RefreshRequest}, TContext> => {
 
@@ -201,12 +206,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type RefreshMutationResult = NonNullable<Awaited<ReturnType<typeof refresh>>>
     export type RefreshMutationBody = RefreshRequest
-    export type RefreshMutationError = ProblemDetails
+    export type RefreshMutationError = ProblemDetails | ValidationProblemDetails
 
     /**
  * @summary Обновление токенов
  */
-export const useRefresh = <TError = ProblemDetails,
+export const useRefresh = <TError = ProblemDetails | ValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,{data: RefreshRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof refresh>>,
@@ -221,12 +226,19 @@ export const useRefresh = <TError = ProblemDetails,
   status: 204
 }
 
+export type logoutResponse422 = {
+  data: ValidationProblemDetails
+  status: 422
+}
+
 export type logoutResponseSuccess = (logoutResponse204) & {
   headers: Headers;
 };
-;
+export type logoutResponseError = (logoutResponse422) & {
+  headers: Headers;
+};
 
-export type logoutResponse = (logoutResponseSuccess)
+export type logoutResponse = (logoutResponseSuccess | logoutResponseError)
 
 export const getLogoutUrl = () => {
 
@@ -255,7 +267,7 @@ export const logout = async (refreshRequest: RefreshRequest, options?: RequestIn
 
 
 
-export const getLogoutMutationOptions = <TError = unknown,
+export const getLogoutMutationOptions = <TError = ValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,{data: RefreshRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,{data: RefreshRequest}, TContext> => {
 
@@ -284,12 +296,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
     export type LogoutMutationBody = RefreshRequest
-    export type LogoutMutationError = unknown
+    export type LogoutMutationError = ValidationProblemDetails
 
     /**
  * @summary Выход из системы
  */
-export const useLogout = <TError = unknown,
+export const useLogout = <TError = ValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,{data: RefreshRequest}, TContext>, request?: SecondParameter<typeof identityFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof logout>>,

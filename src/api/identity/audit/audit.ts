@@ -95,7 +95,7 @@ export const getListAuditEventsUrl = (params?: ListAuditEventsParams,) => {
 }
 
 /**
- * Возвращает постраничный журнал событий. Только для Admin.
+ * Возвращает постраничный журнал событий. Доступно только для роли Admin.
  * @summary Журнал аудита
  */
 export const listAuditEvents = async (params?: ListAuditEventsParams, options?: RequestInit): Promise<listAuditEventsResponse> => {
@@ -238,7 +238,7 @@ export const getGetUserActivityUrl = (id: string,
 }
 
 /**
- * Возвращает события пользователя как инициатора или объекта действия. Только для Admin.
+ * Возвращает события пользователя как инициатора или объекта действия. Доступно только для роли Admin.
  * @summary Активность пользователя
  */
 export const getUserActivity = async (id: string,

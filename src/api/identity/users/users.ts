@@ -105,7 +105,7 @@ export const getUpdateUserRolesUrl = (id: string,) => {
 }
 
 /**
- * Атомарно заменяет полный набор ролей. Только для Admin.
+ * Атомарно заменяет полный набор ролей. Доступно только для роли Admin.
  * @summary Замена ролей пользователя
  */
 export const updateUserRoles = async (id: string,
@@ -206,7 +206,7 @@ export const getUnblockUserUrl = (id: string,) => {
 }
 
 /**
- * Снимает блокировку и очищает её административные метаданные. Только для Admin.
+ * Снимает блокировку и очищает её административные метаданные. Доступно только для роли Admin.
  * @summary Разблокировка пользователя
  */
 export const unblockUser = async (id: string, options?: RequestInit): Promise<unblockUserResponse> => {
@@ -313,7 +313,7 @@ export const getListUsersUrl = (params?: ListUsersParams,) => {
 }
 
 /**
- * Возвращает постраничный список пользователей. Только для Admin.
+ * Возвращает постраничный список пользователей. Доступно только для роли Admin.
  * @summary Список пользователей
  */
 export const listUsers = async (params?: ListUsersParams, options?: RequestInit): Promise<listUsersResponse> => {
@@ -448,7 +448,7 @@ export const getCreateUserUrl = () => {
 }
 
 /**
- * Создаёт пользователя с полным набором ролей без выдачи токенов. Только для Admin.
+ * Создаёт пользователя с полным набором ролей без выдачи токенов. Доступно только для роли Admin.
  * @summary Административное создание пользователя
  */
 export const createUser = async (createUserRequest: CreateUserRequest, options?: RequestInit): Promise<createUserResponse> => {
@@ -548,7 +548,7 @@ export const getGetUserDetailsUrl = (id: string,) => {
 }
 
 /**
- * Возвращает пользователя и его роли. Только для Admin.
+ * Возвращает пользователя и его роли. Доступно только для роли Admin.
  * @summary Карточка пользователя
  */
 export const getUserDetails = async (id: string, options?: RequestInit): Promise<getUserDetailsResponse> => {
@@ -688,7 +688,7 @@ export const getBlockUserUrl = (id: string,) => {
 }
 
 /**
- * Блокирует вход и отзывает активные refresh-токены. Только для Admin.
+ * Блокирует вход и отзывает активные refresh-токены. Доступно только для роли Admin.
  * @summary Блокировка пользователя
  */
 export const blockUser = async (id: string,
