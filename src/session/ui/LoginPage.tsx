@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useLogin } from '../../api/identity/auth/auth';
+import type { ProblemDetails } from '../../api/identity/model';
 import {
   createSessionUserFromTokenResponse,
   getDefaultSessionRoute,
@@ -18,6 +19,34 @@ const loginSchema = z.object({
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
+
+const blockedAccountMessage =
+  'Учётная запись заблокирована. Обратитесь к администратору системы.';
+
+const isBlockedAccountProblem = (problem: ProblemDetails): boolean => {
+  const valuesToCheck = [
+    problem.type,
+    problem.title,
+    problem.detail,
+    problem.code,
+    problem.errorCode,
+    problem.reason,
+  ];
+
+  return valuesToCheck.some((value) => {
+    if (typeof value !== 'string') {
+      return false;
+    }
+
+    const normalizedValue = value.toLowerCase();
+
+    return (
+      normalizedValue.includes('blocked') ||
+      normalizedValue.includes('block') ||
+      normalizedValue.includes('заблок')
+    );
+  });
+};
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -48,6 +77,11 @@ export function LoginPage() {
 
     if (!response) {
       setFormError('IdentityService недоступен. Проверьте адрес сервиса и runtime config.');
+      return;
+    }
+
+    if (response.status === 401 && isBlockedAccountProblem(response.data)) {
+      setFormError(blockedAccountMessage);
       return;
     }
 
