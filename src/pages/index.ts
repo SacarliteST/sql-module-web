@@ -1,4 +1,5 @@
 export { AdminHomePage } from './admin-home';
+export { AdminEventsPage } from './admin-events';
 export { AdminSettingsPage } from './admin-settings';
 export { AdminUserDetailsPage } from './admin-user-details';
 export { AdminUsersPage } from './admin-users';

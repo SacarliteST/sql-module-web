@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { LoginPage, RequireAuth, RequireRole } from '../../session';
 import {
+  AdminEventsPage,
   AdminHomePage,
   AdminSettingsPage,
   AdminUserDetailsPage,
@@ -46,6 +47,16 @@ export function AppRouter() {
             <RequireAuth>
               <RequireRole allowedRoles={['Admin']}>
                 <AdminUserDetailsPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="admin/events"
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={['Admin']}>
+                <AdminEventsPage />
               </RequireRole>
             </RequireAuth>
           }

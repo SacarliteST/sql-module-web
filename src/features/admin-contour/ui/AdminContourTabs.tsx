@@ -4,6 +4,7 @@ import './AdminContourTabs.css';
 const adminTabs = [
   { value: 'overview', label: 'Обзор', to: '/admin' },
   { value: 'users', label: 'Пользователи', to: '/admin/users' },
+  { value: 'events', label: 'Аудит', to: '/admin/events' },
   { value: 'settings', label: 'Настройки', to: '/admin/settings' },
   { value: 'dictionaries', label: 'Справочники', to: '/admin/dictionaries' },
 ] as const;
@@ -15,6 +16,10 @@ function getActiveTab(pathname: string) {
 
   if (pathname.startsWith('/admin/settings')) {
     return 'settings';
+  }
+
+  if (pathname.startsWith('/admin/events')) {
+    return 'events';
   }
 
   if (pathname.startsWith('/admin/dictionaries')) {

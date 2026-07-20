@@ -20,6 +20,7 @@ import { Link, useParams } from "react-router-dom";
 import { UserRole, type UserRole as UserRoleType } from "../../api/identity/model";
 import { useGetUserActivity } from "../../api/identity/audit/audit";
 import { useGetUserDetails } from "../../api/identity/users/users";
+import { formatAuditEventType } from "../../entities/audit";
 import {
   formatUserDateTime,
   formatUserRole,
@@ -47,20 +48,6 @@ import {
 
 const editableRoles = [UserRole.Admin, UserRole.Teacher, UserRole.Student];
 const activityPageSize = 5;
-
-const auditEventLabels: Record<string, string> = {
-  UserCreated: "Пользователь создан",
-  UserRolesUpdated: "Роли изменены",
-  UserBlocked: "Пользователь заблокирован",
-  UserUnblocked: "Пользователь разблокирован",
-  LoginSucceeded: "Успешный вход",
-  LoginFailed: "Ошибка входа",
-  RefreshTokenIssued: "Сессия обновлена",
-  RefreshTokenRevoked: "Сессия отозвана",
-};
-
-const formatAuditEventType = (eventType: string): string =>
-  auditEventLabels[eventType] ?? eventType;
 
 const getAdminUserMutationErrorMessage = (error: unknown) =>
   error instanceof AdminUsersApiError
