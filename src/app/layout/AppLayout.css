@@ -19,12 +19,33 @@
   padding: 12px 24px 8px;
 }
 
+.app-shell__logo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 32px;
+  border: 1px solid rgb(255 255 255 / 32%);
+  border-radius: 4px;
+  background: rgb(255 255 255 / 8%);
+  color: rgb(255 255 255 / 84%);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .app-shell__title {
   margin: 0;
   color: #ffffff;
   font-size: 20px;
   line-height: 1.2;
   font-weight: 600;
+}
+
+.app-shell__user-name {
+  padding-left: 8px;
+  border-left: 1px solid rgb(255 255 255 / 18%);
 }
 
 .app-shell__nav-row {
@@ -65,4 +86,24 @@
   width: 100%;
   margin: 0 auto;
   padding: 24px;
+}
+
+@media (width <= 720px) {
+  .app-shell__header-inner,
+  .app-shell__nav-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .app-shell__nav-row {
+    gap: 12px;
+  }
+
+  .app-shell__main {
+    padding: 16px;
+  }
+
+  .app-shell__user-name {
+    display: none;
+  }
 }

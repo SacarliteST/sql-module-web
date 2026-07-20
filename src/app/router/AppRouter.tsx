@@ -1,25 +1,21 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
+import { LoginPage, RequireAuth, RequireRole } from '../../session';
 import {
-  LoginPage,
-  RequireAuth,
-  RequireRole,
-  getDefaultSessionRoute,
-  useSessionStore,
-} from '../../session';
-import { AdminHomePage, NotFoundPage, StudentHomePage, TeacherHomePage } from '../../pages';
+  AdminHomePage,
+  HomePage,
+  NotFoundPage,
+  StudentHomePage,
+  TeacherDatabasesPage,
+  TeacherHomePage,
+  TeacherTopicsPage,
+} from '../../pages';
 import { AppLayout } from '../layout/AppLayout';
-
-function EntryRedirect() {
-  const user = useSessionStore((state) => state.user);
-
-  return <Navigate to={getDefaultSessionRoute(user)} replace />;
-}
 
 export function AppRouter() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route index element={<EntryRedirect />} />
+        <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route
           path="admin"
@@ -37,6 +33,26 @@ export function AppRouter() {
             <RequireAuth>
               <RequireRole allowedRoles={['Teacher', 'Admin']}>
                 <TeacherHomePage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="teacher/topics"
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={['Teacher', 'Admin']}>
+                <TeacherTopicsPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="teacher/databases"
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={['Teacher', 'Admin']}>
+                <TeacherDatabasesPage />
               </RequireRole>
             </RequireAuth>
           }

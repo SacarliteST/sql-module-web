@@ -1,5 +1,5 @@
 import { Badge, Button, Group, Text } from '@mantine/core';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../session';
 import './AppLayout.css';
 
@@ -16,6 +16,7 @@ function canSeeAdmin(roles: string[]): boolean {
 }
 
 export function AppLayout() {
+  const location = useLocation();
   const navigate = useNavigate();
   const status = useSessionStore((state) => state.status);
   const user = useSessionStore((state) => state.user);
@@ -31,6 +32,7 @@ export function AppLayout() {
     { to: '/teacher', label: 'Преподаватель', visible: canSeeTeacher(userRoles) },
     { to: '/student', label: 'Студент', visible: canSeeStudent(userRoles) },
   ];
+  const isLoginPage = location.pathname === '/login';
 
   const handleLogout = () => {
     clearSession();
@@ -41,10 +43,18 @@ export function AppLayout() {
     <div className="app-shell">
       <header className="app-shell__header">
         <div className="app-shell__header-inner">
-          <Group gap="md">
-            <h1 className="app-shell__title">SQL Module</h1>
+          <Group gap="sm" wrap="nowrap">
+            <div className="app-shell__logo-placeholder" aria-label="Место под логотип">
+              LOGO
+            </div>
+            <div>
+              <h1 className="app-shell__title">SQL Module</h1>
+              <Text c="gray.4" size="xs">
+                Учебный SQL-модуль
+              </Text>
+            </div>
             {status === 'authenticated' && user ? (
-              <Text c="gray.4" size="sm">
+              <Text className="app-shell__user-name" c="gray.4" size="sm">
                 {user.name ?? user.email ?? user.id}
               </Text>
             ) : null}
@@ -72,6 +82,10 @@ export function AppLayout() {
           {status === 'authenticated' ? (
             <Button color="gray" size="xs" variant="outline" onClick={handleLogout}>
               Выйти
+            </Button>
+          ) : !isLoginPage ? (
+            <Button color="blue" size="xs" variant="filled" onClick={() => navigate('/login')}>
+              Войти
             </Button>
           ) : null}
         </div>
