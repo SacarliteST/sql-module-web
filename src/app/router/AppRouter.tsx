@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { LoginPage, RequireAuth, RequireRole } from '../../session';
 import {
   AdminHomePage,
+  AdminUserDetailsPage,
   AdminUsersPage,
   HomePage,
   NotFoundPage,
@@ -34,6 +35,16 @@ export function AppRouter() {
             <RequireAuth>
               <RequireRole allowedRoles={['Admin']}>
                 <AdminUsersPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="admin/users/:userId"
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={['Admin']}>
+                <AdminUserDetailsPage />
               </RequireRole>
             </RequireAuth>
           }

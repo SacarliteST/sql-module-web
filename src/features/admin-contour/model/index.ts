@@ -2,6 +2,7 @@ export {
   adminActivityEvents,
   adminOverviewMetrics,
   adminServiceStatuses,
+  adminUserActivities,
   adminUsers,
   getAdminEventToneColor,
   getAdminServiceStatusColor,
@@ -16,6 +17,7 @@ export type {
   AdminServiceState,
   AdminServiceStatus,
   AdminUser,
+  AdminUserActivity,
   AdminUserRole,
   AdminUserStatus,
 } from './admin-contour-data';

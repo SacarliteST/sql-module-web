@@ -32,7 +32,17 @@ export type AdminUser = {
   email: string;
   roles: AdminUserRole[];
   status: AdminUserStatus;
+  createdAt: string;
   lastLogin: string;
+};
+
+export type AdminUserActivity = {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  occurredAt: string;
+  tone: AdminActivityEvent['tone'];
 };
 
 export const adminOverviewMetrics: AdminOverviewMetric[] = [
@@ -88,6 +98,7 @@ export const adminUsers: AdminUser[] = [
     email: 'a.kuznetsov@scoodle.local',
     roles: ['Admin'],
     status: 'active',
+    createdAt: '2026-01-12 14:32',
     lastLogin: '2026-07-20 10:32',
   },
   {
@@ -96,6 +107,7 @@ export const adminUsers: AdminUser[] = [
     email: 'm.smirnova@scoodle.local',
     roles: ['Teacher'],
     status: 'active',
+    createdAt: '2026-02-03 09:10',
     lastLogin: '2026-07-19 09:15',
   },
   {
@@ -104,6 +116,7 @@ export const adminUsers: AdminUser[] = [
     email: 'i.petrov@student.local',
     roles: ['Student'],
     status: 'active',
+    createdAt: '2026-03-18 16:05',
     lastLogin: '2026-07-17 16:49',
   },
   {
@@ -112,7 +125,107 @@ export const adminUsers: AdminUser[] = [
     email: 'e.novikova@student.local',
     roles: ['Student'],
     status: 'blocked',
+    createdAt: '2026-04-21 11:28',
     lastLogin: '2026-07-11 11:28',
+  },
+];
+
+export const adminUserActivities: AdminUserActivity[] = [
+  {
+    id: 'alexey-login',
+    userId: 'alexey-kuznetsov',
+    title: 'Вход в систему',
+    description: 'Успешная авторизация через Identity Service',
+    occurredAt: 'Сегодня, 10:32',
+    tone: 'success',
+  },
+  {
+    id: 'alexey-profile',
+    userId: 'alexey-kuznetsov',
+    title: 'Обновление профиля',
+    description: 'Изменены контактные данные администратора',
+    occurredAt: 'Вчера, 15:42',
+    tone: 'info',
+  },
+  {
+    id: 'alexey-role',
+    userId: 'alexey-kuznetsov',
+    title: 'Изменение роли',
+    description: 'Подтверждена роль Admin',
+    occurredAt: '12.07.2026, 09:00',
+    tone: 'info',
+  },
+  {
+    id: 'alexey-users',
+    userId: 'alexey-kuznetsov',
+    title: 'Просмотр списка пользователей',
+    description: 'Открыт административный раздел пользователей',
+    occurredAt: '10.07.2026, 18:20',
+    tone: 'info',
+  },
+  {
+    id: 'alexey-service-check',
+    userId: 'alexey-kuznetsov',
+    title: 'Проверка сервисов',
+    description: 'Запущена проверка Identity Service и SQL Module API',
+    occurredAt: '08.07.2026, 13:16',
+    tone: 'warning',
+  },
+  {
+    id: 'maria-login',
+    userId: 'maria-smirnova',
+    title: 'Вход в систему',
+    description: 'Преподаватель вошёл в систему',
+    occurredAt: '2026-07-19 09:15',
+    tone: 'success',
+  },
+  {
+    id: 'maria-role',
+    userId: 'maria-smirnova',
+    title: 'Изменение роли',
+    description: 'Назначена роль Teacher',
+    occurredAt: '2026-07-12 11:44',
+    tone: 'info',
+  },
+  {
+    id: 'maria-topic',
+    userId: 'maria-smirnova',
+    title: 'Создание темы',
+    description: 'Создана тема "Основы SQL"',
+    occurredAt: '2026-07-10 16:30',
+    tone: 'success',
+  },
+  {
+    id: 'ivan-login',
+    userId: 'ivan-petrov',
+    title: 'Вход в систему',
+    description: 'Студент вошёл в систему',
+    occurredAt: '2026-07-17 16:49',
+    tone: 'success',
+  },
+  {
+    id: 'ivan-attempt',
+    userId: 'ivan-petrov',
+    title: 'Просмотр учебного задания',
+    description: 'Открыто задание по теме "Основы SQL"',
+    occurredAt: '2026-07-17 16:55',
+    tone: 'info',
+  },
+  {
+    id: 'elena-blocked',
+    userId: 'elena-novikova',
+    title: 'Пользователь заблокирован',
+    description: 'Доступ временно ограничен администратором',
+    occurredAt: '2026-07-11 11:28',
+    tone: 'danger',
+  },
+  {
+    id: 'elena-role',
+    userId: 'elena-novikova',
+    title: 'Изменение роли',
+    description: 'Назначена роль Student',
+    occurredAt: '2026-06-30 12:10',
+    tone: 'info',
   },
 ];
 
