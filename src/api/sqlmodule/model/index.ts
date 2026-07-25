@@ -96,3 +96,5 @@ export * from './updateSqlQueryRequest';
 export * from './updateSqlTaskRequest';
 export * from './updateTargetDbRequest';
 export * from './updateTopicRequest';
+export * from './validateSqlQueryRequest';
+export * from './validateSqlQueryResponse';

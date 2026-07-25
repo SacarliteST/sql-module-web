@@ -3673,6 +3673,63 @@
         }
       }
     },
+    "/api/v1/sql-queries/validate": {
+      "post": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Проверить SQL-запрос без сохранения",
+        "description": "Выполняет SQL-запрос в read-only песочнице на выбранной учебной базе, применяет настроенные timeout и лимит строк и возвращает preview результата. Не создаёт и не изменяет SqlQuery.",
+        "operationId": "ValidateSqlQuery",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ValidateSqlQueryRequest"
+                  }
+                ],
+                "description": "Запрос на проверку эталонного SQL без сохранения."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidateSqlQueryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/attempts/{id}": {
       "delete": {
         "tags": [
@@ -6131,6 +6188,65 @@
         },
         "additionalProperties": false,
         "description": "Запрос на обновление названия темы."
+      },
+      "ValidateSqlQueryRequest": {
+        "type": "object",
+        "properties": {
+          "targetDbId": {
+            "type": "string",
+            "description": "Идентификатор учебной базы, на которой выполняется запрос.",
+            "format": "uuid"
+          },
+          "queryText": {
+            "type": "string",
+            "description": "Проверяемый текст SQL-запроса."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Запрос на проверку эталонного SQL без сохранения."
+      },
+      "ValidateSqlQueryResponse": {
+        "type": "object",
+        "properties": {
+          "isValid": {
+            "type": "boolean",
+            "description": "Признак успешного выполнения запроса."
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Обнаруженные колонки результата."
+          },
+          "sampleRows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Строки preview, ограниченные настройкой Sandbox:MaxRows."
+          },
+          "rowCount": {
+            "type": "integer",
+            "description": "Количество строк, возвращённых в preview.",
+            "format": "int32"
+          },
+          "executionTimeMs": {
+            "type": "integer",
+            "description": "Продолжительность выполнения SQL-запроса.",
+            "format": "int64"
+          },
+          "validatedAt": {
+            "type": "string",
+            "description": "Момент завершения проверки.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Результат успешной проверки эталонного SQL без сохранения."
       }
     },
     "securitySchemes": {

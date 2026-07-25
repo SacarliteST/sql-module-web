@@ -48,7 +48,9 @@ import type {
   TopicResponsePageResponse,
   UpdateSqlQueryRequest,
   UpdateSqlTaskRequest,
-  UpdateTopicRequest
+  UpdateTopicRequest,
+  ValidateSqlQueryRequest,
+  ValidateSqlQueryResponse
 } from '../model';
 
 import { sqlmoduleFetch } from '../../../shared/http/sqlmodule-fetch';
@@ -1992,6 +1994,101 @@ export const useUpdateSqlQuery = <TError = HttpValidationProblemDetails | Proble
         TContext
       > => {
       return useMutation(getUpdateSqlQueryMutationOptions(options), queryClient);
+    }
+    export type validateSqlQueryResponse200 = {
+  data: ValidateSqlQueryResponse
+  status: 200
+}
+
+export type validateSqlQueryResponse400 = {
+  data: HttpValidationProblemDetails
+  status: 400
+}
+
+export type validateSqlQueryResponse422 = {
+  data: ProblemDetails
+  status: 422
+}
+
+export type validateSqlQueryResponseSuccess = (validateSqlQueryResponse200) & {
+  headers: Headers;
+};
+export type validateSqlQueryResponseError = (validateSqlQueryResponse400 | validateSqlQueryResponse422) & {
+  headers: Headers;
+};
+
+export type validateSqlQueryResponse = (validateSqlQueryResponseSuccess | validateSqlQueryResponseError)
+
+export const getValidateSqlQueryUrl = () => {
+
+
+
+
+  return `/api/v1/sql-queries/validate`
+}
+
+/**
+ * Выполняет SQL-запрос в read-only песочнице на выбранной учебной базе, применяет настроенные timeout и лимит строк и возвращает preview результата. Не создаёт и не изменяет SqlQuery.
+ * @summary Проверить SQL-запрос без сохранения
+ */
+export const validateSqlQuery = async (validateSqlQueryRequest: ValidateSqlQueryRequest, options?: RequestInit): Promise<validateSqlQueryResponse> => {
+
+  return sqlmoduleFetch<validateSqlQueryResponse>(getValidateSqlQueryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(validateSqlQueryRequest)
+  }
+);}
+
+
+
+
+
+export const getValidateSqlQueryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateSqlQuery>>, TError,{data: ValidateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof validateSqlQuery>>, TError,{data: ValidateSqlQueryRequest}, TContext> => {
+
+const mutationKey = ['validateSqlQuery'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof validateSqlQuery>>, {data: ValidateSqlQueryRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  validateSqlQuery(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ValidateSqlQueryMutationResult = NonNullable<Awaited<ReturnType<typeof validateSqlQuery>>>
+    export type ValidateSqlQueryMutationBody = ValidateSqlQueryRequest
+    export type ValidateSqlQueryMutationError = HttpValidationProblemDetails | ProblemDetails
+
+    /**
+ * @summary Проверить SQL-запрос без сохранения
+ */
+export const useValidateSqlQuery = <TError = HttpValidationProblemDetails | ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateSqlQuery>>, TError,{data: ValidateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof validateSqlQuery>>,
+        TError,
+        {data: ValidateSqlQueryRequest},
+        TContext
+      > => {
+      return useMutation(getValidateSqlQueryMutationOptions(options), queryClient);
     }
     export type deleteAttemptResponse204 = {
   data: void
