@@ -3057,7 +3057,7 @@
           "Training"
         ],
         "summary": "Создать SQL-задание",
-        "description": "Создаёт новое задание тренажёра. Возвращает 201 Created с телом ответа. 400 — не прошла валидация. 409 — TargetDb, тема или SQL-запрос не найдены.",
+        "description": "Создаёт новое задание тренажёра в статусе Draft. Для публикации используйте отдельную операцию. Возвращает 201 Created с телом ответа. 422 — не прошла бизнес-валидация. 409 — TargetDb, тема или SQL-запрос не найдены.",
         "operationId": "CreateSqlTask",
         "requestBody": {
           "content": {
@@ -3091,6 +3091,16 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -3249,7 +3259,7 @@
           "Training"
         ],
         "summary": "Обновить SQL-задание",
-        "description": "Обновляет название, текст, сложность и при необходимости статус публикации задания (FK не меняются). Возвращает 204 No Content. 400 — не прошла валидация. 404 — задание с указанным id не найдено.",
+        "description": "Обновляет название, текст, сложность и статус, кроме перехода в Published (FK не меняются). Для публикации используйте отдельную операцию. Возвращает 204 No Content. 400 — не прошла валидация. 404 — задание с указанным id не найдено. 409 — предпринята публикация через обычное обновление.",
         "operationId": "UpdateSqlTask",
         "parameters": [
           {
@@ -3293,6 +3303,79 @@
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sql-tasks/{id}/publish": {
+      "post": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Опубликовать SQL-задание",
+        "description": "Публикует подготовленное Draft-задание. Эталонный запрос должен иметь проверенный результат, учебная база должна существовать, а у задания не должно быть попыток. Возвращает 200 OK с обновлённым заданием.",
+        "operationId": "PublishSqlTask",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SqlTaskResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
             "content": {
               "application/problem+json": {
                 "schema": {

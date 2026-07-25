@@ -717,10 +717,15 @@ export type createSqlTaskResponse409 = {
   status: 409
 }
 
+export type createSqlTaskResponse422 = {
+  data: ProblemDetails
+  status: 422
+}
+
 export type createSqlTaskResponseSuccess = (createSqlTaskResponse201) & {
   headers: Headers;
 };
-export type createSqlTaskResponseError = (createSqlTaskResponse400 | createSqlTaskResponse409) & {
+export type createSqlTaskResponseError = (createSqlTaskResponse400 | createSqlTaskResponse409 | createSqlTaskResponse422) & {
   headers: Headers;
 };
 
@@ -735,7 +740,7 @@ export const getCreateSqlTaskUrl = () => {
 }
 
 /**
- * Создаёт новое задание тренажёра. Возвращает 201 Created с телом ответа. 400 — не прошла валидация. 409 — TargetDb, тема или SQL-запрос не найдены.
+ * Создаёт новое задание тренажёра в статусе Draft. Для публикации используйте отдельную операцию. Возвращает 201 Created с телом ответа. 422 — не прошла бизнес-валидация. 409 — TargetDb, тема или SQL-запрос не найдены.
  * @summary Создать SQL-задание
  */
 export const createSqlTask = async (createSqlTaskRequest: CreateSqlTaskRequest, options?: RequestInit): Promise<createSqlTaskResponse> => {
@@ -1154,10 +1159,15 @@ export type updateSqlTaskResponse404 = {
   status: 404
 }
 
+export type updateSqlTaskResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type updateSqlTaskResponseSuccess = (updateSqlTaskResponse204) & {
   headers: Headers;
 };
-export type updateSqlTaskResponseError = (updateSqlTaskResponse400 | updateSqlTaskResponse404) & {
+export type updateSqlTaskResponseError = (updateSqlTaskResponse400 | updateSqlTaskResponse404 | updateSqlTaskResponse409) & {
   headers: Headers;
 };
 
@@ -1172,7 +1182,7 @@ export const getUpdateSqlTaskUrl = (id: string,) => {
 }
 
 /**
- * Обновляет название, текст, сложность и при необходимости статус публикации задания (FK не меняются). Возвращает 204 No Content. 400 — не прошла валидация. 404 — задание с указанным id не найдено.
+ * Обновляет название, текст, сложность и статус, кроме перехода в Published (FK не меняются). Для публикации используйте отдельную операцию. Возвращает 204 No Content. 400 — не прошла валидация. 404 — задание с указанным id не найдено. 409 — предпринята публикация через обычное обновление.
  * @summary Обновить SQL-задание
  */
 export const updateSqlTask = async (id: string,
@@ -1234,6 +1244,106 @@ export const useUpdateSqlTask = <TError = HttpValidationProblemDetails | Problem
         TContext
       > => {
       return useMutation(getUpdateSqlTaskMutationOptions(options), queryClient);
+    }
+    export type publishSqlTaskResponse200 = {
+  data: SqlTaskResponse
+  status: 200
+}
+
+export type publishSqlTaskResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type publishSqlTaskResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type publishSqlTaskResponse422 = {
+  data: ProblemDetails
+  status: 422
+}
+
+export type publishSqlTaskResponseSuccess = (publishSqlTaskResponse200) & {
+  headers: Headers;
+};
+export type publishSqlTaskResponseError = (publishSqlTaskResponse404 | publishSqlTaskResponse409 | publishSqlTaskResponse422) & {
+  headers: Headers;
+};
+
+export type publishSqlTaskResponse = (publishSqlTaskResponseSuccess | publishSqlTaskResponseError)
+
+export const getPublishSqlTaskUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/sql-tasks/${id}/publish`
+}
+
+/**
+ * Публикует подготовленное Draft-задание. Эталонный запрос должен иметь проверенный результат, учебная база должна существовать, а у задания не должно быть попыток. Возвращает 200 OK с обновлённым заданием.
+ * @summary Опубликовать SQL-задание
+ */
+export const publishSqlTask = async (id: string, options?: RequestInit): Promise<publishSqlTaskResponse> => {
+
+  return sqlmoduleFetch<publishSqlTaskResponse>(getPublishSqlTaskUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getPublishSqlTaskMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishSqlTask>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof publishSqlTask>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['publishSqlTask'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof publishSqlTask>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  publishSqlTask(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PublishSqlTaskMutationResult = NonNullable<Awaited<ReturnType<typeof publishSqlTask>>>
+
+    export type PublishSqlTaskMutationError = ProblemDetails
+
+    /**
+ * @summary Опубликовать SQL-задание
+ */
+export const usePublishSqlTask = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishSqlTask>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof publishSqlTask>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getPublishSqlTaskMutationOptions(options), queryClient);
     }
     export type getTeacherTaskDetailsResponse200 = {
   data: TeacherTaskDetailsResponse
