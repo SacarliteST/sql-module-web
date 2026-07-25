@@ -8,4 +8,5 @@ export { NotFoundPage } from './not-found';
 export { StudentHomePage } from './student-home';
 export { TeacherDatabasesPage } from './teacher-databases';
 export { TeacherHomePage } from './teacher-home';
+export { TeacherTopicDetailsPage } from './teacher-topic-details';
 export { TeacherTopicsPage } from './teacher-topics';

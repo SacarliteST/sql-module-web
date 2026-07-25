@@ -6,7 +6,7 @@ These values can be changed without rebuilding the application:
 
 ```json
 {
-  "sqlModuleApiUrl": "http://localhost:5000",
+  "sqlModuleApiUrl": "http://localhost:5202",
   "identityApiUrl": "http://localhost:5001",
   "basePath": "/"
 }

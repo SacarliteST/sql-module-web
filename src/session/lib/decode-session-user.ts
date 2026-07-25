@@ -5,6 +5,7 @@ type JwtRoleClaim = UserRole | UserRole[] | string | string[] | undefined;
 
 type SessionJwtPayload = {
   sub?: string;
+  exp?: number;
   role?: JwtRoleClaim;
   roles?: JwtRoleClaim;
   name?: string;
@@ -24,9 +25,22 @@ function normalizeRoles(roleClaim: JwtRoleClaim): UserRole[] {
   return values.filter((role): role is UserRole => knownRoles.has(role as UserRole));
 }
 
+function isExpired(expiresAt?: number): boolean {
+  if (!expiresAt) {
+    return false;
+  }
+
+  return expiresAt * 1000 <= Date.now();
+}
+
 export function decodeSessionUser(accessToken: string): SessionUser | null {
   try {
     const payload = jwtDecode<SessionJwtPayload>(accessToken);
+
+    if (isExpired(payload.exp)) {
+      return null;
+    }
+
     const id =
       payload.sub ??
       payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];

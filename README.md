@@ -47,7 +47,7 @@ npm install
 
 ```json
 {
-  "sqlModuleApiUrl": "http://localhost:5000",
+  "sqlModuleApiUrl": "http://localhost:5202",
   "identityApiUrl": "http://localhost:5101",
   "basePath": "/"
 }
