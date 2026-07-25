@@ -8,7 +8,7 @@
 import type { PublicationStatus } from './publicationStatus';
 
 /**
- * Запрос на обновление SQL-задания (FK не меняются).
+ * Запрос на обновление SQL-задания.
  */
 export interface UpdateSqlTaskRequest {
   /** Новое название задания (не пустое, не более 300 символов). */
@@ -19,4 +19,14 @@ export interface UpdateSqlTaskRequest {
   difficultyLevel?: number;
   /** Новый статус публикации; null сохраняет текущий статус. */
   publicationStatus?: PublicationStatus | null;
+  /**
+     * Новая тема; null сохраняет текущую. Смена доступна только для Draft без попыток.
+     * @nullable
+     */
+  topicId?: string | null;
+  /**
+     * Новый эталонный запрос; null сохраняет текущий. Смена доступна только для Draft без попыток.
+     * @nullable
+     */
+  sqlQueryId?: string | null;
 }

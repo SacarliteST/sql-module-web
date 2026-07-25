@@ -19,7 +19,7 @@
 |---|---|---|
 | 1. Безопасная публикация задания | Готово | [`01-safe-task-publication.md`](./01-safe-task-publication.md) |
 | 2. SQL validate/preview workflow | Готово | [`02-sql-query-validation-preview.md`](./02-sql-query-validation-preview.md) |
-| 3. Политика смены `TopicId` и `SqlQueryId` | Ожидает | Будет создан после реализации |
+| 3. Политика смены `TopicId` и `SqlQueryId` | Готово | [`03-task-link-updates.md`](./03-task-link-updates.md) |
 | 4. Единый контракт ProblemDetails | Ожидает | Будет создан после реализации |
 | 5. Метаданные эталонного запроса | Ожидает | Будет создан после реализации |
 | 6. Итоговая стабилизация Swagger и Orval-клиента | Частично | Выполняется после каждого изменения; итоговый документ будет создан после стабилизации всех контрактов |
