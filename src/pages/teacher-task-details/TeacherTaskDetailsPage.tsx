@@ -12,15 +12,32 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type {
   HttpValidationProblemDetails,
   ProblemDetails,
   TeacherTaskAttemptResponse,
 } from '../../api/sqlmodule/model';
-import { useGetTeacherTaskDetails } from '../../api/sqlmodule/training/training';
+import { PublicationStatus } from '../../api/sqlmodule/model';
+import {
+  getGetAllSqlTasksQueryKey,
+  getGetTeacherTaskDetailsQueryKey,
+  useGetTeacherTaskDetails,
+  usePublishSqlTask,
+} from '../../api/sqlmodule/training/training';
+import { SqlTaskFormModal } from '../../features/sql-tasks';
 import { TeacherContourTabs } from '../../features/teacher-contour';
-import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
+import {
+  AppCard,
+  ConfirmModal,
+  EmptyState,
+  Page,
+  PageBreadcrumbs,
+  PageHeader,
+} from '../../shared/ui';
 
 function formatDate(value?: string | null): string {
   if (!value) {
@@ -43,6 +60,14 @@ function getProblemMessage(
   problem: ProblemDetails | HttpValidationProblemDetails | null,
   fallback: string,
 ): string {
+  if (problem && 'errors' in problem && problem.errors) {
+    const validationMessages = Object.values(problem.errors).flat();
+
+    if (validationMessages.length > 0) {
+      return validationMessages.join(' ');
+    }
+  }
+
   return problem?.detail?.trim() || problem?.title?.trim() || fallback;
 }
 
@@ -130,10 +155,15 @@ function MetricCard({
 }
 
 export function TeacherTaskDetailsPage() {
+  const queryClient = useQueryClient();
   const { taskId = '', topicId = '' } = useParams<{
     taskId: string;
     topicId: string;
   }>();
+  const [editTaskOpened, editTaskModal] = useDisclosure(false);
+  const [publishOpened, publishModal] = useDisclosure(false);
+  const [publishError, setPublishError] = useState('');
+  const publishMutation = usePublishSqlTask();
 
   const detailsQuery = useGetTeacherTaskDetails(taskId, {
     query: {
@@ -149,12 +179,48 @@ export function TeacherTaskDetailsPage() {
   const targetDb = task?.targetDb;
   const attempts = task?.lastAttempts ?? [];
   const publication = getPublicationStatus(task?.publicationStatus);
+  const canPublish = task?.publicationStatus === PublicationStatus.NUMBER_0;
 
   const taskTitle = task?.taskName?.trim() || 'Детали задания';
   const topicTitle = task?.topicName?.trim() || 'Тема не указана';
   const resolvedTopicId = task?.topicId ?? topicId;
   const databaseName = targetDb?.dbName?.trim() || 'База не указана';
   const dbmsName = getDbmsName(targetDb?.dbmsName);
+
+  const openPublishModal = () => {
+    setPublishError('');
+    publishModal.open();
+  };
+
+  const handlePublish = async () => {
+    if (!task?.taskId) {
+      return;
+    }
+
+    setPublishError('');
+
+    try {
+      const response = await publishMutation.mutateAsync({ id: task.taskId });
+
+      if (response.status === 200) {
+        await queryClient.invalidateQueries({
+          queryKey: getGetTeacherTaskDetailsQueryKey(task.taskId),
+        });
+        await queryClient.invalidateQueries({
+          queryKey: getGetAllSqlTasksQueryKey({ Limit: 100 }),
+        });
+        await detailsQuery.refetch();
+        publishModal.close();
+        return;
+      }
+
+      setPublishError(
+        getProblemMessage(response.data, 'Не удалось опубликовать задание.'),
+      );
+    } catch {
+      setPublishError('Не удалось отправить запрос на публикацию в SQL Module API.');
+    }
+  };
 
   return (
     <Page>
@@ -174,8 +240,15 @@ export function TeacherTaskDetailsPage() {
           description={`Тема: ${topicTitle}`}
           actions={
             <>
-              <Button disabled variant="light">
+              <Button disabled={!task} variant="light" onClick={editTaskModal.open}>
                 Изменить
+              </Button>
+              <Button
+                disabled={!canPublish}
+                loading={publishMutation.isPending}
+                onClick={openPublishModal}
+              >
+                Опубликовать
               </Button>
               <Button disabled variant="light">
                 Настроить проверку
@@ -192,6 +265,12 @@ export function TeacherTaskDetailsPage() {
         />
         <TeacherContourTabs />
       </Stack>
+
+      {publishError ? (
+        <Alert color="red" title="Не удалось опубликовать задание" variant="light">
+          {publishError}
+        </Alert>
+      ) : null}
 
       {detailsQuery.isPending ? (
         <AppCard p="md">
@@ -405,6 +484,48 @@ export function TeacherTaskDetailsPage() {
           />
         </AppCard>
       )}
+      <SqlTaskFormModal
+        mode="edit"
+        opened={editTaskOpened}
+        onClose={editTaskModal.close}
+        initialTopicId={resolvedTopicId}
+        task={task}
+        topics={
+          task?.topicId
+            ? [
+                {
+                  id: task.topicId,
+                  topicName: task.topicName,
+                },
+              ]
+            : []
+        }
+        onSaved={() => {
+          void detailsQuery.refetch();
+        }}
+      />
+      <ConfirmModal
+        opened={publishOpened}
+        title="Опубликовать задание"
+        message="После публикации задание станет доступно студентам в разрешённых сценариях. Backend проверит эталонный результат, учебную базу и наличие попыток."
+        confirmLabel="Опубликовать"
+        confirmColor="blue"
+        loading={publishMutation.isPending}
+        onCancel={publishModal.close}
+        onConfirm={() => void handlePublish()}
+      >
+        <Stack gap={4}>
+          <Text c="dimmed" size="sm">
+            Если эталонный SQL-запрос ещё не имеет проверенного результата, публикация будет
+            отклонена.
+          </Text>
+          {publishError ? (
+            <Alert color="red" title="Публикация отклонена" variant="light">
+              {publishError}
+            </Alert>
+          ) : null}
+        </Stack>
+      </ConfirmModal>
     </Page>
   );
 }

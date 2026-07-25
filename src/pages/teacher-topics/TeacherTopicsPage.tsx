@@ -19,7 +19,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type {
   DbmsDictionaryResponse,
@@ -38,6 +38,7 @@ import {
   useGetAllSqlTasks,
   useGetAllTopics,
 } from '../../api/sqlmodule/training/training';
+import { SqlTaskFormModal } from '../../features/sql-tasks';
 import { TeacherContourTabs } from '../../features/teacher-contour';
 import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
@@ -279,10 +280,12 @@ function TopicTreeButton({
 }
 
 export function TeacherTopicsPage() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [selectedTopicId, setSelectedTopicId] = useState('');
   const [createTopicOpened, createTopicModal] = useDisclosure(false);
+  const [createTaskOpened, createTaskModal] = useDisclosure(false);
   const [newTopicName, setNewTopicName] = useState('');
   const [newTopicParentId, setNewTopicParentId] = useState<string | null>(ROOT_PARENT_TOPIC_VALUE);
   const [createTopicError, setCreateTopicError] = useState('');
@@ -637,7 +640,7 @@ export function TeacherTopicsPage() {
                         Данные загружаются из SQL Module API. Попытки появятся после доработки агрегированного ответа.
                       </Text>
                     </Stack>
-                    <Button component={Link} to={`/teacher/topics/${selectedTopic.id}/tasks/new`} size="xs">
+                    <Button onClick={createTaskModal.open} size="xs">
                       Создать задание
                     </Button>
                   </Group>
@@ -760,6 +763,21 @@ export function TeacherTopicsPage() {
           </Group>
         </Stack>
       </Modal>
+      <SqlTaskFormModal
+        mode="create"
+        opened={createTaskOpened}
+        onClose={createTaskModal.close}
+        initialTopicId={selectedTopic?.id}
+        topics={topicsPage?.items ?? []}
+        sqlQueries={sqlQueriesPage?.items ?? []}
+        targetDbs={targetDbsPage?.items ?? []}
+        dbmsDictionaries={dbmsPage?.items ?? []}
+        onSaved={(taskId) => {
+          if (taskId && selectedTopic?.id) {
+            navigate(`/teacher/topics/${selectedTopic.id}/tasks/${taskId}`);
+          }
+        }}
+      />
     </Page>
   );
 }

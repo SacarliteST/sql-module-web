@@ -11,8 +11,9 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type {
   DbmsDictionaryResponse,
@@ -30,6 +31,7 @@ import {
   useGetAllTopics,
   useGetTopicById,
 } from '../../api/sqlmodule/training/training';
+import { SqlTaskFormModal } from '../../features/sql-tasks';
 import { TeacherContourTabs } from '../../features/teacher-contour';
 import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
@@ -201,7 +203,9 @@ function MetricCard({
 }
 
 export function TeacherTopicDetailsPage() {
+  const navigate = useNavigate();
   const { topicId = '' } = useParams<{ topicId: string }>();
+  const [createTaskOpened, createTaskModal] = useDisclosure(false);
 
   const topicQuery = useGetTopicById(topicId, {
     query: {
@@ -378,7 +382,7 @@ export function TeacherTopicDetailsPage() {
               <Button disabled variant="light">
                 Создать подтему
               </Button>
-              <Button component={Link} disabled={!topic} to={topic ? `/teacher/topics/${topic.id}/tasks/new` : '#'}>
+              <Button disabled={!topic} onClick={createTaskModal.open}>
                 Создать задание
               </Button>
             </>
@@ -548,6 +552,21 @@ export function TeacherTopicDetailsPage() {
           />
         </AppCard>
       )}
+      <SqlTaskFormModal
+        mode="create"
+        opened={createTaskOpened}
+        onClose={createTaskModal.close}
+        initialTopicId={topic?.id ?? topicId}
+        topics={topicsPage?.items ?? []}
+        sqlQueries={sqlQueriesPage?.items ?? []}
+        targetDbs={targetDbsPage?.items ?? []}
+        dbmsDictionaries={dbmsPage?.items ?? []}
+        onSaved={(taskId) => {
+          if (taskId && (topic?.id ?? topicId)) {
+            navigate(`/teacher/topics/${topic?.id ?? topicId}/tasks/${taskId}`);
+          }
+        }}
+      />
     </Page>
   );
 }
