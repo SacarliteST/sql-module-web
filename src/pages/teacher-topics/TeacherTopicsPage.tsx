@@ -6,7 +6,9 @@ import {
   Divider,
   Grid,
   Group,
+  Modal,
   Paper,
+  Select,
   Stack,
   Table,
   Text,
@@ -14,6 +16,8 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
@@ -28,6 +32,8 @@ import type {
 } from '../../api/sqlmodule/model';
 import { useGetAllTargetDbs } from '../../api/sqlmodule/schema/schema';
 import {
+  getGetAllTopicsQueryKey,
+  useCreateTopic,
   useGetAllSqlQueries,
   useGetAllSqlTasks,
   useGetAllTopics,
@@ -53,6 +59,8 @@ type TeacherTopicTaskView = {
   attempts: string;
   updatedAt: string;
 };
+
+const ROOT_PARENT_TOPIC_VALUE = '__root__';
 
 function normalizeSearch(value: string) {
   return value.trim().toLowerCase();
@@ -166,11 +174,14 @@ function formatDate(value?: string | null): string {
   }).format(date);
 }
 
-function getProblemMessage(problem: ProblemDetails | HttpValidationProblemDetails | null): string {
+function getProblemMessage(
+  problem: ProblemDetails | HttpValidationProblemDetails | null,
+  fallback = 'Не удалось загрузить темы из SQL Module API.',
+): string {
   return (
     problem?.detail?.trim() ||
     problem?.title?.trim() ||
-    'Не удалось загрузить темы из SQL Module API.'
+    fallback
   );
 }
 
@@ -268,8 +279,13 @@ function TopicTreeButton({
 }
 
 export function TeacherTopicsPage() {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [selectedTopicId, setSelectedTopicId] = useState('');
+  const [createTopicOpened, createTopicModal] = useDisclosure(false);
+  const [newTopicName, setNewTopicName] = useState('');
+  const [newTopicParentId, setNewTopicParentId] = useState<string | null>(ROOT_PARENT_TOPIC_VALUE);
+  const [createTopicError, setCreateTopicError] = useState('');
   const searchValue = normalizeSearch(search);
 
   const topicsQuery = useGetAllTopics(
@@ -416,6 +432,81 @@ export function TeacherTopicsPage() {
     dbmsQuery.isError;
   const tasksApiError = sqlTasksError ?? sqlQueriesError ?? targetDbsError ?? dbmsError;
 
+  const parentTopicOptions = useMemo(() => {
+    return [
+      { value: ROOT_PARENT_TOPIC_VALUE, label: 'Корневая тема' },
+      ...allTopics.map((topic) => ({
+        value: topic.id,
+        label: topic.title,
+      })),
+    ];
+  }, [allTopics]);
+
+  const createTopicMutation = useCreateTopic();
+
+  const resetCreateTopicForm = () => {
+    setNewTopicName('');
+    setNewTopicParentId(ROOT_PARENT_TOPIC_VALUE);
+    setCreateTopicError('');
+  };
+
+  const openCreateTopicModal = () => {
+    resetCreateTopicForm();
+    createTopicModal.open();
+  };
+
+  const closeCreateTopicModal = () => {
+    if (createTopicMutation.isPending) {
+      return;
+    }
+
+    createTopicModal.close();
+    resetCreateTopicForm();
+  };
+
+  const handleCreateTopic = async () => {
+    const topicName = newTopicName.trim();
+
+    if (!topicName) {
+      setCreateTopicError('Укажите название темы.');
+      return;
+    }
+
+    setCreateTopicError('');
+
+    try {
+      const response = await createTopicMutation.mutateAsync({
+        data: {
+          topicName,
+          parentTopicId:
+            newTopicParentId && newTopicParentId !== ROOT_PARENT_TOPIC_VALUE
+              ? newTopicParentId
+              : null,
+        },
+      });
+
+      if (response.status === 201) {
+        await queryClient.invalidateQueries({
+          queryKey: getGetAllTopicsQueryKey({ Limit: 100 }),
+        });
+
+        if (response.data.id) {
+          setSelectedTopicId(response.data.id);
+        }
+
+        createTopicModal.close();
+        resetCreateTopicForm();
+        return;
+      }
+
+      setCreateTopicError(
+        getProblemMessage(response.data, 'Не удалось создать тему в SQL Module API.'),
+      );
+    } catch {
+      setCreateTopicError('Не удалось отправить запрос на создание темы.');
+    }
+  };
+
   return (
     <Page>
       <PageBreadcrumbs
@@ -440,7 +531,7 @@ export function TeacherTopicsPage() {
         <Grid.Col span={{ base: 12, md: 3 }}>
           <AppCard p="sm" h="100%">
             <Stack gap="sm">
-              <Button component={Link} to="/teacher/topics/new" size="sm" fullWidth>
+              <Button onClick={openCreateTopicModal} size="sm" fullWidth>
                 Создать тему
               </Button>
 
@@ -620,6 +711,55 @@ export function TeacherTopicsPage() {
           )}
         </Grid.Col>
       </Grid>
+      <Modal
+        centered
+        opened={createTopicOpened}
+        onClose={closeCreateTopicModal}
+        title="Создать тему"
+        size="md"
+      >
+        <Stack gap="md">
+          {createTopicError ? (
+            <Alert color="red" title="Не удалось создать тему" variant="light">
+              {createTopicError}
+            </Alert>
+          ) : null}
+
+          <TextInput
+            withAsterisk
+            label="Название темы"
+            placeholder="Например, Оконные функции"
+            value={newTopicName}
+            onChange={(event) => setNewTopicName(event.currentTarget.value)}
+            disabled={createTopicMutation.isPending}
+            maxLength={300}
+          />
+
+          <Select
+            label="Родительская тема"
+            data={parentTopicOptions}
+            value={newTopicParentId}
+            onChange={setNewTopicParentId}
+            disabled={createTopicMutation.isPending}
+            searchable
+            nothingFoundMessage="Темы не найдены"
+          />
+
+          <Group justify="flex-end" gap="sm" mt="xs">
+            <Button
+              variant="subtle"
+              color="gray"
+              onClick={closeCreateTopicModal}
+              disabled={createTopicMutation.isPending}
+            >
+              Отмена
+            </Button>
+            <Button onClick={handleCreateTopic} loading={createTopicMutation.isPending}>
+              Создать
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Page>
   );
 }

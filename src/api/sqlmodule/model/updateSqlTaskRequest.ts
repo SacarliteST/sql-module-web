@@ -5,6 +5,7 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { PublicationStatus } from './publicationStatus';
 
 /**
  * Запрос на обновление SQL-задания (FK не меняются).
@@ -16,4 +17,6 @@ export interface UpdateSqlTaskRequest {
   taskText?: string;
   /** Новый уровень сложности (1–5). */
   difficultyLevel?: number;
+  /** Новый статус публикации; null сохраняет текущий статус. */
+  publicationStatus?: PublicationStatus | null;
 }

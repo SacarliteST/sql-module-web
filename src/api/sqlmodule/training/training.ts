@@ -43,6 +43,7 @@ import type {
   SqlTaskResponsePageResponse,
   SubmitAttemptRequest,
   SubmitAttemptResponse,
+  TeacherTaskDetailsResponse,
   TopicResponse,
   TopicResponsePageResponse,
   UpdateSqlQueryRequest,
@@ -1171,7 +1172,7 @@ export const getUpdateSqlTaskUrl = (id: string,) => {
 }
 
 /**
- * Обновляет название, текст и сложность задания (FK не меняются). Возвращает 204 No Content. 400 — не прошла валидация. 404 — задание с указанным id не найдено.
+ * Обновляет название, текст, сложность и при необходимости статус публикации задания (FK не меняются). Возвращает 204 No Content. 400 — не прошла валидация. 404 — задание с указанным id не найдено.
  * @summary Обновить SQL-задание
  */
 export const updateSqlTask = async (id: string,
@@ -1234,7 +1235,127 @@ export const useUpdateSqlTask = <TError = HttpValidationProblemDetails | Problem
       > => {
       return useMutation(getUpdateSqlTaskMutationOptions(options), queryClient);
     }
-    export type createSqlQueryResponse201 = {
+    export type getTeacherTaskDetailsResponse200 = {
+  data: TeacherTaskDetailsResponse
+  status: 200
+}
+
+export type getTeacherTaskDetailsResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getTeacherTaskDetailsResponseSuccess = (getTeacherTaskDetailsResponse200) & {
+  headers: Headers;
+};
+export type getTeacherTaskDetailsResponseError = (getTeacherTaskDetailsResponse404) & {
+  headers: Headers;
+};
+
+export type getTeacherTaskDetailsResponse = (getTeacherTaskDetailsResponseSuccess | getTeacherTaskDetailsResponseError)
+
+export const getGetTeacherTaskDetailsUrl = (taskId: string,) => {
+
+
+
+
+  return `/api/v1/teacher/tasks/${taskId}/details`
+}
+
+/**
+ * Возвращает задание, тему, эталонный запрос, учебную базу, состав таблиц, общее число попыток и пять последних попыток.
+ * @summary Получить агрегированные детали задания для преподавателя
+ */
+export const getTeacherTaskDetails = async (taskId: string, options?: RequestInit): Promise<getTeacherTaskDetailsResponse> => {
+
+  return sqlmoduleFetch<getTeacherTaskDetailsResponse>(getGetTeacherTaskDetailsUrl(taskId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTeacherTaskDetailsQueryKey = (taskId: string,) => {
+    return [
+    `/api/v1/teacher/tasks/${taskId}/details`
+    ] as const;
+    }
+
+
+export const getGetTeacherTaskDetailsQueryOptions = <TData = Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError = ProblemDetails>(taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTeacherTaskDetailsQueryKey(taskId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeacherTaskDetails>>> = ({ signal }) => getTeacherTaskDetails(taskId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: taskId !== null && taskId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTeacherTaskDetailsQueryResult = NonNullable<Awaited<ReturnType<typeof getTeacherTaskDetails>>>
+export type GetTeacherTaskDetailsQueryError = ProblemDetails
+
+
+export function useGetTeacherTaskDetails<TData = Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError = ProblemDetails>(
+ taskId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeacherTaskDetails>>,
+          TError,
+          Awaited<ReturnType<typeof getTeacherTaskDetails>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeacherTaskDetails<TData = Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTeacherTaskDetails>>,
+          TError,
+          Awaited<ReturnType<typeof getTeacherTaskDetails>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTeacherTaskDetails<TData = Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить агрегированные детали задания для преподавателя
+ */
+
+export function useGetTeacherTaskDetails<TData = Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeacherTaskDetails>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTeacherTaskDetailsQueryOptions(taskId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type createSqlQueryResponse201 = {
   data: SqlQueryResponse
   status: 201
 }

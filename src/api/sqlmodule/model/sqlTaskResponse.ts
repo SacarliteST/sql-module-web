@@ -5,6 +5,7 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { PublicationStatus } from './publicationStatus';
 
 /**
  * Данные SQL-задания.
@@ -22,6 +23,8 @@ export interface SqlTaskResponse {
   taskText?: string;
   /** Уровень сложности (1–5). */
   difficultyLevel?: number;
+  /** Статус публикации задания. */
+  publicationStatus?: PublicationStatus;
   /** Идентификатор пользователя, создавшего запись. */
   createdById?: string;
   /** Дата и время создания (UTC). */

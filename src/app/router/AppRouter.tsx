@@ -11,6 +11,7 @@ import {
   StudentHomePage,
   TeacherDatabasesPage,
   TeacherHomePage,
+  TeacherTaskDetailsPage,
   TeacherTopicDetailsPage,
   TeacherTopicsPage,
 } from '../../pages';
@@ -88,6 +89,16 @@ export function AppRouter() {
             <RequireAuth>
               <RequireRole allowedRoles={['Teacher']}>
                 <TeacherTopicsPage />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="teacher/topics/:topicId/tasks/:taskId"
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={['Teacher']}>
+                <TeacherTaskDetailsPage />
               </RequireRole>
             </RequireAuth>
           }

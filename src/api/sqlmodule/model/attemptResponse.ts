@@ -14,6 +14,7 @@ import type { ExecutionStatus } from './executionStatus';
 export interface AttemptResponse {
   id?: string;
   userId?: string;
+  studentName?: string;
   taskId?: string;
   submittedSql?: string;
   status?: ExecutionStatus;

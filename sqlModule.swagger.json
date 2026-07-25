@@ -3249,7 +3249,7 @@
           "Training"
         ],
         "summary": "Обновить SQL-задание",
-        "description": "Обновляет название, текст и сложность задания (FK не меняются). Возвращает 204 No Content. 400 — не прошла валидация. 404 — задание с указанным id не найдено.",
+        "description": "Обновляет название, текст, сложность и при необходимости статус публикации задания (FK не меняются). Возвращает 204 No Content. 400 — не прошла валидация. 404 — задание с указанным id не найдено.",
         "operationId": "UpdateSqlTask",
         "parameters": [
           {
@@ -3287,6 +3287,49 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/teacher/tasks/{taskId}/details": {
+      "get": {
+        "tags": [
+          "Training"
+        ],
+        "summary": "Получить агрегированные детали задания для преподавателя",
+        "description": "Возвращает задание, тему, эталонный запрос, учебную базу, состав таблиц, общее число попыток и пять последних попыток.",
+        "operationId": "GetTeacherTaskDetails",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherTaskDetailsResponse"
                 }
               }
             }
@@ -3772,6 +3815,9 @@
           "userId": {
             "type": "string",
             "format": "uuid"
+          },
+          "studentName": {
+            "type": "string"
           },
           "taskId": {
             "type": "string",
@@ -4420,6 +4466,14 @@
             "type": "integer",
             "description": "Уровень сложности задания (1–5).",
             "format": "int32"
+          },
+          "publicationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublicationStatus"
+              }
+            ],
+            "description": "Начальный статус публикации. По умолчанию Draft."
           }
         },
         "additionalProperties": false,
@@ -5077,6 +5131,15 @@
         },
         "additionalProperties": { }
       },
+      "PublicationStatus": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
       "RelationshipDraft": {
         "type": "object",
         "properties": {
@@ -5261,6 +5324,14 @@
             "type": "integer",
             "description": "Уровень сложности (1–5).",
             "format": "int32"
+          },
+          "publicationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublicationStatus"
+              }
+            ],
+            "description": "Статус публикации задания."
           },
           "createdById": {
             "type": "string",
@@ -5468,6 +5539,173 @@
         },
         "additionalProperties": false,
         "description": "Ответ в виде страницы с информацией о элементах и их кол-ве"
+      },
+      "TeacherTaskAttemptResponse": {
+        "type": "object",
+        "properties": {
+          "attemptId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentName": {
+            "type": "string"
+          },
+          "isCorrect": {
+            "type": "boolean"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionStatus"
+              }
+            ]
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Краткая попытка студента."
+      },
+      "TeacherTaskDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "topicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "topicName": {
+            "type": "string"
+          },
+          "taskName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "difficultyLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "publicationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublicationStatus"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sqlQuery": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TeacherTaskSqlQueryResponse"
+              }
+            ],
+            "description": "Эталонный запрос в деталях задания."
+          },
+          "targetDb": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TeacherTaskTargetDbResponse"
+              }
+            ],
+            "description": "Учебная база в деталях задания."
+          },
+          "attemptsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastAttempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeacherTaskAttemptResponse"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "Агрегированная read-модель деталей задания для преподавателя."
+      },
+      "TeacherTaskSqlQueryResponse": {
+        "type": "object",
+        "properties": {
+          "sqlQueryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sqlText": {
+            "type": "string"
+          },
+          "isRequiredColumnOrder": {
+            "type": "boolean"
+          },
+          "isRequiredRowOrder": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Эталонный запрос в деталях задания."
+      },
+      "TeacherTaskTableResponse": {
+        "type": "object",
+        "properties": {
+          "tableName": {
+            "type": "string"
+          },
+          "columnsCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Краткое описание таблицы учебной базы."
+      },
+      "TeacherTaskTargetDbResponse": {
+        "type": "object",
+        "properties": {
+          "targetDbId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dbName": {
+            "type": "string"
+          },
+          "dbmsName": {
+            "type": "string"
+          },
+          "tables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeacherTaskTableResponse"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "Учебная база в деталях задания."
       },
       "TopicResponse": {
         "type": "object",
@@ -5766,6 +6004,15 @@
             "type": "integer",
             "description": "Новый уровень сложности (1–5).",
             "format": "int32"
+          },
+          "publicationStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublicationStatus"
+              }
+            ],
+            "description": "Новый статус публикации; null сохраняет текущий статус.",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -5802,8 +6049,21 @@
         "additionalProperties": false,
         "description": "Запрос на обновление названия темы."
       }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Введите access token, полученный от IdentityService.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
     }
   },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ],
   "tags": [
     {
       "name": "DbmsCatalog"
