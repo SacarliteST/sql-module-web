@@ -16,19 +16,23 @@ import { useDisclosure } from '@mantine/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type {
   HttpValidationProblemDetails,
   ProblemDetails,
   TeacherTaskAttemptResponse,
 } from '../../api/sqlmodule/model';
 import { PublicationStatus } from '../../api/sqlmodule/model';
+import { useGetAllTargetDbs } from '../../api/sqlmodule/schema/schema';
 import {
   getGetAllSqlTasksQueryKey,
   getGetTeacherTaskDetailsQueryKey,
+  useGetAllSqlQueries,
+  useGetAllTopics,
   useGetTeacherTaskDetails,
   usePublishSqlTask,
 } from '../../api/sqlmodule/training/training';
-import { SqlTaskFormModal } from '../../features/sql-tasks';
+import { SqlQueryValidationPreview, SqlTaskFormModal } from '../../features/sql-tasks';
 import { TeacherContourTabs } from '../../features/teacher-contour';
 import {
   AppCard,
@@ -171,10 +175,54 @@ export function TeacherTaskDetailsPage() {
       retry: false,
     },
   });
+  const topicsQuery = useGetAllTopics(
+    { Limit: 100 },
+    {
+      query: {
+        enabled: Boolean(taskId),
+        retry: false,
+      },
+    },
+  );
+  const sqlQueriesQuery = useGetAllSqlQueries(
+    { Limit: 100 },
+    {
+      query: {
+        enabled: Boolean(taskId),
+        retry: false,
+      },
+    },
+  );
+  const targetDbsQuery = useGetAllTargetDbs(
+    { Limit: 100 },
+    {
+      query: {
+        enabled: Boolean(taskId),
+        retry: false,
+      },
+    },
+  );
+  const dbmsQuery = useGetAllDbmsDictionaries(
+    { Limit: 100 },
+    {
+      query: {
+        enabled: Boolean(taskId),
+        retry: false,
+      },
+    },
+  );
   const detailsResponse = detailsQuery.data;
   const task = detailsResponse?.status === 200 ? detailsResponse.data : null;
   const apiError =
     detailsResponse && detailsResponse.status !== 200 ? detailsResponse.data : null;
+  const topicsResponse = topicsQuery.data;
+  const topicsPage = topicsResponse?.status === 200 ? topicsResponse.data : null;
+  const sqlQueriesResponse = sqlQueriesQuery.data;
+  const sqlQueriesPage = sqlQueriesResponse?.status === 200 ? sqlQueriesResponse.data : null;
+  const targetDbsResponse = targetDbsQuery.data;
+  const targetDbsPage = targetDbsResponse?.status === 200 ? targetDbsResponse.data : null;
+  const dbmsResponse = dbmsQuery.data;
+  const dbmsPage = dbmsResponse?.status === 200 ? dbmsResponse.data : null;
   const sqlQuery = task?.sqlQuery;
   const targetDb = task?.targetDb;
   const attempts = task?.lastAttempts ?? [];
@@ -325,7 +373,7 @@ export function TeacherTaskDetailsPage() {
                         Эталонный SQL-запрос
                       </Title>
                       <Badge color="gray" radius="sm" variant="light">
-                        preview
+                        read-only sandbox
                       </Badge>
                     </Group>
                     <Box bg="#1f2933" p="md">
@@ -349,6 +397,12 @@ export function TeacherTaskDetailsPage() {
                         Порядок строк: {sqlQuery?.isRequiredRowOrder ? 'строгий' : 'свободный'}
                       </Badge>
                     </Group>
+                    <Box p="md" pt={0}>
+                      <SqlQueryValidationPreview
+                        queryText={sqlQuery?.sqlText}
+                        targetDbId={targetDb?.targetDbId}
+                      />
+                    </Box>
                   </Stack>
                 </AppCard>
               </Stack>
@@ -490,16 +544,10 @@ export function TeacherTaskDetailsPage() {
         onClose={editTaskModal.close}
         initialTopicId={resolvedTopicId}
         task={task}
-        topics={
-          task?.topicId
-            ? [
-                {
-                  id: task.topicId,
-                  topicName: task.topicName,
-                },
-              ]
-            : []
-        }
+        topics={topicsPage?.items ?? []}
+        sqlQueries={sqlQueriesPage?.items ?? []}
+        targetDbs={targetDbsPage?.items ?? []}
+        dbmsDictionaries={dbmsPage?.items ?? []}
         onSaved={() => {
           void detailsQuery.refetch();
         }}

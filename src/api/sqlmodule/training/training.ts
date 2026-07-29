@@ -80,20 +80,20 @@ export type createTopicResponse201 = {
   status: 201
 }
 
-export type createTopicResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type createTopicResponse409 = {
   data: ProblemDetails
   status: 409
 }
 
+export type createTopicResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type createTopicResponseSuccess = (createTopicResponse201) & {
   headers: Headers;
 };
-export type createTopicResponseError = (createTopicResponse400 | createTopicResponse409) & {
+export type createTopicResponseError = (createTopicResponse409 | createTopicResponse422) & {
   headers: Headers;
 };
 
@@ -126,7 +126,7 @@ export const createTopic = async (createTopicRequest: CreateTopicRequest, option
 
 
 
-export const getCreateTopicMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getCreateTopicMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTopic>>, TError,{data: CreateTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createTopic>>, TError,{data: CreateTopicRequest}, TContext> => {
 
@@ -155,12 +155,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateTopicMutationResult = NonNullable<Awaited<ReturnType<typeof createTopic>>>
     export type CreateTopicMutationBody = CreateTopicRequest
-    export type CreateTopicMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreateTopicMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Создать тему
  */
-export const useCreateTopic = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useCreateTopic = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTopic>>, TError,{data: CreateTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createTopic>>,
@@ -175,15 +175,15 @@ export const useCreateTopic = <TError = HttpValidationProblemDetails | ProblemDe
   status: 200
 }
 
-export type getAllTopicsResponse400 = {
+export type getAllTopicsResponse422 = {
   data: HttpValidationProblemDetails
-  status: 400
+  status: 422
 }
 
 export type getAllTopicsResponseSuccess = (getAllTopicsResponse200) & {
   headers: Headers;
 };
-export type getAllTopicsResponseError = (getAllTopicsResponse400) & {
+export type getAllTopicsResponseError = (getAllTopicsResponse422) & {
   headers: Headers;
 };
 
@@ -517,20 +517,20 @@ export type updateTopicResponse204 = {
   status: 204
 }
 
-export type updateTopicResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type updateTopicResponse404 = {
   data: ProblemDetails
   status: 404
 }
 
+export type updateTopicResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type updateTopicResponseSuccess = (updateTopicResponse204) & {
   headers: Headers;
 };
-export type updateTopicResponseError = (updateTopicResponse400 | updateTopicResponse404) & {
+export type updateTopicResponseError = (updateTopicResponse404 | updateTopicResponse422) & {
   headers: Headers;
 };
 
@@ -564,7 +564,7 @@ export const updateTopic = async (id: string,
 
 
 
-export const getUpdateTopicMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getUpdateTopicMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTopic>>, TError,{id: string;data: UpdateTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateTopic>>, TError,{id: string;data: UpdateTopicRequest}, TContext> => {
 
@@ -593,12 +593,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateTopicMutationResult = NonNullable<Awaited<ReturnType<typeof updateTopic>>>
     export type UpdateTopicMutationBody = UpdateTopicRequest
-    export type UpdateTopicMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type UpdateTopicMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Обновить тему
  */
-export const useUpdateTopic = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useUpdateTopic = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTopic>>, TError,{id: string;data: UpdateTopicRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateTopic>>,
@@ -709,11 +709,6 @@ export const useMoveTopic = <TError = ProblemDetails,
   status: 201
 }
 
-export type createSqlTaskResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type createSqlTaskResponse409 = {
   data: ProblemDetails
   status: 409
@@ -727,7 +722,7 @@ export type createSqlTaskResponse422 = {
 export type createSqlTaskResponseSuccess = (createSqlTaskResponse201) & {
   headers: Headers;
 };
-export type createSqlTaskResponseError = (createSqlTaskResponse400 | createSqlTaskResponse409 | createSqlTaskResponse422) & {
+export type createSqlTaskResponseError = (createSqlTaskResponse409 | createSqlTaskResponse422) & {
   headers: Headers;
 };
 
@@ -760,7 +755,7 @@ export const createSqlTask = async (createSqlTaskRequest: CreateSqlTaskRequest, 
 
 
 
-export const getCreateSqlTaskMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getCreateSqlTaskMutationOptions = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlTask>>, TError,{data: CreateSqlTaskRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createSqlTask>>, TError,{data: CreateSqlTaskRequest}, TContext> => {
 
@@ -789,12 +784,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateSqlTaskMutationResult = NonNullable<Awaited<ReturnType<typeof createSqlTask>>>
     export type CreateSqlTaskMutationBody = CreateSqlTaskRequest
-    export type CreateSqlTaskMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreateSqlTaskMutationError = ProblemDetails
 
     /**
  * @summary Создать SQL-задание
  */
-export const useCreateSqlTask = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useCreateSqlTask = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSqlTask>>, TError,{data: CreateSqlTaskRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createSqlTask>>,
@@ -809,15 +804,15 @@ export const useCreateSqlTask = <TError = HttpValidationProblemDetails | Problem
   status: 200
 }
 
-export type getAllSqlTasksResponse400 = {
+export type getAllSqlTasksResponse422 = {
   data: HttpValidationProblemDetails
-  status: 400
+  status: 422
 }
 
 export type getAllSqlTasksResponseSuccess = (getAllSqlTasksResponse200) & {
   headers: Headers;
 };
-export type getAllSqlTasksResponseError = (getAllSqlTasksResponse400) & {
+export type getAllSqlTasksResponseError = (getAllSqlTasksResponse422) & {
   headers: Headers;
 };
 
@@ -1151,11 +1146,6 @@ export type updateSqlTaskResponse204 = {
   status: 204
 }
 
-export type updateSqlTaskResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type updateSqlTaskResponse404 = {
   data: ProblemDetails
   status: 404
@@ -1166,10 +1156,15 @@ export type updateSqlTaskResponse409 = {
   status: 409
 }
 
+export type updateSqlTaskResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type updateSqlTaskResponseSuccess = (updateSqlTaskResponse204) & {
   headers: Headers;
 };
-export type updateSqlTaskResponseError = (updateSqlTaskResponse400 | updateSqlTaskResponse404 | updateSqlTaskResponse409) & {
+export type updateSqlTaskResponseError = (updateSqlTaskResponse404 | updateSqlTaskResponse409 | updateSqlTaskResponse422) & {
   headers: Headers;
 };
 
@@ -1203,7 +1198,7 @@ export const updateSqlTask = async (id: string,
 
 
 
-export const getUpdateSqlTaskMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getUpdateSqlTaskMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlTask>>, TError,{id: string;data: UpdateSqlTaskRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSqlTask>>, TError,{id: string;data: UpdateSqlTaskRequest}, TContext> => {
 
@@ -1232,12 +1227,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateSqlTaskMutationResult = NonNullable<Awaited<ReturnType<typeof updateSqlTask>>>
     export type UpdateSqlTaskMutationBody = UpdateSqlTaskRequest
-    export type UpdateSqlTaskMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type UpdateSqlTaskMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Обновить SQL-задание
  */
-export const useUpdateSqlTask = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useUpdateSqlTask = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlTask>>, TError,{id: string;data: UpdateSqlTaskRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateSqlTask>>,
@@ -1472,15 +1467,15 @@ export type createSqlQueryResponse201 = {
   status: 201
 }
 
-export type createSqlQueryResponse400 = {
+export type createSqlQueryResponse422 = {
   data: HttpValidationProblemDetails
-  status: 400
+  status: 422
 }
 
 export type createSqlQueryResponseSuccess = (createSqlQueryResponse201) & {
   headers: Headers;
 };
-export type createSqlQueryResponseError = (createSqlQueryResponse400) & {
+export type createSqlQueryResponseError = (createSqlQueryResponse422) & {
   headers: Headers;
 };
 
@@ -1562,15 +1557,15 @@ export const useCreateSqlQuery = <TError = HttpValidationProblemDetails,
   status: 200
 }
 
-export type getAllSqlQueriesResponse400 = {
+export type getAllSqlQueriesResponse422 = {
   data: HttpValidationProblemDetails
-  status: 400
+  status: 422
 }
 
 export type getAllSqlQueriesResponseSuccess = (getAllSqlQueriesResponse200) & {
   headers: Headers;
 };
-export type getAllSqlQueriesResponseError = (getAllSqlQueriesResponse400) & {
+export type getAllSqlQueriesResponseError = (getAllSqlQueriesResponse422) & {
   headers: Headers;
 };
 
@@ -1904,20 +1899,20 @@ export type updateSqlQueryResponse204 = {
   status: 204
 }
 
-export type updateSqlQueryResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type updateSqlQueryResponse404 = {
   data: ProblemDetails
   status: 404
 }
 
+export type updateSqlQueryResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type updateSqlQueryResponseSuccess = (updateSqlQueryResponse204) & {
   headers: Headers;
 };
-export type updateSqlQueryResponseError = (updateSqlQueryResponse400 | updateSqlQueryResponse404) & {
+export type updateSqlQueryResponseError = (updateSqlQueryResponse404 | updateSqlQueryResponse422) & {
   headers: Headers;
 };
 
@@ -1951,7 +1946,7 @@ export const updateSqlQuery = async (id: string,
 
 
 
-export const getUpdateSqlQueryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getUpdateSqlQueryMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlQuery>>, TError,{id: string;data: UpdateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSqlQuery>>, TError,{id: string;data: UpdateSqlQueryRequest}, TContext> => {
 
@@ -1980,12 +1975,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateSqlQueryMutationResult = NonNullable<Awaited<ReturnType<typeof updateSqlQuery>>>
     export type UpdateSqlQueryMutationBody = UpdateSqlQueryRequest
-    export type UpdateSqlQueryMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type UpdateSqlQueryMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Обновить SQL-запрос
  */
-export const useUpdateSqlQuery = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useUpdateSqlQuery = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSqlQuery>>, TError,{id: string;data: UpdateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateSqlQuery>>,
@@ -2000,11 +1995,6 @@ export const useUpdateSqlQuery = <TError = HttpValidationProblemDetails | Proble
   status: 200
 }
 
-export type validateSqlQueryResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type validateSqlQueryResponse422 = {
   data: ProblemDetails
   status: 422
@@ -2013,7 +2003,7 @@ export type validateSqlQueryResponse422 = {
 export type validateSqlQueryResponseSuccess = (validateSqlQueryResponse200) & {
   headers: Headers;
 };
-export type validateSqlQueryResponseError = (validateSqlQueryResponse400 | validateSqlQueryResponse422) & {
+export type validateSqlQueryResponseError = (validateSqlQueryResponse422) & {
   headers: Headers;
 };
 
@@ -2046,7 +2036,7 @@ export const validateSqlQuery = async (validateSqlQueryRequest: ValidateSqlQuery
 
 
 
-export const getValidateSqlQueryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getValidateSqlQueryMutationOptions = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateSqlQuery>>, TError,{data: ValidateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof validateSqlQuery>>, TError,{data: ValidateSqlQueryRequest}, TContext> => {
 
@@ -2075,12 +2065,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type ValidateSqlQueryMutationResult = NonNullable<Awaited<ReturnType<typeof validateSqlQuery>>>
     export type ValidateSqlQueryMutationBody = ValidateSqlQueryRequest
-    export type ValidateSqlQueryMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type ValidateSqlQueryMutationError = ProblemDetails
 
     /**
  * @summary Проверить SQL-запрос без сохранения
  */
-export const useValidateSqlQuery = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useValidateSqlQuery = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateSqlQuery>>, TError,{data: ValidateSqlQueryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof validateSqlQuery>>,
@@ -2305,15 +2295,15 @@ export type getAllAttemptsResponse200 = {
   status: 200
 }
 
-export type getAllAttemptsResponse400 = {
+export type getAllAttemptsResponse422 = {
   data: HttpValidationProblemDetails
-  status: 400
+  status: 422
 }
 
 export type getAllAttemptsResponseSuccess = (getAllAttemptsResponse200) & {
   headers: Headers;
 };
-export type getAllAttemptsResponseError = (getAllAttemptsResponse400) & {
+export type getAllAttemptsResponseError = (getAllAttemptsResponse422) & {
   headers: Headers;
 };
 
@@ -2432,11 +2422,6 @@ export type submitAttemptResponse201 = {
   status: 201
 }
 
-export type submitAttemptResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type submitAttemptResponse404 = {
   data: ProblemDetails
   status: 404
@@ -2447,10 +2432,15 @@ export type submitAttemptResponse409 = {
   status: 409
 }
 
+export type submitAttemptResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type submitAttemptResponseSuccess = (submitAttemptResponse201) & {
   headers: Headers;
 };
-export type submitAttemptResponseError = (submitAttemptResponse400 | submitAttemptResponse404 | submitAttemptResponse409) & {
+export type submitAttemptResponseError = (submitAttemptResponse404 | submitAttemptResponse409 | submitAttemptResponse422) & {
   headers: Headers;
 };
 
@@ -2483,7 +2473,7 @@ export const submitAttempt = async (submitAttemptRequest: SubmitAttemptRequest, 
 
 
 
-export const getSubmitAttemptMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getSubmitAttemptMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAttempt>>, TError,{data: SubmitAttemptRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof submitAttempt>>, TError,{data: SubmitAttemptRequest}, TContext> => {
 
@@ -2512,12 +2502,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type SubmitAttemptMutationResult = NonNullable<Awaited<ReturnType<typeof submitAttempt>>>
     export type SubmitAttemptMutationBody = SubmitAttemptRequest
-    export type SubmitAttemptMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type SubmitAttemptMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Отправить попытку выполнения задания
  */
-export const useSubmitAttempt = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useSubmitAttempt = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAttempt>>, TError,{data: SubmitAttemptRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof submitAttempt>>,

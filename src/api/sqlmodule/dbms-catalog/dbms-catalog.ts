@@ -71,20 +71,20 @@ export type createPhysicalTypeResponse201 = {
   status: 201
 }
 
-export type createPhysicalTypeResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type createPhysicalTypeResponse409 = {
   data: ProblemDetails
   status: 409
 }
 
+export type createPhysicalTypeResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type createPhysicalTypeResponseSuccess = (createPhysicalTypeResponse201) & {
   headers: Headers;
 };
-export type createPhysicalTypeResponseError = (createPhysicalTypeResponse400 | createPhysicalTypeResponse409) & {
+export type createPhysicalTypeResponseError = (createPhysicalTypeResponse409 | createPhysicalTypeResponse422) & {
   headers: Headers;
 };
 
@@ -117,7 +117,7 @@ export const createPhysicalType = async (createPhysicalTypeRequest: CreatePhysic
 
 
 
-export const getCreatePhysicalTypeMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getCreatePhysicalTypeMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPhysicalType>>, TError,{data: CreatePhysicalTypeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createPhysicalType>>, TError,{data: CreatePhysicalTypeRequest}, TContext> => {
 
@@ -146,12 +146,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreatePhysicalTypeMutationResult = NonNullable<Awaited<ReturnType<typeof createPhysicalType>>>
     export type CreatePhysicalTypeMutationBody = CreatePhysicalTypeRequest
-    export type CreatePhysicalTypeMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreatePhysicalTypeMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Создать физический тип данных
  */
-export const useCreatePhysicalType = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useCreatePhysicalType = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPhysicalType>>, TError,{data: CreatePhysicalTypeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createPhysicalType>>,
@@ -166,15 +166,15 @@ export const useCreatePhysicalType = <TError = HttpValidationProblemDetails | Pr
   status: 200
 }
 
-export type getAllPhysicalTypesResponse400 = {
+export type getAllPhysicalTypesResponse422 = {
   data: HttpValidationProblemDetails
-  status: 400
+  status: 422
 }
 
 export type getAllPhysicalTypesResponseSuccess = (getAllPhysicalTypesResponse200) & {
   headers: Headers;
 };
-export type getAllPhysicalTypesResponseError = (getAllPhysicalTypesResponse400) & {
+export type getAllPhysicalTypesResponseError = (getAllPhysicalTypesResponse422) & {
   headers: Headers;
 };
 
@@ -508,20 +508,20 @@ export type updatePhysicalTypeResponse204 = {
   status: 204
 }
 
-export type updatePhysicalTypeResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type updatePhysicalTypeResponse404 = {
   data: ProblemDetails
   status: 404
 }
 
+export type updatePhysicalTypeResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type updatePhysicalTypeResponseSuccess = (updatePhysicalTypeResponse204) & {
   headers: Headers;
 };
-export type updatePhysicalTypeResponseError = (updatePhysicalTypeResponse400 | updatePhysicalTypeResponse404) & {
+export type updatePhysicalTypeResponseError = (updatePhysicalTypeResponse404 | updatePhysicalTypeResponse422) & {
   headers: Headers;
 };
 
@@ -555,7 +555,7 @@ export const updatePhysicalType = async (id: string,
 
 
 
-export const getUpdatePhysicalTypeMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getUpdatePhysicalTypeMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePhysicalType>>, TError,{id: string;data: UpdatePhysicalTypeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updatePhysicalType>>, TError,{id: string;data: UpdatePhysicalTypeRequest}, TContext> => {
 
@@ -584,12 +584,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdatePhysicalTypeMutationResult = NonNullable<Awaited<ReturnType<typeof updatePhysicalType>>>
     export type UpdatePhysicalTypeMutationBody = UpdatePhysicalTypeRequest
-    export type UpdatePhysicalTypeMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type UpdatePhysicalTypeMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Обновить физический тип данных
  */
-export const useUpdatePhysicalType = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useUpdatePhysicalType = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePhysicalType>>, TError,{id: string;data: UpdatePhysicalTypeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updatePhysicalType>>,
@@ -604,20 +604,20 @@ export const useUpdatePhysicalType = <TError = HttpValidationProblemDetails | Pr
   status: 201
 }
 
-export type createParameterDefinitionResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type createParameterDefinitionResponse409 = {
   data: ProblemDetails
   status: 409
 }
 
+export type createParameterDefinitionResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type createParameterDefinitionResponseSuccess = (createParameterDefinitionResponse201) & {
   headers: Headers;
 };
-export type createParameterDefinitionResponseError = (createParameterDefinitionResponse400 | createParameterDefinitionResponse409) & {
+export type createParameterDefinitionResponseError = (createParameterDefinitionResponse409 | createParameterDefinitionResponse422) & {
   headers: Headers;
 };
 
@@ -650,7 +650,7 @@ export const createParameterDefinition = async (createParameterDefinitionRequest
 
 
 
-export const getCreateParameterDefinitionMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getCreateParameterDefinitionMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createParameterDefinition>>, TError,{data: CreateParameterDefinitionRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createParameterDefinition>>, TError,{data: CreateParameterDefinitionRequest}, TContext> => {
 
@@ -679,12 +679,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateParameterDefinitionMutationResult = NonNullable<Awaited<ReturnType<typeof createParameterDefinition>>>
     export type CreateParameterDefinitionMutationBody = CreateParameterDefinitionRequest
-    export type CreateParameterDefinitionMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreateParameterDefinitionMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Создать определение параметра
  */
-export const useCreateParameterDefinition = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useCreateParameterDefinition = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createParameterDefinition>>, TError,{data: CreateParameterDefinitionRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createParameterDefinition>>,
@@ -699,15 +699,15 @@ export const useCreateParameterDefinition = <TError = HttpValidationProblemDetai
   status: 200
 }
 
-export type getAllParameterDefinitionsResponse400 = {
+export type getAllParameterDefinitionsResponse422 = {
   data: HttpValidationProblemDetails
-  status: 400
+  status: 422
 }
 
 export type getAllParameterDefinitionsResponseSuccess = (getAllParameterDefinitionsResponse200) & {
   headers: Headers;
 };
-export type getAllParameterDefinitionsResponseError = (getAllParameterDefinitionsResponse400) & {
+export type getAllParameterDefinitionsResponseError = (getAllParameterDefinitionsResponse422) & {
   headers: Headers;
 };
 
@@ -1036,20 +1036,20 @@ export type updateParameterDefinitionResponse204 = {
   status: 204
 }
 
-export type updateParameterDefinitionResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type updateParameterDefinitionResponse404 = {
   data: ProblemDetails
   status: 404
 }
 
+export type updateParameterDefinitionResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type updateParameterDefinitionResponseSuccess = (updateParameterDefinitionResponse204) & {
   headers: Headers;
 };
-export type updateParameterDefinitionResponseError = (updateParameterDefinitionResponse400 | updateParameterDefinitionResponse404) & {
+export type updateParameterDefinitionResponseError = (updateParameterDefinitionResponse404 | updateParameterDefinitionResponse422) & {
   headers: Headers;
 };
 
@@ -1083,7 +1083,7 @@ export const updateParameterDefinition = async (id: string,
 
 
 
-export const getUpdateParameterDefinitionMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getUpdateParameterDefinitionMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateParameterDefinition>>, TError,{id: string;data: UpdateParameterDefinitionRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateParameterDefinition>>, TError,{id: string;data: UpdateParameterDefinitionRequest}, TContext> => {
 
@@ -1112,12 +1112,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateParameterDefinitionMutationResult = NonNullable<Awaited<ReturnType<typeof updateParameterDefinition>>>
     export type UpdateParameterDefinitionMutationBody = UpdateParameterDefinitionRequest
-    export type UpdateParameterDefinitionMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type UpdateParameterDefinitionMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Обновить определение параметра
  */
-export const useUpdateParameterDefinition = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const useUpdateParameterDefinition = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateParameterDefinition>>, TError,{id: string;data: UpdateParameterDefinitionRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateParameterDefinition>>,
@@ -1132,20 +1132,20 @@ export const useUpdateParameterDefinition = <TError = HttpValidationProblemDetai
   status: 204
 }
 
-export type validateDbmsDictionaryResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type validateDbmsDictionaryResponse409 = {
   data: ProblemDetails
   status: 409
 }
 
+export type validateDbmsDictionaryResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type validateDbmsDictionaryResponseSuccess = (validateDbmsDictionaryResponse204) & {
   headers: Headers;
 };
-export type validateDbmsDictionaryResponseError = (validateDbmsDictionaryResponse400 | validateDbmsDictionaryResponse409) & {
+export type validateDbmsDictionaryResponseError = (validateDbmsDictionaryResponse409 | validateDbmsDictionaryResponse422) & {
   headers: Headers;
 };
 
@@ -1174,7 +1174,7 @@ export const validateDbmsDictionary = async (createDbmsDictionaryRequest: Create
 
 
 
-export const getValidateDbmsDictionaryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getValidateDbmsDictionaryMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof validateDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext> => {
 
@@ -1203,9 +1203,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type ValidateDbmsDictionaryMutationResult = NonNullable<Awaited<ReturnType<typeof validateDbmsDictionary>>>
     export type ValidateDbmsDictionaryMutationBody = CreateDbmsDictionaryRequest
-    export type ValidateDbmsDictionaryMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type ValidateDbmsDictionaryMutationError = ProblemDetails | HttpValidationProblemDetails
 
-    export const useValidateDbmsDictionary = <TError = HttpValidationProblemDetails | ProblemDetails,
+    export const useValidateDbmsDictionary = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof validateDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof validateDbmsDictionary>>,
@@ -1220,11 +1220,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   status: 200
 }
 
-export type updateDbmsDictionaryResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type updateDbmsDictionaryResponse404 = {
   data: ProblemDetails
   status: 404
@@ -1235,10 +1230,15 @@ export type updateDbmsDictionaryResponse409 = {
   status: 409
 }
 
+export type updateDbmsDictionaryResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type updateDbmsDictionaryResponseSuccess = (updateDbmsDictionaryResponse200) & {
   headers: Headers;
 };
-export type updateDbmsDictionaryResponseError = (updateDbmsDictionaryResponse400 | updateDbmsDictionaryResponse404 | updateDbmsDictionaryResponse409) & {
+export type updateDbmsDictionaryResponseError = (updateDbmsDictionaryResponse404 | updateDbmsDictionaryResponse409 | updateDbmsDictionaryResponse422) & {
   headers: Headers;
 };
 
@@ -1268,7 +1268,7 @@ export const updateDbmsDictionary = async (id: string,
 
 
 
-export const getUpdateDbmsDictionaryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getUpdateDbmsDictionaryMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDbmsDictionary>>, TError,{id: string;data: UpdateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateDbmsDictionary>>, TError,{id: string;data: UpdateDbmsDictionaryRequest}, TContext> => {
 
@@ -1297,9 +1297,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateDbmsDictionaryMutationResult = NonNullable<Awaited<ReturnType<typeof updateDbmsDictionary>>>
     export type UpdateDbmsDictionaryMutationBody = UpdateDbmsDictionaryRequest
-    export type UpdateDbmsDictionaryMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type UpdateDbmsDictionaryMutationError = ProblemDetails | HttpValidationProblemDetails
 
-    export const useUpdateDbmsDictionary = <TError = HttpValidationProblemDetails | ProblemDetails,
+    export const useUpdateDbmsDictionary = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDbmsDictionary>>, TError,{id: string;data: UpdateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateDbmsDictionary>>,
@@ -1515,15 +1515,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   status: 200
 }
 
-export type getAllDbmsDictionariesResponse400 = {
+export type getAllDbmsDictionariesResponse422 = {
   data: HttpValidationProblemDetails
-  status: 400
+  status: 422
 }
 
 export type getAllDbmsDictionariesResponseSuccess = (getAllDbmsDictionariesResponse200) & {
   headers: Headers;
 };
-export type getAllDbmsDictionariesResponseError = (getAllDbmsDictionariesResponse400) & {
+export type getAllDbmsDictionariesResponseError = (getAllDbmsDictionariesResponse422) & {
   headers: Headers;
 };
 
@@ -1635,20 +1635,20 @@ export type createDbmsDictionaryResponse201 = {
   status: 201
 }
 
-export type createDbmsDictionaryResponse400 = {
-  data: HttpValidationProblemDetails
-  status: 400
-}
-
 export type createDbmsDictionaryResponse409 = {
   data: ProblemDetails
   status: 409
 }
 
+export type createDbmsDictionaryResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
 export type createDbmsDictionaryResponseSuccess = (createDbmsDictionaryResponse201) & {
   headers: Headers;
 };
-export type createDbmsDictionaryResponseError = (createDbmsDictionaryResponse400 | createDbmsDictionaryResponse409) & {
+export type createDbmsDictionaryResponseError = (createDbmsDictionaryResponse409 | createDbmsDictionaryResponse422) & {
   headers: Headers;
 };
 
@@ -1677,7 +1677,7 @@ export const createDbmsDictionary = async (createDbmsDictionaryRequest: CreateDb
 
 
 
-export const getCreateDbmsDictionaryMutationOptions = <TError = HttpValidationProblemDetails | ProblemDetails,
+export const getCreateDbmsDictionaryMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext> => {
 
@@ -1706,9 +1706,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateDbmsDictionaryMutationResult = NonNullable<Awaited<ReturnType<typeof createDbmsDictionary>>>
     export type CreateDbmsDictionaryMutationBody = CreateDbmsDictionaryRequest
-    export type CreateDbmsDictionaryMutationError = HttpValidationProblemDetails | ProblemDetails
+    export type CreateDbmsDictionaryMutationError = ProblemDetails | HttpValidationProblemDetails
 
-    export const useCreateDbmsDictionary = <TError = HttpValidationProblemDetails | ProblemDetails,
+    export const useCreateDbmsDictionary = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDbmsDictionary>>, TError,{data: CreateDbmsDictionaryRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createDbmsDictionary>>,

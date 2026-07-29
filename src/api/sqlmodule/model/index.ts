@@ -63,6 +63,7 @@ export * from './parameterDefinitionResponsePageResponse';
 export * from './physicalTypeResponse';
 export * from './physicalTypeResponsePageResponse';
 export * from './problemDetails';
+export * from './problemDetailsErrors';
 export * from './publicationStatus';
 export * from './relationshipDraft';
 export * from './schemaColumnMap';

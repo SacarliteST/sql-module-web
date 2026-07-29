@@ -34,6 +34,7 @@ import {
   useCreateSqlTask,
   useUpdateSqlTask,
 } from '../../../api/sqlmodule/training/training';
+import { SqlQueryValidationPreview } from './SqlQueryValidationPreview';
 import { SqlPreview } from './SqlPreview';
 
 type TopicOption = {
@@ -165,6 +166,14 @@ export function SqlTaskFormModal({
 
   const isEditMode = mode === 'edit';
   const isSaving = createMutation.isPending || updateMutation.isPending;
+  const currentPublicationStatus =
+    task?.publicationStatus ?? PublicationStatusValue.NUMBER_0;
+  const attemptsCount = task?.attemptsCount ?? task?.lastAttempts?.length ?? 0;
+  const isPublishedTask = currentPublicationStatus === PublicationStatusValue.NUMBER_1;
+  const canUpdateLinks =
+    isEditMode &&
+    currentPublicationStatus === PublicationStatusValue.NUMBER_0 &&
+    attemptsCount === 0;
 
   useEffect(() => {
     if (opened) {
@@ -198,7 +207,14 @@ export function SqlTaskFormModal({
   }, [dbmsDictionaries]);
 
   const selectedSqlQuery = useMemo(() => {
-    if (isEditMode && task?.sqlQuery) {
+    const selectedFromList =
+      sqlQueries.find((query) => query.id === values.sqlQueryId) ?? null;
+
+    if (selectedFromList) {
+      return selectedFromList;
+    }
+
+    if (isEditMode && task?.sqlQuery && values.sqlQueryId === task.sqlQuery.sqlQueryId) {
       return {
         id: task.sqlQuery.sqlQueryId,
         queryText: task.sqlQuery.sqlText,
@@ -208,14 +224,14 @@ export function SqlTaskFormModal({
       } satisfies SqlQueryResponse;
     }
 
-    return sqlQueries.find((query) => query.id === values.sqlQueryId) ?? null;
+    return null;
   }, [isEditMode, sqlQueries, task, values.sqlQueryId]);
 
   const selectedTargetDb = selectedSqlQuery?.targetDbId
     ? targetDbById.get(selectedSqlQuery.targetDbId)
     : null;
   const selectedDbms = selectedTargetDb?.dbmsId ? dbmsById.get(selectedTargetDb.dbmsId) : null;
-  const editTargetDb = isEditMode ? task?.targetDb : null;
+  const editTargetDb = isEditMode && !selectedTargetDb ? task?.targetDb : null;
   const databaseName =
     editTargetDb?.dbName?.trim() || selectedTargetDb?.dbName?.trim() || 'База не указана';
   const dbmsName = editTargetDb?.dbmsName?.trim() || getDbmsName(selectedDbms);
@@ -234,9 +250,6 @@ export function SqlTaskFormModal({
       });
   }, [sqlQueries, targetDbById]);
 
-  const currentPublicationStatus =
-    task?.publicationStatus ?? PublicationStatusValue.NUMBER_0;
-  const isPublishedTask = currentPublicationStatus === PublicationStatusValue.NUMBER_1;
   const publicationOptions = [
     ...(isPublishedTask
       ? [
@@ -279,7 +292,7 @@ export function SqlTaskFormModal({
       nextErrors.topicId = 'Выберите тему';
     }
 
-    if (!isEditMode && !values.sqlQueryId) {
+    if ((!isEditMode || canUpdateLinks) && !values.sqlQueryId) {
       nextErrors.sqlQueryId = 'Выберите эталонный SQL-запрос';
     }
 
@@ -317,8 +330,10 @@ export function SqlTaskFormModal({
           data: {
             difficultyLevel: Number(values.difficultyLevel),
             publicationStatus,
+            sqlQueryId: values.sqlQueryId || null,
             taskName: values.taskName.trim(),
             taskText: values.taskText.trim(),
+            topicId: values.topicId || null,
           },
         });
 
@@ -413,7 +428,7 @@ export function SqlTaskFormModal({
             data={topicOptions}
             value={values.topicId}
             error={fieldErrors.topicId}
-            disabled={isSaving || isEditMode}
+            disabled={isSaving || (isEditMode && !canUpdateLinks)}
             searchable
             nothingFoundMessage="Темы не найдены"
             onChange={(value) => setValue('topicId', value)}
@@ -479,11 +494,15 @@ export function SqlTaskFormModal({
             </Anchor>
           </Group>
 
-          {isEditMode ? (
+          {isEditMode && !canUpdateLinks ? (
             <Alert color="gray" variant="light">
-              В текущем API редактирование не меняет связанный эталонный SQL-запрос.
+              Связи задания можно менять только у черновика без попыток. Для опубликованных,
+              архивных заданий и заданий с попытками тема и эталонный запрос доступны только для
+              просмотра.
             </Alert>
-          ) : (
+          ) : null}
+
+          {!isEditMode || canUpdateLinks ? (
             <Select
               withAsterisk
               data={sqlQueryOptions}
@@ -495,9 +514,14 @@ export function SqlTaskFormModal({
               nothingFoundMessage="SQL-запросы не найдены"
               onChange={(value) => setValue('sqlQueryId', value)}
             />
-          )}
+          ) : null}
 
           <SqlPreview sql={selectedSqlQuery?.queryText} />
+          <SqlQueryValidationPreview
+            disabled={isSaving}
+            queryText={selectedSqlQuery?.queryText}
+            targetDbId={selectedSqlQuery?.targetDbId}
+          />
 
           <Group gap="xs" wrap="wrap">
             <Badge color="gray" radius="sm" variant="light">

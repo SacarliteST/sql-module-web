@@ -5,6 +5,7 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { ProblemDetailsErrors } from './problemDetailsErrors';
 
 export interface ProblemDetails {
   /** @nullable */
@@ -17,5 +18,7 @@ export interface ProblemDetails {
   detail?: string | null;
   /** @nullable */
   instance?: string | null;
+  code?: string;
+  errors?: ProblemDetailsErrors;
   [key: string]: unknown;
 }

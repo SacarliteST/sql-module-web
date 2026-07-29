@@ -19,5 +19,6 @@ export interface HttpValidationProblemDetails {
   /** @nullable */
   instance?: string | null;
   errors?: HttpValidationProblemDetailsErrors;
+  code?: string;
   [key: string]: unknown;
 }
