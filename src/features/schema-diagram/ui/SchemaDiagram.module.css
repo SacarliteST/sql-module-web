@@ -1,0 +1,14 @@
+.shell {
+  position: relative;
+  overflow: hidden;
+  height: min(680px, calc(100vh - 250px));
+  min-height: 480px;
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-gray-0);
+}
+
+.toolbar { position: absolute; z-index: 5; top: 12px; right: 12px; }
+.empty, .loading { display: grid; height: 100%; place-items: center; color: var(--mantine-color-dimmed); }
+.loading { position: absolute; z-index: 4; inset: 0; pointer-events: none; }
+.flow { background: var(--mantine-color-gray-0); }

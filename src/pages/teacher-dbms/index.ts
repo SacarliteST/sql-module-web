@@ -1,0 +1,1 @@
+export { TeacherDbmsPage } from './TeacherDbmsPage';

@@ -1,0 +1,13 @@
+.editor {
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-gray-4);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.editor:focus-within {
+  border-color: var(--mantine-primary-color-filled);
+  outline: 1px solid var(--mantine-primary-color-filled);
+}
+
+.invalid { border-color: var(--mantine-color-red-6); }
+.disabled { background: var(--mantine-color-gray-1); opacity: 0.6; }

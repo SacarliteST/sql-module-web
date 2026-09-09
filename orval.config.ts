@@ -52,6 +52,7 @@ export default defineConfig({
       schemas: './src/api/sqlmodule/model',
       client: 'react-query',
       httpClient: 'fetch',
+      headers: true,
       clean: true,
       override: {
         mutator: {

@@ -1,1 +1,1 @@
-export { SqlPreview, SqlQueryValidationPreview, SqlTaskFormModal } from './ui';
+export { SqlCodeEditor, SqlPreview, SqlQueryValidationPreview, SqlTaskFormModal } from './ui';

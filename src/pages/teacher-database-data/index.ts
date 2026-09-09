@@ -1,0 +1,1 @@
+export { TeacherDatabaseDataPage } from './TeacherDatabaseDataPage';

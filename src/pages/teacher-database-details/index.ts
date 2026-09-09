@@ -1,0 +1,1 @@
+export { TeacherDatabaseDetailsPage } from './TeacherDatabaseDetailsPage';

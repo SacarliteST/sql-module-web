@@ -5,40 +5,48 @@ import {
   Box,
   Button,
   Group,
+  Modal,
+  Pagination,
+  Select,
   SimpleGrid,
   Stack,
   Table,
   Text,
+  TextInput,
+  Textarea,
   Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type {
-  DbmsDictionaryResponse,
   HttpValidationProblemDetails,
   ProblemDetails,
-  SqlQueryResponse,
   SqlTaskResponse,
-  TargetDbResponse,
   TopicResponse,
 } from '../../api/sqlmodule/model';
+import { PublicationStatus } from '../../api/sqlmodule/model';
 import { useGetAllTargetDbs } from '../../api/sqlmodule/schema/schema';
 import {
-  useGetAllSqlQueries,
   useGetAllSqlTasks,
   useGetAllTopics,
   useGetTopicById,
+  useCreateTopic,
+  useDeleteTopic,
+  useMoveTopic,
+  useUpdateTopic,
 } from '../../api/sqlmodule/training/training';
 import { SqlTaskFormModal } from '../../features/sql-tasks';
 import { TeacherContourTabs } from '../../features/teacher-contour';
-import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
+import { formatAuditDate as formatDate } from '../../shared/lib/teacher-audit';
+import { AppCard, ConfirmModal, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
 type TopicView = {
   id: string;
   title: string;
   parentTopicId: string | null;
+  description: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -62,25 +70,10 @@ function normalizeTopic(topic: TopicResponse): TopicView | null {
     id: topic.id,
     title: topic.topicName?.trim() || 'Без названия',
     parentTopicId: topic.parentTopicId ?? null,
+    description: topic.description?.trim() ?? '',
     createdAt: topic.createdAt,
     updatedAt: topic.updatedAt,
   };
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) {
-    return 'Не указано';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('ru-RU', {
-    dateStyle: 'short',
-  }).format(date);
 }
 
 function getProblemMessage(
@@ -88,14 +81,6 @@ function getProblemMessage(
   fallback: string,
 ): string {
   return problem?.detail?.trim() || problem?.title?.trim() || fallback;
-}
-
-function buildEntityMap<T extends { id?: string }>(items: T[]): Map<string, T> {
-  return new Map(
-    items
-      .filter((item) => item.id)
-      .map((item) => [item.id as string, item]),
-  );
 }
 
 function countDescendants(topicId: string, topics: TopicView[]): number {
@@ -107,31 +92,20 @@ function countDescendants(topicId: string, topics: TopicView[]): number {
   );
 }
 
-function getDbmsName(dbms?: DbmsDictionaryResponse): string {
-  return dbms?.dbmsName?.trim() || dbms?.dbmsSystemName?.trim() || 'СУБД не указана';
-}
-
 function normalizeTask(
   task: SqlTaskResponse,
-  sqlQueryById: Map<string, SqlQueryResponse>,
-  targetDbById: Map<string, TargetDbResponse>,
-  dbmsById: Map<string, DbmsDictionaryResponse>,
 ): TopicTaskView | null {
   if (!task.id) {
     return null;
   }
 
-  const sqlQuery = task.sqlQueryId ? sqlQueryById.get(task.sqlQueryId) : undefined;
-  const targetDb = sqlQuery?.targetDbId ? targetDbById.get(sqlQuery.targetDbId) : undefined;
-  const dbms = targetDb?.dbmsId ? dbmsById.get(targetDb.dbmsId) : undefined;
-
   return {
     id: task.id,
     title: task.taskName?.trim() || 'Без названия',
-    database: targetDb?.dbName?.trim() || 'База не указана',
-    dbms: getDbmsName(dbms),
+    database: task.targetDbName?.trim() || 'База не указана',
+    dbms: task.dbmsName?.trim() || 'СУБД не указана',
     difficultyLevel: task.difficultyLevel ?? null,
-    attempts: 'н/д',
+    attempts: String(task.attemptsCount ?? 0),
     updatedAt: formatDate(task.updatedAt ?? task.createdAt),
   };
 }
@@ -206,6 +180,25 @@ export function TeacherTopicDetailsPage() {
   const navigate = useNavigate();
   const { topicId = '' } = useParams<{ topicId: string }>();
   const [createTaskOpened, createTaskModal] = useDisclosure(false);
+  const [editOpened, editModal] = useDisclosure(false);
+  const [childOpened, childModal] = useDisclosure(false);
+  const [moveOpened, moveModal] = useDisclosure(false);
+  const [deleteOpened, deleteModal] = useDisclosure(false);
+  const [topicName, setTopicName] = useState('');
+  const [topicDescription, setTopicDescription] = useState('');
+  const [childName, setChildName] = useState('');
+  const [childDescription, setChildDescription] = useState('');
+  const [newParentId, setNewParentId] = useState<string | null>(null);
+  const [mutationError, setMutationError] = useState('');
+  const [taskPage, setTaskPage] = useState(1);
+  const [taskNameFilter, setTaskNameFilter] = useState('');
+  const [taskDbFilter, setTaskDbFilter] = useState<string | null>(null);
+  const [taskDifficultyFilter, setTaskDifficultyFilter] = useState<string | null>(null);
+  const [taskStatusFilter, setTaskStatusFilter] = useState<string | null>(null);
+  const updateTopicMutation = useUpdateTopic();
+  const createTopicMutation = useCreateTopic();
+  const moveTopicMutation = useMoveTopic();
+  const deleteTopicMutation = useDeleteTopic();
 
   const topicQuery = useGetTopicById(topicId, {
     query: {
@@ -223,16 +216,7 @@ export function TeacherTopicDetailsPage() {
     },
   );
   const sqlTasksQuery = useGetAllSqlTasks(
-    { Limit: 100 },
-    {
-      query: {
-        enabled: Boolean(topicId),
-        retry: false,
-      },
-    },
-  );
-  const sqlQueriesQuery = useGetAllSqlQueries(
-    { Limit: 100 },
+    { Offset: (taskPage - 1) * 20, Limit: 20, TopicId: topicId, Name: taskNameFilter.trim() || undefined, TargetDbId: taskDbFilter || undefined, DifficultyLevel: taskDifficultyFilter ? Number(taskDifficultyFilter) : undefined, PublicationStatus: taskStatusFilter as PublicationStatus | null ?? undefined },
     {
       query: {
         enabled: Boolean(topicId),
@@ -271,11 +255,7 @@ export function TeacherTopicDetailsPage() {
   const sqlTasksPage = sqlTasksResponse?.status === 200 ? sqlTasksResponse.data : null;
   const sqlTasksError =
     sqlTasksResponse && sqlTasksResponse.status !== 200 ? sqlTasksResponse.data : null;
-
-  const sqlQueriesResponse = sqlQueriesQuery.data;
-  const sqlQueriesPage = sqlQueriesResponse?.status === 200 ? sqlQueriesResponse.data : null;
-  const sqlQueriesError =
-    sqlQueriesResponse && sqlQueriesResponse.status !== 200 ? sqlQueriesResponse.data : null;
+  const taskPageCount = Math.max(1, Math.ceil((sqlTasksPage?.count ?? 0) / 20));
 
   const targetDbsResponse = targetDbsQuery.data;
   const targetDbsPage = targetDbsResponse?.status === 200 ? targetDbsResponse.data : null;
@@ -311,16 +291,11 @@ export function TeacherTopicDetailsPage() {
       return [];
     }
 
-    const sqlQueryById = buildEntityMap(sqlQueriesPage?.items ?? []);
-    const targetDbById = buildEntityMap(targetDbsPage?.items ?? []);
-    const dbmsById = buildEntityMap(dbmsPage?.items ?? []);
-
     return (sqlTasksPage?.items ?? [])
-      .filter((task) => task.topicId === topic.id)
-      .map((task) => normalizeTask(task, sqlQueryById, targetDbById, dbmsById))
+      .map((task) => normalizeTask(task))
       .filter((task): task is TopicTaskView => task !== null)
       .sort((left, right) => left.title.localeCompare(right.title, 'ru'));
-  }, [dbmsPage?.items, sqlQueriesPage?.items, sqlTasksPage?.items, targetDbsPage?.items, topic]);
+  }, [sqlTasksPage?.items, topic]);
 
   const directTaskCountByTopicId = useMemo(() => {
     const countByTopicId = new Map<string, number>();
@@ -340,18 +315,125 @@ export function TeacherTopicDetailsPage() {
     topicQuery.isPending ||
     topicsQuery.isPending ||
     sqlTasksQuery.isPending ||
-    sqlQueriesQuery.isPending ||
     targetDbsQuery.isPending ||
     dbmsQuery.isPending;
   const isUnavailable =
     topicQuery.isError ||
     topicsQuery.isError ||
     sqlTasksQuery.isError ||
-    sqlQueriesQuery.isError ||
     targetDbsQuery.isError ||
     dbmsQuery.isError;
   const apiError =
-    topicError ?? topicsError ?? sqlTasksError ?? sqlQueriesError ?? targetDbsError ?? dbmsError;
+    topicError ?? topicsError ?? sqlTasksError ?? targetDbsError ?? dbmsError;
+
+  const isTopicMutationPending =
+    updateTopicMutation.isPending ||
+    createTopicMutation.isPending ||
+    moveTopicMutation.isPending ||
+    deleteTopicMutation.isPending;
+
+  const movableParentOptions = useMemo(() => {
+    if (!topic) {
+      return [];
+    }
+
+    const byId = new Map(allTopics.map((item) => [item.id, item]));
+    const isDescendant = (candidateId: string) => {
+      let current = byId.get(candidateId);
+      const visited = new Set<string>();
+
+      while (current?.parentTopicId && !visited.has(current.id)) {
+        if (current.parentTopicId === topic.id) {
+          return true;
+        }
+        visited.add(current.id);
+        current = byId.get(current.parentTopicId);
+      }
+
+      return false;
+    };
+
+    return allTopics
+      .filter((item) => item.id !== topic.id && !isDescendant(item.id))
+      .map((item) => ({ value: item.id, label: item.title }))
+      .sort((left, right) => left.label.localeCompare(right.label, 'ru'));
+  }, [allTopics, topic]);
+
+  const refreshTopics = async () => {
+    await Promise.all([topicQuery.refetch(), topicsQuery.refetch()]);
+  };
+
+  const openEdit = () => {
+    setTopicName(topic?.title ?? '');
+    setTopicDescription(topic?.description ?? '');
+    setMutationError('');
+    editModal.open();
+  };
+
+  const openChild = () => {
+    setChildName('');
+    setChildDescription('');
+    setMutationError('');
+    childModal.open();
+  };
+
+  const openMove = () => {
+    setNewParentId(topic?.parentTopicId ?? null);
+    setMutationError('');
+    moveModal.open();
+  };
+
+  const handleUpdateTopic = async () => {
+    if (!topic || !topicName.trim()) {
+      setMutationError('Введите название темы.');
+      return;
+    }
+
+    const response = await updateTopicMutation.mutateAsync({ id: topic.id, data: { topicName: topicName.trim(), description: topicDescription.trim() || null } });
+    if (response.status !== 204) {
+      setMutationError(getProblemMessage(response.data, 'Не удалось изменить тему.'));
+      return;
+    }
+    await refreshTopics();
+    editModal.close();
+  };
+
+  const handleCreateChild = async () => {
+    if (!topic || !childName.trim()) {
+      setMutationError('Введите название подтемы.');
+      return;
+    }
+
+    const response = await createTopicMutation.mutateAsync({ data: { parentTopicId: topic.id, topicName: childName.trim(), description: childDescription.trim() || null } });
+    if (response.status !== 201) {
+      setMutationError(getProblemMessage(response.data, 'Не удалось создать подтему.'));
+      return;
+    }
+    await topicsQuery.refetch();
+    childModal.close();
+  };
+
+  const handleMoveTopic = async () => {
+    if (!topic) return;
+    const response = await moveTopicMutation.mutateAsync({ id: topic.id, data: { parentTopicId: newParentId } });
+    if (response.status !== 204) {
+      setMutationError(getProblemMessage(response.data, 'Не удалось переместить тему.'));
+      return;
+    }
+    await refreshTopics();
+    moveModal.close();
+  };
+
+  const handleDeleteTopic = async () => {
+    if (!topic) return;
+    const response = await deleteTopicMutation.mutateAsync({ id: topic.id });
+    if (response.status !== 204) {
+      setMutationError(getProblemMessage(response.data, 'Не удалось удалить тему.'));
+      deleteModal.close();
+      return;
+    }
+    navigate('/teacher/topics');
+  };
 
   return (
     <Page>
@@ -376,11 +458,17 @@ export function TeacherTopicDetailsPage() {
           }
           actions={
             <>
-              <Button disabled variant="light">
+              <Button disabled={!topic} variant="light" onClick={openEdit}>
                 Изменить
               </Button>
-              <Button disabled variant="light">
+              <Button disabled={!topic} variant="light" onClick={openChild}>
                 Создать подтему
+              </Button>
+              <Button disabled={!topic} variant="light" onClick={openMove}>
+                Переместить
+              </Button>
+              <Button color="red" disabled={!topic} variant="outline" onClick={deleteModal.open}>
+                Удалить
               </Button>
               <Button disabled={!topic} onClick={createTaskModal.open}>
                 Создать задание
@@ -389,6 +477,11 @@ export function TeacherTopicDetailsPage() {
           }
         />
         <TeacherContourTabs />
+        {mutationError && !editOpened && !childOpened && !moveOpened ? (
+          <Alert color="red" title="Операция с темой не выполнена">
+            {mutationError}
+          </Alert>
+        ) : null}
       </Stack>
 
       {isLoading ? (
@@ -464,7 +557,7 @@ export function TeacherTopicDetailsPage() {
                 <AppCard p="md">
                   <EmptyState
                     title="Подтем пока нет"
-                    description="Создание подтемы будет подключено отдельной итерацией."
+                    description="Создайте подтему, чтобы расширить иерархию учебных материалов."
                   />
                 </AppCard>
               )}
@@ -475,13 +568,12 @@ export function TeacherTopicDetailsPage() {
                 <Title order={3} size="h4">
                   Задания темы
                 </Title>
-                <Button disabled size="xs" variant="light">
-                  Фильтры
-                </Button>
+                <Group gap="xs"><TextInput size="xs" placeholder="Название" value={taskNameFilter} onChange={(event) => { setTaskNameFilter(event.currentTarget.value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="База" data={(targetDbsPage?.items ?? []).filter((item) => item.id).map((item) => ({ value: item.id as string, label: item.dbName?.trim() || 'База' }))} value={taskDbFilter} onChange={(value) => { setTaskDbFilter(value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="Сложность" data={['1','2','3','4','5']} value={taskDifficultyFilter} onChange={(value) => { setTaskDifficultyFilter(value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="Статус" data={[{ value: PublicationStatus.Draft, label: 'Черновик' }, { value: PublicationStatus.Published, label: 'Опубликовано' }, { value: PublicationStatus.Archived, label: 'В архиве' }]} value={taskStatusFilter} onChange={(value) => { setTaskStatusFilter(value); setTaskPage(1); }} /></Group>
               </Group>
 
               <AppCard p={0}>
                 {topicTasks.length > 0 ? (
+                  <>
                   <Table.ScrollContainer minWidth={720}>
                     <Table highlightOnHover withColumnBorders={false}>
                       <Table.Thead bg="#f3f4f5">
@@ -522,6 +614,8 @@ export function TeacherTopicDetailsPage() {
                       </Table.Tbody>
                     </Table>
                   </Table.ScrollContainer>
+                  {taskPageCount > 1 ? <Pagination m="md" value={taskPage} total={taskPageCount} onChange={setTaskPage} /> : null}
+                  </>
                 ) : (
                   <EmptyState
                     title="В теме пока нет заданий"
@@ -538,8 +632,7 @@ export function TeacherTopicDetailsPage() {
                 Описание темы
               </Title>
               <Text c="dimmed" maw={860}>
-                Описание темы пока не хранится в текущем ответе SQL Module API. После добавления
-                поля в контракт здесь появится рабочее описание для преподавателя.
+                {topic.description || 'Описание темы не заполнено.'}
               </Text>
             </Stack>
           </AppCard>
@@ -558,7 +651,6 @@ export function TeacherTopicDetailsPage() {
         onClose={createTaskModal.close}
         initialTopicId={topic?.id ?? topicId}
         topics={topicsPage?.items ?? []}
-        sqlQueries={sqlQueriesPage?.items ?? []}
         targetDbs={targetDbsPage?.items ?? []}
         dbmsDictionaries={dbmsPage?.items ?? []}
         onSaved={(taskId) => {
@@ -567,6 +659,31 @@ export function TeacherTopicDetailsPage() {
           }
         }}
       />
+      <Modal opened={editOpened} onClose={editModal.close} title="Изменить тему" centered>
+        <Stack gap="md">
+          {mutationError ? <Alert color="red">{mutationError}</Alert> : null}
+          <TextInput label="Название" withAsterisk value={topicName} disabled={isTopicMutationPending} onChange={(event) => setTopicName(event.currentTarget.value)} />
+          <Textarea label="Описание" minRows={3} value={topicDescription} disabled={isTopicMutationPending} onChange={(event) => setTopicDescription(event.currentTarget.value)} />
+          <Group justify="flex-end"><Button variant="default" onClick={editModal.close}>Отмена</Button><Button loading={updateTopicMutation.isPending} onClick={() => void handleUpdateTopic()}>Сохранить</Button></Group>
+        </Stack>
+      </Modal>
+      <Modal opened={childOpened} onClose={childModal.close} title="Создать подтему" centered>
+        <Stack gap="md">
+          {mutationError ? <Alert color="red">{mutationError}</Alert> : null}
+          <TextInput label="Название" withAsterisk value={childName} disabled={isTopicMutationPending} onChange={(event) => setChildName(event.currentTarget.value)} />
+          <Textarea label="Описание" minRows={3} value={childDescription} disabled={isTopicMutationPending} onChange={(event) => setChildDescription(event.currentTarget.value)} />
+          <Group justify="flex-end"><Button variant="default" onClick={childModal.close}>Отмена</Button><Button loading={createTopicMutation.isPending} onClick={() => void handleCreateChild()}>Создать</Button></Group>
+        </Stack>
+      </Modal>
+      <Modal opened={moveOpened} onClose={moveModal.close} title="Переместить тему" centered>
+        <Stack gap="md">
+          {mutationError ? <Alert color="red">{mutationError}</Alert> : null}
+          <Select label="Новая родительская тема" clearable searchable data={movableParentOptions} value={newParentId} disabled={isTopicMutationPending} placeholder="Корневая тема" onChange={setNewParentId} />
+          <Text c="dimmed" size="xs">Очистите поле, чтобы сделать тему корневой. Потомки исключены из списка для защиты от циклов.</Text>
+          <Group justify="flex-end"><Button variant="default" onClick={moveModal.close}>Отмена</Button><Button loading={moveTopicMutation.isPending} onClick={() => void handleMoveTopic()}>Переместить</Button></Group>
+        </Stack>
+      </Modal>
+      <ConfirmModal opened={deleteOpened} title="Удалить тему" message="Тему можно удалить только без подтем и заданий. Backend проверит связанные данные." confirmLabel="Удалить" confirmColor="red" loading={deleteTopicMutation.isPending} onCancel={deleteModal.close} onConfirm={() => void handleDeleteTopic()} />
     </Page>
   );
 }

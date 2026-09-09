@@ -12,7 +12,11 @@ type SessionState = {
   accessToken: string | null;
   user: SessionUser | null;
   status: SessionStatus;
+  mode: 'standalone' | 'handoff' | null;
+  standaloneAccessToken: string | null;
+  standaloneUser: SessionUser | null;
   setSession(payload: SetSessionPayload): void;
+  setTransientSession(payload: SetSessionPayload): void;
   clearSession(): void;
 };
 
@@ -44,6 +48,9 @@ const restoreSessionState = (
       roles: decodedUser.roles.length > 0 ? decodedUser.roles : persistedSession.user.roles,
     },
     status: 'authenticated',
+    mode: 'standalone',
+    standaloneAccessToken: persistedSession.accessToken,
+    standaloneUser: persistedSession.user,
   };
 };
 
@@ -53,23 +60,42 @@ export const useSessionStore = create<SessionState>()(
       accessToken: null,
       user: null,
       status: 'anonymous',
+      mode: null,
+      standaloneAccessToken: null,
+      standaloneUser: null,
       setSession: ({ accessToken, user }) =>
         set({
           accessToken,
           user,
           status: 'authenticated',
+          mode: 'standalone',
+          standaloneAccessToken: accessToken,
+          standaloneUser: user,
+        }),
+      setTransientSession: ({ accessToken, user }) =>
+        set({
+          accessToken,
+          user,
+          status: 'authenticated',
+          mode: 'handoff',
         }),
       clearSession: () =>
-        set({
+        set((state) => ({
           accessToken: null,
           user: null,
           status: 'anonymous',
-        }),
+          mode: null,
+          standaloneAccessToken: state.mode === 'standalone' ? null : state.standaloneAccessToken,
+          standaloneUser: state.mode === 'standalone' ? null : state.standaloneUser,
+        })),
     }),
     {
       name: 'sql-module-session',
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ accessToken, user }) => ({ accessToken, user }),
+      partialize: ({ standaloneAccessToken, standaloneUser }) => ({
+        accessToken: standaloneAccessToken,
+        user: standaloneUser,
+      }),
       merge: restoreSessionState,
     },
   ),

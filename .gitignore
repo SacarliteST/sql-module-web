@@ -6,3 +6,14 @@ dist
 *.tsbuildinfo
 promts/
 tmp/
+
+# Local documentation and agent work artifacts
+*.md
+/docs/
+/prompts/
+.codex/
+.agents/
+.claude/
+.cursor/
+.aider*
+*.log

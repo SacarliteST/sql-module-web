@@ -1,8 +1,14 @@
 import { buildApiUrl } from './build-api-url';
+import { clearActiveLaunchContext } from '../../session/launch';
+import { clearActiveTokens, resetActiveTokenProvider } from '../../session/providers';
 import { useSessionStore } from '../../session/store';
 
-function handleUnauthorizedResponse() {
+async function handleUnauthorizedResponse() {
   const { status, clearSession } = useSessionStore.getState();
+
+  await clearActiveTokens();
+  clearActiveLaunchContext();
+  resetActiveTokenProvider();
 
   if (status === 'authenticated') {
     clearSession();
@@ -17,7 +23,7 @@ export async function executeRuntimeFetch<TResponse>(
   const response = await fetch(buildApiUrl(baseUrl, path), options);
 
   if (response.status === 401) {
-    handleUnauthorizedResponse();
+    await handleUnauthorizedResponse();
   }
 
   const responseBody = [204, 205, 304].includes(response.status) ? null : await response.text();

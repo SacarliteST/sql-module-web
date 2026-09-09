@@ -10,7 +10,24 @@ export {
   decodeSessionUser,
   getDefaultSessionRoute,
 } from './lib';
-export { createMemoryTokenProvider } from './providers';
+export {
+  ACTIVE_LAUNCH_CONTEXT_STORAGE_KEY,
+  clearActiveLaunchContext,
+  getActiveLaunchContext,
+  setActiveLaunchContext,
+} from './launch';
+export type { ActiveLaunchContext } from './launch';
+export {
+  clearActiveTokens,
+  createHandoffTokenProvider,
+  createMemoryTokenProvider,
+  createStandaloneTokenProvider,
+  getActiveAccessToken,
+  getActiveTokenProvider,
+  HANDOFF_ACCESS_TOKEN_STORAGE_KEY,
+  resetActiveTokenProvider,
+  setActiveTokenProvider,
+} from './providers';
 export { AccessDeniedPage, RequireAuth, RequireRole } from './guards';
 export { useSessionStore } from './store';
-export { LoginPage } from './ui';
+export { LaunchPage, LoginPage } from './ui';

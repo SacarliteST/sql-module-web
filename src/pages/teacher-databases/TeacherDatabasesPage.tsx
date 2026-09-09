@@ -20,6 +20,7 @@ import type {
 } from '../../api/sqlmodule/model';
 import { useGetAllTargetDbs } from '../../api/sqlmodule/schema/schema';
 import { TeacherContourTabs } from '../../features/teacher-contour';
+import { formatAuditDateTime as formatDateTime } from '../../shared/lib/teacher-audit';
 import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
 type TeacherDatabaseView = {
@@ -33,23 +34,6 @@ type TeacherDatabaseView = {
 
 function normalizeSearch(value: string) {
   return value.trim().toLowerCase();
-}
-
-function formatDateTime(value?: string | null): string {
-  if (!value) {
-    return 'Не указано';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('ru-RU', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(date);
 }
 
 function getProblemMessage(problem: HttpValidationProblemDetails | null): string {
@@ -228,7 +212,7 @@ export function TeacherDatabasesPage() {
                       radius="sm"
                       variant="light"
                     >
-                      {database.isReadOnly ? 'Только чтение' : 'Доступна'}
+                      {database.isReadOnly ? 'Защищена от изменений' : 'Редактируется'}
                     </Badge>
                   </Group>
 

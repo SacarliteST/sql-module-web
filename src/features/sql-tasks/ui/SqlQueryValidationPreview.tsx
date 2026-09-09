@@ -11,6 +11,7 @@ type SqlQueryValidationPreviewProps = {
   queryText?: string | null;
   targetDbId?: string | null;
   disabled?: boolean;
+  onValidationChange?: (isValid: boolean) => void;
 };
 
 function getProblemMessage(
@@ -59,6 +60,7 @@ function formatCell(value: string | null | undefined): string {
 
 export function SqlQueryValidationPreview({
   disabled = false,
+  onValidationChange,
   queryText,
   targetDbId,
 }: SqlQueryValidationPreviewProps) {
@@ -72,7 +74,8 @@ export function SqlQueryValidationPreview({
   useEffect(() => {
     setPreview(null);
     setError('');
-  }, [targetDbId, trimmedQuery]);
+    onValidationChange?.(false);
+  }, [onValidationChange, targetDbId, trimmedQuery]);
 
   const handleValidate = async () => {
     if (!targetDbId || !trimmedQuery) {
@@ -94,11 +97,14 @@ export function SqlQueryValidationPreview({
 
       if (response.status === 200) {
         setPreview(response.data);
+        onValidationChange?.(response.data.isValid === true);
         return;
       }
 
+      onValidationChange?.(false);
       setError(getProblemMessage(response.data, 'SQL-запрос не прошёл проверку.'));
     } catch {
+      onValidationChange?.(false);
       setError('Не удалось отправить SQL-запрос на проверку.');
     }
   };

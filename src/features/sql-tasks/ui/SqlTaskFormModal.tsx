@@ -1,28 +1,27 @@
 import {
   Alert,
-  Anchor,
   Badge,
   Button,
   Divider,
   Group,
   Modal,
-  Select,
   SegmentedControl,
+  Select,
   SimpleGrid,
   Stack,
+  Switch,
   Text,
   Textarea,
   TextInput,
   Title,
 } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   DbmsDictionaryResponse,
   HttpValidationProblemDetails,
   ProblemDetails,
   PublicationStatus,
-  SqlQueryResponse,
   TargetDbResponse,
   TeacherTaskDetailsResponse,
   TopicResponse,
@@ -33,9 +32,10 @@ import {
   getGetTeacherTaskDetailsQueryKey,
   useCreateSqlTask,
   useUpdateSqlTask,
+  useUpdateTaskReferenceQuery,
 } from '../../../api/sqlmodule/training/training';
+import { SqlCodeEditor } from './SqlCodeEditor';
 import { SqlQueryValidationPreview } from './SqlQueryValidationPreview';
-import { SqlPreview } from './SqlPreview';
 
 type TopicOption = {
   value: string;
@@ -51,7 +51,6 @@ type SqlTaskFormModalProps = {
   initialTopicId?: string;
   task?: TeacherTaskDetailsResponse | null;
   topics?: TopicResponse[];
-  sqlQueries?: SqlQueryResponse[];
   targetDbs?: TargetDbResponse[];
   dbmsDictionaries?: DbmsDictionaryResponse[];
   onSaved?: (taskId?: string) => void;
@@ -60,20 +59,49 @@ type SqlTaskFormModalProps = {
 type FormValues = {
   taskName: string;
   topicId: string;
-  sqlQueryId: string;
+  targetDbId: string;
+  queryText: string;
+  strictColumnOrder: boolean;
+  strictRowOrder: boolean;
   difficultyLevel: string;
   publicationStatus: string;
   taskText: string;
 };
 
+type FormField = keyof FormValues;
+type FieldErrors = Partial<Record<FormField, string>>;
+
 const DEFAULT_VALUES: FormValues = {
   difficultyLevel: '1',
-  publicationStatus: String(PublicationStatusValue.NUMBER_0),
-  sqlQueryId: '',
+  publicationStatus: PublicationStatusValue.Draft,
+  queryText: '',
+  strictColumnOrder: false,
+  strictRowOrder: false,
+  targetDbId: '',
   taskName: '',
   taskText: '',
   topicId: '',
 };
+
+const BACKEND_FIELD_MAP: Record<string, FormField> = {
+  difficultylevel: 'difficultyLevel',
+  publicationstatus: 'publicationStatus',
+  querytext: 'queryText',
+  referencequeryquerytext: 'queryText',
+  referencequerystrictcolumnorder: 'strictColumnOrder',
+  referencequerystrictroworder: 'strictRowOrder',
+  referencequerytargetdbid: 'targetDbId',
+  strictcolumnorder: 'strictColumnOrder',
+  strictroworder: 'strictRowOrder',
+  targetdbid: 'targetDbId',
+  taskname: 'taskName',
+  tasktext: 'taskText',
+  topicid: 'topicId',
+};
+
+function normalizeFieldPath(path: string): string {
+  return path.replace(/[^a-z0-9]/gi, '').toLowerCase();
+}
 
 function getProblemMessage(
   problem: ProblemDetails | HttpValidationProblemDetails | null,
@@ -91,7 +119,49 @@ function getProblemMessage(
     }
   }
 
+  const violationMessages = problem.violations
+    ?.map((violation) => violation.message?.trim())
+    .filter((message): message is string => Boolean(message));
+
+  if (violationMessages?.length) {
+    return violationMessages.join(' ');
+  }
+
   return problem.detail?.trim() || problem.title?.trim() || fallback;
+}
+
+function getProblemFieldErrors(
+  problem: ProblemDetails | HttpValidationProblemDetails | null,
+): FieldErrors {
+  if (!problem) {
+    return {};
+  }
+
+  const result: FieldErrors = {};
+
+  if ('errors' in problem && problem.errors) {
+    Object.entries(problem.errors).forEach(([path, messages]) => {
+      const field = BACKEND_FIELD_MAP[normalizeFieldPath(path)];
+      const message = messages.find((item) => item.trim())?.trim();
+
+      if (field && message) {
+        result[field] = message;
+      }
+    });
+  }
+
+  problem.violations?.forEach((violation) => {
+    const field = violation.path
+      ? BACKEND_FIELD_MAP[normalizeFieldPath(violation.path)]
+      : undefined;
+    const message = violation.message?.trim();
+
+    if (field && message) {
+      result[field] = message;
+    }
+  });
+
+  return result;
 }
 
 function normalizeTopicOption(topic: TopicResponse): TopicOption | null {
@@ -110,11 +180,11 @@ function getDbmsName(dbms?: DbmsDictionaryResponse | null): string {
 }
 
 function getPublicationStatusLabel(status: PublicationStatus): string {
-  if (status === PublicationStatusValue.NUMBER_1) {
+  if (status === PublicationStatusValue.Published) {
     return 'Опубликовано';
   }
 
-  if (status === PublicationStatusValue.NUMBER_2) {
+  if (status === PublicationStatusValue.Archived) {
     return 'В архиве';
   }
 
@@ -129,8 +199,11 @@ function getInitialValues(
   if (mode === 'edit' && task) {
     return {
       difficultyLevel: String(task.difficultyLevel ?? 1),
-      publicationStatus: String(task.publicationStatus ?? PublicationStatusValue.NUMBER_0),
-      sqlQueryId: task.sqlQuery?.sqlQueryId ?? '',
+      publicationStatus: String(task.publicationStatus ?? PublicationStatusValue.Draft),
+      queryText: task.sqlQuery?.sqlText?.trim() ?? '',
+      strictColumnOrder: task.sqlQuery?.isRequiredColumnOrder ?? false,
+      strictRowOrder: task.sqlQuery?.isRequiredRowOrder ?? false,
+      targetDbId: task.targetDb?.targetDbId ?? '',
       taskName: task.taskName?.trim() ?? '',
       taskText: task.description?.trim() ?? '',
       topicId: task.topicId ?? initialTopicId ?? '',
@@ -143,6 +216,10 @@ function getInitialValues(
   };
 }
 
+function getReferenceSignature(values: FormValues): string {
+  return `${values.targetDbId}\n${values.queryText.trim()}`;
+}
+
 export function SqlTaskFormModal({
   dbmsDictionaries = [],
   initialTopicId,
@@ -150,7 +227,6 @@ export function SqlTaskFormModal({
   onClose,
   onSaved,
   opened,
-  sqlQueries = [],
   targetDbs = [],
   task,
   topics = [],
@@ -158,26 +234,34 @@ export function SqlTaskFormModal({
   const queryClient = useQueryClient();
   const createMutation = useCreateSqlTask();
   const updateMutation = useUpdateSqlTask();
+  const updateReferenceMutation = useUpdateTaskReferenceQuery();
   const [values, setValues] = useState<FormValues>(() =>
     getInitialValues(mode, initialTopicId, task),
   );
+  const [validatedReferenceSignature, setValidatedReferenceSignature] = useState('');
   const [formError, setFormError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const isEditMode = mode === 'edit';
-  const isSaving = createMutation.isPending || updateMutation.isPending;
-  const currentPublicationStatus =
-    task?.publicationStatus ?? PublicationStatusValue.NUMBER_0;
+  const isSaving =
+    createMutation.isPending || updateMutation.isPending || updateReferenceMutation.isPending;
+  const currentPublicationStatus = task?.publicationStatus ?? PublicationStatusValue.Draft;
   const attemptsCount = task?.attemptsCount ?? task?.lastAttempts?.length ?? 0;
-  const isPublishedTask = currentPublicationStatus === PublicationStatusValue.NUMBER_1;
-  const canUpdateLinks =
+  const isPublishedTask = currentPublicationStatus === PublicationStatusValue.Published;
+  const canUpdateTopic =
     isEditMode &&
-    currentPublicationStatus === PublicationStatusValue.NUMBER_0 &&
+    currentPublicationStatus === PublicationStatusValue.Draft &&
     attemptsCount === 0;
+  const canEditTask = !isEditMode || task?.canEditTask !== false;
+  const canEditReferenceQuery = !isEditMode || task?.canEditReferenceQuery === true;
 
   useEffect(() => {
     if (opened) {
-      setValues(getInitialValues(mode, initialTopicId, task));
+      const initialValues = getInitialValues(mode, initialTopicId, task);
+      setValues(initialValues);
+      setValidatedReferenceSignature(
+        mode === 'edit' ? getReferenceSignature(initialValues) : '',
+      );
       setFormError('');
       setFieldErrors({});
     }
@@ -190,14 +274,6 @@ export function SqlTaskFormModal({
       .sort((left, right) => left.label.localeCompare(right.label, 'ru'));
   }, [topics]);
 
-  const targetDbById = useMemo(() => {
-    return new Map(
-      targetDbs
-        .filter((targetDb) => targetDb.id)
-        .map((targetDb) => [targetDb.id as string, targetDb]),
-    );
-  }, [targetDbs]);
-
   const dbmsById = useMemo(() => {
     return new Map(
       dbmsDictionaries
@@ -206,74 +282,82 @@ export function SqlTaskFormModal({
     );
   }, [dbmsDictionaries]);
 
-  const selectedSqlQuery = useMemo(() => {
-    const selectedFromList =
-      sqlQueries.find((query) => query.id === values.sqlQueryId) ?? null;
-
-    if (selectedFromList) {
-      return selectedFromList;
-    }
-
-    if (isEditMode && task?.sqlQuery && values.sqlQueryId === task.sqlQuery.sqlQueryId) {
-      return {
-        id: task.sqlQuery.sqlQueryId,
-        queryText: task.sqlQuery.sqlText,
-        strictColumnOrder: task.sqlQuery.isRequiredColumnOrder,
-        strictRowOrder: task.sqlQuery.isRequiredRowOrder,
-        targetDbId: task.targetDb?.targetDbId,
-      } satisfies SqlQueryResponse;
-    }
-
-    return null;
-  }, [isEditMode, sqlQueries, task, values.sqlQueryId]);
-
-  const selectedTargetDb = selectedSqlQuery?.targetDbId
-    ? targetDbById.get(selectedSqlQuery.targetDbId)
-    : null;
-  const selectedDbms = selectedTargetDb?.dbmsId ? dbmsById.get(selectedTargetDb.dbmsId) : null;
-  const editTargetDb = isEditMode && !selectedTargetDb ? task?.targetDb : null;
-  const databaseName =
-    editTargetDb?.dbName?.trim() || selectedTargetDb?.dbName?.trim() || 'База не указана';
-  const dbmsName = editTargetDb?.dbmsName?.trim() || getDbmsName(selectedDbms);
-
-  const sqlQueryOptions = useMemo(() => {
-    return sqlQueries
-      .filter((query) => query.id)
-      .map((query) => {
-        const preview = query.queryText?.replace(/\s+/g, ' ').trim() || 'SQL-запрос без текста';
-        const targetDb = query.targetDbId ? targetDbById.get(query.targetDbId) : null;
-
+  const targetDbOptions = useMemo(() => {
+    const options = targetDbs
+      .filter((targetDb) => targetDb.id)
+      .map((targetDb) => {
+        const dbms = targetDb.dbmsId ? dbmsById.get(targetDb.dbmsId) : null;
         return {
-          value: query.id as string,
-          label: targetDb?.dbName ? `${targetDb.dbName}: ${preview}` : preview,
+          value: targetDb.id as string,
+          label: `${targetDb.dbName?.trim() || 'Без названия'} · ${getDbmsName(dbms)}`,
         };
       });
-  }, [sqlQueries, targetDbById]);
+
+    if (
+      task?.targetDb?.targetDbId &&
+      !options.some((option) => option.value === task.targetDb?.targetDbId)
+    ) {
+      options.push({
+        value: task.targetDb.targetDbId,
+        label: `${task.targetDb.dbName?.trim() || 'Без названия'} · ${task.targetDb.dbmsName?.trim() || 'СУБД не указана'}`,
+      });
+    }
+
+    return options.sort((left, right) => left.label.localeCompare(right.label, 'ru'));
+  }, [dbmsById, targetDbs, task]);
+
+  const selectedTargetDb = useMemo(
+    () => targetDbs.find((targetDb) => targetDb.id === values.targetDbId) ?? null,
+    [targetDbs, values.targetDbId],
+  );
+  const selectedDbms = selectedTargetDb?.dbmsId
+    ? dbmsById.get(selectedTargetDb.dbmsId)
+    : null;
+  const databaseName =
+    selectedTargetDb?.dbName?.trim() || task?.targetDb?.dbName?.trim() || 'База не указана';
+  const dbmsName =
+    getDbmsName(selectedDbms) !== 'СУБД не указана'
+      ? getDbmsName(selectedDbms)
+      : task?.targetDb?.dbmsName?.trim() || 'СУБД не указана';
 
   const publicationOptions = [
     ...(isPublishedTask
       ? [
           {
-            value: String(PublicationStatusValue.NUMBER_1),
-            label: getPublicationStatusLabel(PublicationStatusValue.NUMBER_1),
+            value: PublicationStatusValue.Published,
+            label: getPublicationStatusLabel(PublicationStatusValue.Published),
           },
         ]
       : [
           {
-            value: String(PublicationStatusValue.NUMBER_0),
-            label: getPublicationStatusLabel(PublicationStatusValue.NUMBER_0),
+            value: PublicationStatusValue.Draft,
+            label: getPublicationStatusLabel(PublicationStatusValue.Draft),
           },
           {
-            value: String(PublicationStatusValue.NUMBER_2),
-            label: getPublicationStatusLabel(PublicationStatusValue.NUMBER_2),
+            value: PublicationStatusValue.Archived,
+            label: getPublicationStatusLabel(PublicationStatusValue.Archived),
           },
         ]),
   ];
 
-  const setValue = (field: keyof FormValues, value: string | null) => {
+  const referenceSignature = getReferenceSignature(values);
+  const initialReferenceSignature =
+    mode === 'edit' ? getReferenceSignature(getInitialValues(mode, initialTopicId, task)) : '';
+  const isReferenceValidated =
+    Boolean(referenceSignature) &&
+    (validatedReferenceSignature === referenceSignature ||
+      initialReferenceSignature === referenceSignature);
+  const initialValues = getInitialValues(mode, initialTopicId, task);
+  const referenceChanged =
+    values.targetDbId !== initialValues.targetDbId ||
+    values.queryText.trim() !== initialValues.queryText.trim() ||
+    values.strictColumnOrder !== initialValues.strictColumnOrder ||
+    values.strictRowOrder !== initialValues.strictRowOrder;
+
+  const setValue = <K extends FormField>(field: K, value: FormValues[K]) => {
     setValues((current) => ({
       ...current,
-      [field]: value ?? '',
+      [field]: value,
     }));
     setFieldErrors((current) => ({
       ...current,
@@ -281,8 +365,15 @@ export function SqlTaskFormModal({
     }));
   };
 
+  const handleValidationChange = useCallback(
+    (isValid: boolean) => {
+      setValidatedReferenceSignature(isValid ? referenceSignature : '');
+    },
+    [referenceSignature],
+  );
+
   const validate = () => {
-    const nextErrors: Partial<Record<keyof FormValues, string>> = {};
+    const nextErrors: FieldErrors = {};
 
     if (!values.taskName.trim()) {
       nextErrors.taskName = 'Название обязательно';
@@ -292,21 +383,49 @@ export function SqlTaskFormModal({
       nextErrors.topicId = 'Выберите тему';
     }
 
-    if ((!isEditMode || canUpdateLinks) && !values.sqlQueryId) {
-      nextErrors.sqlQueryId = 'Выберите эталонный SQL-запрос';
-    }
-
     if (!values.taskText.trim()) {
       nextErrors.taskText = 'Условие задания обязательно';
+    }
+
+    if ((!isEditMode || canEditReferenceQuery) && !values.targetDbId) {
+      nextErrors.targetDbId = 'Выберите учебную базу';
+    }
+
+    if ((!isEditMode || canEditReferenceQuery) && !values.queryText.trim()) {
+      nextErrors.queryText = 'Введите эталонный SQL-запрос';
+    }
+
+    if ((!isEditMode || referenceChanged) && canEditReferenceQuery && !isReferenceValidated) {
+      nextErrors.queryText = 'Проверьте эталонный SQL после последнего изменения';
     }
 
     setFieldErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
+  const applyProblem = (
+    problem: ProblemDetails | HttpValidationProblemDetails | null,
+    fallback: string,
+  ) => {
+    setFieldErrors((current) => ({ ...current, ...getProblemFieldErrors(problem) }));
+    setFormError(getProblemMessage(problem, fallback));
+  };
+
   const closeModal = () => {
     if (!isSaving) {
       onClose();
+    }
+  };
+
+  const invalidateTaskQueries = async (taskId?: string) => {
+    await queryClient.invalidateQueries({
+      queryKey: getGetAllSqlTasksQueryKey({ Limit: 100 }),
+    });
+
+    if (taskId) {
+      await queryClient.invalidateQueries({
+        queryKey: getGetTeacherTaskDetailsQueryKey(taskId),
+      });
     }
   };
 
@@ -317,47 +436,61 @@ export function SqlTaskFormModal({
 
     setFormError('');
 
-    const publicationStatus = (
-      isEditMode
-        ? Number(values.publicationStatus)
-        : PublicationStatusValue.NUMBER_0
-    ) as PublicationStatus;
-
     try {
       if (isEditMode && task?.taskId) {
-        const response = await updateMutation.mutateAsync({
+        const publicationStatus = values.publicationStatus as PublicationStatus;
+        const taskResponse = await updateMutation.mutateAsync({
           id: task.taskId,
           data: {
             difficultyLevel: Number(values.difficultyLevel),
             publicationStatus,
-            sqlQueryId: values.sqlQueryId || null,
             taskName: values.taskName.trim(),
             taskText: values.taskText.trim(),
             topicId: values.topicId || null,
           },
         });
 
-        if (response.status === 204) {
-          await queryClient.invalidateQueries({
-            queryKey: getGetTeacherTaskDetailsQueryKey(task.taskId),
-          });
-          await queryClient.invalidateQueries({
-            queryKey: getGetAllSqlTasksQueryKey({ Limit: 100 }),
-          });
-          onSaved?.(task.taskId);
-          onClose();
+        if (taskResponse.status !== 204) {
+          applyProblem(taskResponse.data, 'Не удалось обновить задание.');
           return;
         }
 
-        setFormError(getProblemMessage(response.data, 'Не удалось обновить задание.'));
+        if (referenceChanged && canEditReferenceQuery) {
+          const referenceResponse = await updateReferenceMutation.mutateAsync({
+            id: task.taskId,
+            data: {
+              queryText: values.queryText.trim(),
+              strictColumnOrder: values.strictColumnOrder,
+              strictRowOrder: values.strictRowOrder,
+              targetDbId: values.targetDbId,
+            },
+          });
+
+          if (referenceResponse.status !== 200) {
+            await invalidateTaskQueries(task.taskId);
+            applyProblem(
+              referenceResponse.data,
+              'Данные задания сохранены, но эталонное решение обновить не удалось.',
+            );
+            return;
+          }
+        }
+
+        await invalidateTaskQueries(task.taskId);
+        onSaved?.(task.taskId);
+        onClose();
         return;
       }
 
       const response = await createMutation.mutateAsync({
         data: {
           difficultyLevel: Number(values.difficultyLevel),
-          publicationStatus,
-          sqlQueryId: values.sqlQueryId,
+          referenceQuery: {
+            queryText: values.queryText.trim(),
+            strictColumnOrder: values.strictColumnOrder,
+            strictRowOrder: values.strictRowOrder,
+            targetDbId: values.targetDbId,
+          },
           taskName: values.taskName.trim(),
           taskText: values.taskText.trim(),
           topicId: values.topicId,
@@ -365,15 +498,13 @@ export function SqlTaskFormModal({
       });
 
       if (response.status === 201) {
-        await queryClient.invalidateQueries({
-          queryKey: getGetAllSqlTasksQueryKey({ Limit: 100 }),
-        });
+        await invalidateTaskQueries(response.data.id);
         onSaved?.(response.data.id);
         onClose();
         return;
       }
 
-      setFormError(getProblemMessage(response.data, 'Не удалось создать задание.'));
+      applyProblem(response.data, 'Не удалось создать задание.');
     } catch {
       setFormError('Не удалось отправить запрос в SQL Module API.');
     }
@@ -394,12 +525,9 @@ export function SqlTaskFormModal({
             <Badge color="blue" radius="sm" variant="light">
               Режим: {isEditMode ? 'редактирование' : 'создание'}
             </Badge>
-            <Badge color="gray" radius="sm" variant="outline">
-              Одна форма для двух сценариев
-            </Badge>
           </Group>
           <Text c="dimmed" size="sm">
-            Заполните условие, выберите эталонный запрос и сохраните задание как черновик
+            Задание и его эталонное решение редактируются в одном рабочем окне
           </Text>
         </Stack>
       }
@@ -418,7 +546,7 @@ export function SqlTaskFormModal({
             placeholder="Например, Простой выбор всех полей"
             value={values.taskName}
             error={fieldErrors.taskName}
-            disabled={isSaving}
+            disabled={isSaving || !canEditTask}
             maxLength={300}
             onChange={(event) => setValue('taskName', event.currentTarget.value)}
           />
@@ -428,10 +556,10 @@ export function SqlTaskFormModal({
             data={topicOptions}
             value={values.topicId}
             error={fieldErrors.topicId}
-            disabled={isSaving || (isEditMode && !canUpdateLinks)}
+            disabled={isSaving || (isEditMode && !canUpdateTopic)}
             searchable
             nothingFoundMessage="Темы не найдены"
-            onChange={(value) => setValue('topicId', value)}
+            onChange={(value) => setValue('topicId', value ?? '')}
           />
         </SimpleGrid>
 
@@ -444,7 +572,7 @@ export function SqlTaskFormModal({
               fullWidth
               data={['1', '2', '3', '4', '5']}
               value={values.difficultyLevel}
-              disabled={isSaving}
+              disabled={isSaving || !canEditTask}
               onChange={(value) => setValue('difficultyLevel', value)}
             />
           </Stack>
@@ -466,8 +594,7 @@ export function SqlTaskFormModal({
             </Stack>
           ) : (
             <Alert color="blue" title="Новое задание создаётся как черновик" variant="light">
-              Опубликовать его можно будет после сохранения, через отдельную кнопку на странице
-              задания.
+              Опубликовать его можно после сохранения через отдельное действие.
             </Alert>
           )}
         </SimpleGrid>
@@ -478,78 +605,112 @@ export function SqlTaskFormModal({
           placeholder="Опишите задачу для студента..."
           value={values.taskText}
           error={fieldErrors.taskText}
-          disabled={isSaving}
+          disabled={isSaving || !canEditTask}
           minRows={4}
           autosize
           onChange={(event) => setValue('taskText', event.currentTarget.value)}
         />
 
-        <Stack gap="sm">
-          <Group justify="space-between" gap="sm" wrap="wrap">
-            <Text fw={500} size="sm">
-              Эталонный SQL-запрос
-            </Text>
-            <Anchor component="button" type="button" size="sm" c="blue" disabled>
-              Создать новый запрос
-            </Anchor>
-          </Group>
+        <Divider label="Эталонное решение" labelPosition="left" />
 
-          {isEditMode && !canUpdateLinks ? (
-            <Alert color="gray" variant="light">
-              Связи задания можно менять только у черновика без попыток. Для опубликованных,
-              архивных заданий и заданий с попытками тема и эталонный запрос доступны только для
-              просмотра.
-            </Alert>
+        {isEditMode && !canEditReferenceQuery ? (
+          <Alert color="gray" title="Эталон доступен только для просмотра" variant="light">
+            {task?.referenceQueryEditRestriction?.trim() ||
+              'Изменение эталонного решения запрещено текущим состоянием задания.'}
+          </Alert>
+        ) : null}
+
+        <Select
+          withAsterisk
+          label="Учебная база"
+          description="База, в которой выполняется эталонный SELECT"
+          data={targetDbOptions}
+          value={values.targetDbId}
+          error={fieldErrors.targetDbId}
+          disabled={isSaving || !canEditReferenceQuery}
+          searchable
+          nothingFoundMessage="Учебные базы не найдены"
+          onChange={(value) => setValue('targetDbId', value ?? '')}
+        />
+
+        <Group gap="xs" wrap="wrap">
+          <Badge color="gray" radius="sm" variant="light">
+            Учебная база: {databaseName}
+          </Badge>
+          <Badge color="gray" radius="sm" variant="light">
+            СУБД: {dbmsName}
+          </Badge>
+          {selectedTargetDb?.isReadOnly ? (
+            <Badge color="green" radius="sm" variant="light">
+              Только чтение
+            </Badge>
           ) : null}
+        </Group>
 
-          {!isEditMode || canUpdateLinks ? (
-            <Select
-              withAsterisk
-              data={sqlQueryOptions}
-              value={values.sqlQueryId}
-              error={fieldErrors.sqlQueryId}
-              disabled={isSaving}
-              searchable
-              placeholder="Выберите эталонный запрос"
-              nothingFoundMessage="SQL-запросы не найдены"
-              onChange={(value) => setValue('sqlQueryId', value)}
-            />
-          ) : null}
+        <SqlCodeEditor
+          ariaLabel="Эталонный SQL-запрос"
+          description="Используйте read-only SELECT. Shift+Alt+F — форматирование, Ctrl+F — поиск. Окончательная проверка выполняется SQL Module API."
+          label="Эталонный SQL-запрос"
+          required
+          value={values.queryText}
+          error={fieldErrors.queryText}
+          disabled={isSaving || !canEditReferenceQuery}
+          onChange={(value) => setValue('queryText', value)}
+        />
 
-          <SqlPreview sql={selectedSqlQuery?.queryText} />
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <Switch
+            checked={values.strictColumnOrder}
+            disabled={isSaving || !canEditReferenceQuery}
+            label="Строгий порядок колонок"
+            description="Колонки должны идти в том же порядке, что в эталоне"
+            onChange={(event) => setValue('strictColumnOrder', event.currentTarget.checked)}
+          />
+          <Switch
+            checked={values.strictRowOrder}
+            disabled={isSaving || !canEditReferenceQuery}
+            label="Строгий порядок строк"
+            description="Строки должны идти в том же порядке, что в эталоне"
+            onChange={(event) => setValue('strictRowOrder', event.currentTarget.checked)}
+          />
+        </SimpleGrid>
+
+        {canEditReferenceQuery ? (
           <SqlQueryValidationPreview
             disabled={isSaving}
-            queryText={selectedSqlQuery?.queryText}
-            targetDbId={selectedSqlQuery?.targetDbId}
+            queryText={values.queryText}
+            targetDbId={values.targetDbId}
+            onValidationChange={handleValidationChange}
           />
+        ) : null}
 
-          <Group gap="xs" wrap="wrap">
-            <Badge color="gray" radius="sm" variant="light">
-              Учебная база: {databaseName}
-            </Badge>
-            <Badge color="gray" radius="sm" variant="light">
-              СУБД: {dbmsName}
-            </Badge>
-            <Badge color={selectedSqlQuery?.strictColumnOrder ? 'green' : 'gray'} radius="sm" variant="light">
-              Порядок колонок: {selectedSqlQuery?.strictColumnOrder ? 'строгий' : 'свободный'}
-            </Badge>
-            <Badge color={selectedSqlQuery?.strictRowOrder ? 'green' : 'gray'} radius="sm" variant="light">
-              Порядок строк: {selectedSqlQuery?.strictRowOrder ? 'строгий' : 'свободный'}
-            </Badge>
-          </Group>
-        </Stack>
+        {canEditReferenceQuery && !isReferenceValidated ? (
+          <Alert color="yellow" variant="light">
+            Проверьте эталонный SQL после последнего изменения базы или текста запроса.
+          </Alert>
+        ) : null}
 
         <Divider />
 
         <Group justify="space-between" gap="md" wrap="wrap">
           <Text c="dimmed" size="sm">
-            Задание можно опубликовать после проверки эталонного запроса
+            Эталон принадлежит только этому заданию и не выбирается из общего списка
           </Text>
           <Group gap="sm">
             <Button variant="default" onClick={closeModal} disabled={isSaving}>
               Отмена
             </Button>
-            <Button onClick={() => void handleSubmit()} loading={isSaving}>
+            <Button
+              disabled={
+                (!isEditMode && !isReferenceValidated) ||
+                (isEditMode &&
+                  referenceChanged &&
+                  canEditReferenceQuery &&
+                  !isReferenceValidated)
+              }
+              onClick={() => void handleSubmit()}
+              loading={isSaving}
+            >
               {isEditMode ? 'Сохранить' : 'Создать черновик'}
             </Button>
           </Group>

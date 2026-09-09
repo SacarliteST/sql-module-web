@@ -1,6 +1,11 @@
 import { Badge, Button, Group, Text } from '@mantine/core';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useSessionStore } from '../../session';
+import {
+  clearActiveLaunchContext,
+  clearActiveTokens,
+  resetActiveTokenProvider,
+  useSessionStore,
+} from '../../session';
 import './AppLayout.css';
 
 function canSeeTeacher(roles: string[]): boolean {
@@ -34,8 +39,11 @@ export function AppLayout() {
   ];
   const isLoginPage = location.pathname === '/login';
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await clearActiveTokens();
+    clearActiveLaunchContext();
     clearSession();
+    resetActiveTokenProvider();
     navigate('/login');
   };
 
@@ -80,7 +88,12 @@ export function AppLayout() {
               ))}
           </nav>
           {status === 'authenticated' ? (
-            <Button color="gray" size="xs" variant="outline" onClick={handleLogout}>
+            <Button
+              color="gray"
+              size="xs"
+              variant="outline"
+              onClick={() => void handleLogout()}
+            >
               Выйти
             </Button>
           ) : !isLoginPage ? (

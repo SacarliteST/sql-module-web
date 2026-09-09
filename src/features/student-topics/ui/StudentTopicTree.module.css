@@ -1,0 +1,6 @@
+.tree { display: flex; flex-direction: column; gap: 4px; }
+.item { width: 100%; padding: 8px 10px; border-radius: var(--mantine-radius-sm); color: var(--mantine-color-gray-8); }
+.item:hover { background: var(--mantine-color-gray-1); }
+.active, .active:hover { background: var(--mantine-color-blue-0); color: var(--mantine-color-blue-8); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

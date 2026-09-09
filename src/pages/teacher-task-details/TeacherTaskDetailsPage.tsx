@@ -15,25 +15,30 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type {
   HttpValidationProblemDetails,
   ProblemDetails,
   TeacherTaskAttemptResponse,
 } from '../../api/sqlmodule/model';
-import { PublicationStatus } from '../../api/sqlmodule/model';
+import {
+  TeacherTaskAttemptResponseStatus,
+  TeacherTaskDetailsResponsePublicationStatus,
+} from '../../api/sqlmodule/model';
 import { useGetAllTargetDbs } from '../../api/sqlmodule/schema/schema';
 import {
   getGetAllSqlTasksQueryKey,
   getGetTeacherTaskDetailsQueryKey,
-  useGetAllSqlQueries,
+  useArchiveSqlTask,
+  useDeleteSqlTask,
   useGetAllTopics,
   useGetTeacherTaskDetails,
   usePublishSqlTask,
 } from '../../api/sqlmodule/training/training';
 import { SqlQueryValidationPreview, SqlTaskFormModal } from '../../features/sql-tasks';
 import { TeacherContourTabs } from '../../features/teacher-contour';
+import { formatAuditActor, formatAuditDateTime } from '../../shared/lib/teacher-audit';
 import {
   AppCard,
   ConfirmModal,
@@ -42,23 +47,6 @@ import {
   PageBreadcrumbs,
   PageHeader,
 } from '../../shared/ui';
-
-function formatDate(value?: string | null): string {
-  if (!value) {
-    return 'Не указано';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('ru-RU', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(date);
-}
 
 function getProblemMessage(
   problem: ProblemDetails | HttpValidationProblemDetails | null,
@@ -70,6 +58,14 @@ function getProblemMessage(
     if (validationMessages.length > 0) {
       return validationMessages.join(' ');
     }
+  }
+
+  const violationMessages = problem?.violations
+    ?.map((violation) => violation.message?.trim())
+    .filter((message): message is string => Boolean(message));
+
+  if (violationMessages?.length) {
+    return violationMessages.join(' ');
   }
 
   return problem?.detail?.trim() || problem?.title?.trim() || fallback;
@@ -88,12 +84,12 @@ function getAttemptStatusLabel(attempt: TeacherTaskAttemptResponse): string {
     return 'Ошибка';
   }
 
-  if (attempt.status === 0) {
-    return 'В очереди';
+  if (attempt.status === TeacherTaskAttemptResponseStatus.Error) {
+    return 'Ошибка';
   }
 
-  if (attempt.status === 1) {
-    return 'Выполняется';
+  if (attempt.status === TeacherTaskAttemptResponseStatus.TimedOut) {
+    return 'Таймаут';
   }
 
   return 'Проверено';
@@ -127,12 +123,12 @@ function shortId(value?: string | null): string {
   return value.length > 8 ? value.slice(0, 8) : value;
 }
 
-function getPublicationStatus(status?: number): { color: string; label: string } {
-  if (status === 1) {
+function getPublicationStatus(status?: string): { color: string; label: string } {
+  if (status === TeacherTaskDetailsResponsePublicationStatus.Published) {
     return { color: 'green', label: 'Опубликовано' };
   }
 
-  if (status === 2) {
+  if (status === TeacherTaskDetailsResponsePublicationStatus.Archived) {
     return { color: 'gray', label: 'В архиве' };
   }
 
@@ -160,14 +156,21 @@ function MetricCard({
 
 export function TeacherTaskDetailsPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { taskId = '', topicId = '' } = useParams<{
     taskId: string;
     topicId: string;
   }>();
   const [editTaskOpened, editTaskModal] = useDisclosure(false);
   const [publishOpened, publishModal] = useDisclosure(false);
+  const [deleteOpened, deleteModal] = useDisclosure(false);
+  const [archiveOpened, archiveModal] = useDisclosure(false);
   const [publishError, setPublishError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [archiveError, setArchiveError] = useState('');
   const publishMutation = usePublishSqlTask();
+  const deleteMutation = useDeleteSqlTask();
+  const archiveMutation = useArchiveSqlTask();
 
   const detailsQuery = useGetTeacherTaskDetails(taskId, {
     query: {
@@ -176,15 +179,6 @@ export function TeacherTaskDetailsPage() {
     },
   });
   const topicsQuery = useGetAllTopics(
-    { Limit: 100 },
-    {
-      query: {
-        enabled: Boolean(taskId),
-        retry: false,
-      },
-    },
-  );
-  const sqlQueriesQuery = useGetAllSqlQueries(
     { Limit: 100 },
     {
       query: {
@@ -217,8 +211,6 @@ export function TeacherTaskDetailsPage() {
     detailsResponse && detailsResponse.status !== 200 ? detailsResponse.data : null;
   const topicsResponse = topicsQuery.data;
   const topicsPage = topicsResponse?.status === 200 ? topicsResponse.data : null;
-  const sqlQueriesResponse = sqlQueriesQuery.data;
-  const sqlQueriesPage = sqlQueriesResponse?.status === 200 ? sqlQueriesResponse.data : null;
   const targetDbsResponse = targetDbsQuery.data;
   const targetDbsPage = targetDbsResponse?.status === 200 ? targetDbsResponse.data : null;
   const dbmsResponse = dbmsQuery.data;
@@ -227,7 +219,7 @@ export function TeacherTaskDetailsPage() {
   const targetDb = task?.targetDb;
   const attempts = task?.lastAttempts ?? [];
   const publication = getPublicationStatus(task?.publicationStatus);
-  const canPublish = task?.publicationStatus === PublicationStatus.NUMBER_0;
+  const canPublish = Boolean(task?.canPublish);
 
   const taskTitle = task?.taskName?.trim() || 'Детали задания';
   const topicTitle = task?.topicName?.trim() || 'Тема не указана';
@@ -270,6 +262,43 @@ export function TeacherTaskDetailsPage() {
     }
   };
 
+  const openDeleteModal = () => {
+    setDeleteError('');
+    deleteModal.open();
+  };
+
+  const handleDelete = async () => {
+    if (!task?.taskId) {
+      return;
+    }
+
+    try {
+      const response = await deleteMutation.mutateAsync({ id: task.taskId });
+
+      if (response.status !== 204) {
+        setDeleteError(getProblemMessage(response.data, 'Не удалось удалить задание.'));
+        return;
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: getGetAllSqlTasksQueryKey({ Limit: 100 }),
+      });
+      navigate(`/teacher/topics/${resolvedTopicId}`);
+    } catch {
+      setDeleteError('Не удалось отправить запрос на удаление в SQL Module API.');
+    }
+  };
+
+  const handleArchive = async () => {
+    if (!task?.taskId) return;
+    setArchiveError('');
+    const response = await archiveMutation.mutateAsync({ id: task.taskId });
+    if (response.status !== 200) { setArchiveError(getProblemMessage(response.data, 'Не удалось архивировать задание.')); return; }
+    archiveModal.close();
+    await detailsQuery.refetch();
+    await queryClient.invalidateQueries({ queryKey: getGetAllSqlTasksQueryKey({ Limit: 100 }) });
+  };
+
   return (
     <Page>
       <PageBreadcrumbs
@@ -288,7 +317,7 @@ export function TeacherTaskDetailsPage() {
           description={`Тема: ${topicTitle}`}
           actions={
             <>
-              <Button disabled={!task} variant="light" onClick={editTaskModal.open}>
+              <Button disabled={!task?.canEditTask} variant="light" onClick={editTaskModal.open}>
                 Изменить
               </Button>
               <Button
@@ -298,8 +327,14 @@ export function TeacherTaskDetailsPage() {
               >
                 Опубликовать
               </Button>
-              <Button disabled variant="light">
-                Настроить проверку
+              <Button disabled={!task?.canEditReferenceQuery} variant="light" onClick={editTaskModal.open}>
+                Эталон и проверка
+              </Button>
+              <Button disabled={!task?.canArchive} variant="outline" onClick={() => { setArchiveError(''); archiveModal.open(); }}>
+                Архивировать
+              </Button>
+              <Button color="red" disabled={!task?.canDelete} variant="outline" onClick={openDeleteModal}>
+                Удалить
               </Button>
               <Button
                 component={Link}
@@ -319,6 +354,8 @@ export function TeacherTaskDetailsPage() {
           {publishError}
         </Alert>
       ) : null}
+      {task?.lifecycleRestriction ? <Alert color="yellow" title="Ограничение действий">{task.lifecycleRestriction}</Alert> : null}
+      {task?.referenceQueryEditRestriction ? <Alert color="yellow" title="Эталон нельзя изменить">{task.referenceQueryEditRestriction}</Alert> : null}
 
       {detailsQuery.isPending ? (
         <AppCard p="md">
@@ -347,7 +384,7 @@ export function TeacherTaskDetailsPage() {
             <MetricCard label="Учебная база" value={databaseName} />
             <MetricCard label="СУБД" value={dbmsName} />
             <MetricCard label="Попыток" value={String(task.attemptsCount ?? attempts.length)} />
-            <MetricCard label="Последнее изменение" value={formatDate(task.updatedAt)} />
+            <MetricCard label="Последнее изменение" value={formatAuditDateTime(task.updatedAt)} />
           </SimpleGrid>
 
           <Grid gutter="xl" align="flex-start">
@@ -466,19 +503,19 @@ export function TeacherTaskDetailsPage() {
                         <Text c="dimmed" size="sm">
                           Создано
                         </Text>
-                        <Text size="sm">{formatDate(task.createdAt)}</Text>
+                        <Text size="sm">{formatAuditDateTime(task.createdAt)}</Text>
                       </Group>
                       <Group justify="space-between">
                         <Text c="dimmed" size="sm">
                           Обновлено
                         </Text>
-                        <Text size="sm">{formatDate(task.updatedAt)}</Text>
+                        <Text size="sm">{formatAuditDateTime(task.updatedAt)}</Text>
                       </Group>
                       <Group justify="space-between">
                         <Text c="dimmed" size="sm">
                           Автор
                         </Text>
-                        <Text size="sm">{shortId(task.createdById)}</Text>
+                        <Text size="sm">{formatAuditActor(task.createdByName, task.createdById)}</Text>
                       </Group>
                     </Stack>
                   </Stack>
@@ -515,7 +552,7 @@ export function TeacherTaskDetailsPage() {
                             </Badge>
                           </Table.Td>
                           <Table.Td>{formatDuration(attempt.durationMs)}</Table.Td>
-                          <Table.Td>{formatDate(attempt.finishedAt)}</Table.Td>
+                          <Table.Td>{formatAuditDateTime(attempt.finishedAt)}</Table.Td>
                         </Table.Tr>
                       ))}
                     </Table.Tbody>
@@ -545,13 +582,21 @@ export function TeacherTaskDetailsPage() {
         initialTopicId={resolvedTopicId}
         task={task}
         topics={topicsPage?.items ?? []}
-        sqlQueries={sqlQueriesPage?.items ?? []}
         targetDbs={targetDbsPage?.items ?? []}
         dbmsDictionaries={dbmsPage?.items ?? []}
         onSaved={() => {
           void detailsQuery.refetch();
         }}
       />
+      <ConfirmModal
+        opened={archiveOpened}
+        title="Архивировать задание"
+        message="Задание перестанет быть активным для новых прохождений. История попыток сохранится."
+        confirmLabel="Архивировать"
+        loading={archiveMutation.isPending}
+        onCancel={archiveModal.close}
+        onConfirm={() => void handleArchive()}
+      >{archiveError ? <Alert color="red">{archiveError}</Alert> : null}</ConfirmModal>
       <ConfirmModal
         opened={publishOpened}
         title="Опубликовать задание"
@@ -573,6 +618,22 @@ export function TeacherTaskDetailsPage() {
             </Alert>
           ) : null}
         </Stack>
+      </ConfirmModal>
+      <ConfirmModal
+        opened={deleteOpened}
+        title="Удалить задание"
+        message="Задание можно удалить только при отсутствии попыток. Это действие нельзя отменить."
+        confirmLabel="Удалить"
+        confirmColor="red"
+        loading={deleteMutation.isPending}
+        onCancel={deleteModal.close}
+        onConfirm={() => void handleDelete()}
+      >
+        {deleteError ? (
+          <Alert color="red" title="Удаление отклонено" variant="light">
+            {deleteError}
+          </Alert>
+        ) : null}
       </ConfirmModal>
     </Page>
   );

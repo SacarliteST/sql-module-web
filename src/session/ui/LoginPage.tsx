@@ -13,8 +13,11 @@ import {
   type IdentityApiProblemPresentation,
 } from '../../shared/lib/identity-problem-details';
 import {
+  clearActiveLaunchContext,
+  clearActiveTokens,
   createSessionUserFromTokenResponse,
   getDefaultSessionRoute,
+  resetActiveTokenProvider,
   useSessionStore,
 } from '../index';
 import './LoginPage.css';
@@ -117,6 +120,9 @@ export function LoginPage() {
       return;
     }
 
+    await clearActiveTokens();
+    clearActiveLaunchContext();
+    resetActiveTokenProvider();
     setSession({
       accessToken: response.data.accessToken,
       user,

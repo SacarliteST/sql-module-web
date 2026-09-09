@@ -1,0 +1,25 @@
+.tabs {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 4px;
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-white);
+}
+
+.item {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border-radius: 3px;
+  color: var(--mantine-color-gray-7);
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1;
+  text-decoration: none;
+}
+
+.item:hover { background: var(--mantine-color-gray-1); color: var(--mantine-color-dark-9); }
+.item:focus-visible { outline: 2px solid var(--mantine-primary-color-filled); outline-offset: 2px; }
+.active, .active:hover { background: var(--mantine-primary-color-filled); color: var(--mantine-color-white); }

@@ -83,9 +83,15 @@
 }
 
 .app-shell__main {
+  min-width: 0;
   width: 100%;
   margin: 0 auto;
   padding: 24px;
+}
+
+.app-shell__nav-link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 @media (width <= 720px) {
@@ -93,10 +99,16 @@
   .app-shell__nav-row {
     align-items: flex-start;
     flex-direction: column;
+    padding-right: 16px;
+    padding-left: 16px;
   }
 
   .app-shell__nav-row {
     gap: 12px;
+  }
+
+  .app-shell__nav {
+    width: 100%;
   }
 
   .app-shell__main {
@@ -105,5 +117,28 @@
 
   .app-shell__user-name {
     display: none;
+  }
+}
+
+@media (width <= 400px) {
+  .app-shell__main {
+    padding: 12px;
+  }
+
+  .app-shell__header-inner,
+  .app-shell__nav-row {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

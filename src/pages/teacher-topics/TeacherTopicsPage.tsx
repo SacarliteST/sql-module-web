@@ -13,6 +13,7 @@ import {
   Table,
   Text,
   TextInput,
+  Textarea,
   Title,
   UnstyledButton,
 } from '@mantine/core';
@@ -22,24 +23,21 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type {
-  DbmsDictionaryResponse,
   HttpValidationProblemDetails,
   ProblemDetails,
-  SqlQueryResponse,
   SqlTaskResponse,
-  TargetDbResponse,
   TopicResponse,
 } from '../../api/sqlmodule/model';
 import { useGetAllTargetDbs } from '../../api/sqlmodule/schema/schema';
 import {
   getGetAllTopicsQueryKey,
   useCreateTopic,
-  useGetAllSqlQueries,
   useGetAllSqlTasks,
   useGetAllTopics,
 } from '../../api/sqlmodule/training/training';
 import { SqlTaskFormModal } from '../../features/sql-tasks';
 import { TeacherContourTabs } from '../../features/teacher-contour';
+import { formatAuditDate as formatDate, formatAuditDateTime as formatDateTime } from '../../shared/lib/teacher-audit';
 import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
 type TopicTreeItem = {
@@ -48,6 +46,7 @@ type TopicTreeItem = {
   parentTopicId: string | null;
   createdAt?: string;
   updatedAt?: string;
+  description: string;
   children: TopicTreeItem[];
 };
 
@@ -78,6 +77,7 @@ function normalizeTopic(topic: TopicResponse): TopicTreeItem | null {
     parentTopicId: topic.parentTopicId ?? null,
     createdAt: topic.createdAt,
     updatedAt: topic.updatedAt,
+    description: topic.description?.trim() ?? '',
     children: [],
   };
 }
@@ -142,39 +142,6 @@ function countDescendants(topic: TopicTreeItem): number {
   );
 }
 
-function formatDateTime(value?: string | null): string {
-  if (!value) {
-    return 'Не указано';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('ru-RU', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(date);
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) {
-    return 'Не указано';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('ru-RU', {
-    dateStyle: 'short',
-  }).format(date);
-}
-
 function getProblemMessage(
   problem: ProblemDetails | HttpValidationProblemDetails | null,
   fallback = 'Не удалось загрузить темы из SQL Module API.',
@@ -186,39 +153,18 @@ function getProblemMessage(
   );
 }
 
-function buildEntityMap<T extends { id?: string }>(items: T[]): Map<string, T> {
-  return new Map(
-    items
-      .filter((item) => item.id)
-      .map((item) => [item.id as string, item]),
-  );
-}
-
-function getDbmsName(dbms?: DbmsDictionaryResponse): string {
-  return dbms?.dbmsName?.trim() || dbms?.dbmsSystemName?.trim() || 'СУБД не указана';
-}
-
-function normalizeTask(
-  task: SqlTaskResponse,
-  sqlQueryById: Map<string, SqlQueryResponse>,
-  targetDbById: Map<string, TargetDbResponse>,
-  dbmsById: Map<string, DbmsDictionaryResponse>,
-): TeacherTopicTaskView | null {
+function normalizeTask(task: SqlTaskResponse): TeacherTopicTaskView | null {
   if (!task.id) {
     return null;
   }
 
-  const sqlQuery = task.sqlQueryId ? sqlQueryById.get(task.sqlQueryId) : undefined;
-  const targetDb = sqlQuery?.targetDbId ? targetDbById.get(sqlQuery.targetDbId) : undefined;
-  const dbms = targetDb?.dbmsId ? dbmsById.get(targetDb.dbmsId) : undefined;
-
   return {
     id: task.id,
     title: task.taskName?.trim() || 'Без названия',
-    database: targetDb?.dbName?.trim() || 'База не указана',
-    dbms: getDbmsName(dbms),
+    database: task.targetDbName?.trim() || 'База не указана',
+    dbms: task.dbmsName?.trim() || 'СУБД не указана',
     difficulty: task.difficultyLevel ? `Сложность ${task.difficultyLevel}` : 'Не указана',
-    attempts: 'н/д',
+    attempts: String(task.attemptsCount ?? 0),
     updatedAt: formatDate(task.updatedAt ?? task.createdAt),
   };
 }
@@ -287,6 +233,7 @@ export function TeacherTopicsPage() {
   const [createTopicOpened, createTopicModal] = useDisclosure(false);
   const [createTaskOpened, createTaskModal] = useDisclosure(false);
   const [newTopicName, setNewTopicName] = useState('');
+  const [newTopicDescription, setNewTopicDescription] = useState('');
   const [newTopicParentId, setNewTopicParentId] = useState<string | null>(ROOT_PARENT_TOPIC_VALUE);
   const [createTopicError, setCreateTopicError] = useState('');
   const searchValue = normalizeSearch(search);
@@ -343,17 +290,7 @@ export function TeacherTopicsPage() {
     : null;
 
   const sqlTasksQuery = useGetAllSqlTasks(
-    { Limit: 100 },
-    {
-      query: {
-        enabled: Boolean(selectedTopic),
-        retry: false,
-      },
-    },
-  );
-
-  const sqlQueriesQuery = useGetAllSqlQueries(
-    { Limit: 100 },
+    { Limit: 100, TopicId: selectedTopic?.id },
     {
       query: {
         enabled: Boolean(selectedTopic),
@@ -387,11 +324,6 @@ export function TeacherTopicsPage() {
   const sqlTasksError =
     sqlTasksResponse && sqlTasksResponse.status !== 200 ? sqlTasksResponse.data : null;
 
-  const sqlQueriesResponse = sqlQueriesQuery.data;
-  const sqlQueriesPage = sqlQueriesResponse?.status === 200 ? sqlQueriesResponse.data : null;
-  const sqlQueriesError =
-    sqlQueriesResponse && sqlQueriesResponse.status !== 200 ? sqlQueriesResponse.data : null;
-
   const targetDbsResponse = targetDbsQuery.data;
   const targetDbsPage = targetDbsResponse?.status === 200 ? targetDbsResponse.data : null;
   const targetDbsError =
@@ -406,34 +338,24 @@ export function TeacherTopicsPage() {
       return [];
     }
 
-    const sqlQueryById = buildEntityMap(sqlQueriesPage?.items ?? []);
-    const targetDbById = buildEntityMap(targetDbsPage?.items ?? []);
-    const dbmsById = buildEntityMap(dbmsPage?.items ?? []);
-
     return (sqlTasksPage?.items ?? [])
-      .filter((task) => task.topicId === selectedTopic.id)
-      .map((task) => normalizeTask(task, sqlQueryById, targetDbById, dbmsById))
+      .map(normalizeTask)
       .filter((task): task is TeacherTopicTaskView => task !== null)
       .sort((left, right) => left.title.localeCompare(right.title, 'ru'));
   }, [
-    dbmsPage?.items,
     selectedTopic,
-    sqlQueriesPage?.items,
     sqlTasksPage?.items,
-    targetDbsPage?.items,
   ]);
 
   const tasksLoading =
     sqlTasksQuery.isPending ||
-    sqlQueriesQuery.isPending ||
     targetDbsQuery.isPending ||
     dbmsQuery.isPending;
   const tasksUnavailable =
     sqlTasksQuery.isError ||
-    sqlQueriesQuery.isError ||
     targetDbsQuery.isError ||
     dbmsQuery.isError;
-  const tasksApiError = sqlTasksError ?? sqlQueriesError ?? targetDbsError ?? dbmsError;
+  const tasksApiError = sqlTasksError ?? targetDbsError ?? dbmsError;
 
   const parentTopicOptions = useMemo(() => {
     return [
@@ -449,6 +371,7 @@ export function TeacherTopicsPage() {
 
   const resetCreateTopicForm = () => {
     setNewTopicName('');
+    setNewTopicDescription('');
     setNewTopicParentId(ROOT_PARENT_TOPIC_VALUE);
     setCreateTopicError('');
   };
@@ -485,6 +408,7 @@ export function TeacherTopicsPage() {
             newTopicParentId && newTopicParentId !== ROOT_PARENT_TOPIC_VALUE
               ? newTopicParentId
               : null,
+          description: newTopicDescription.trim() || null,
         },
       });
 
@@ -602,6 +526,7 @@ export function TeacherTopicsPage() {
                         ? `Родительская тема: ${selectedParentTopic.title}`
                         : 'Корневая тема'}
                     </Text>
+                    <Text c="dimmed" size="sm">{selectedTopic.description || 'Описание темы не заполнено.'}</Text>
                     <Group gap="xl">
                       <Stack gap={0}>
                         <Text c="dimmed" size="xs" tt="uppercase">
@@ -637,7 +562,7 @@ export function TeacherTopicsPage() {
                         Задания темы
                       </Title>
                       <Text c="dimmed" size="xs">
-                        Данные загружаются из SQL Module API. Попытки появятся после доработки агрегированного ответа.
+                        Серверная выборка по теме с агрегированными базой, СУБД и числом попыток.
                       </Text>
                     </Stack>
                     <Button onClick={createTaskModal.open} size="xs">
@@ -738,6 +663,15 @@ export function TeacherTopicsPage() {
             maxLength={300}
           />
 
+          <Textarea
+            label="Описание"
+            minRows={3}
+            value={newTopicDescription}
+            onChange={(event) => setNewTopicDescription(event.currentTarget.value)}
+            disabled={createTopicMutation.isPending}
+            maxLength={2000}
+          />
+
           <Select
             label="Родительская тема"
             data={parentTopicOptions}
@@ -769,7 +703,6 @@ export function TeacherTopicsPage() {
         onClose={createTaskModal.close}
         initialTopicId={selectedTopic?.id}
         topics={topicsPage?.items ?? []}
-        sqlQueries={sqlQueriesPage?.items ?? []}
         targetDbs={targetDbsPage?.items ?? []}
         dbmsDictionaries={dbmsPage?.items ?? []}
         onSaved={(taskId) => {

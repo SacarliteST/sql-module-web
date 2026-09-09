@@ -1,0 +1,1 @@
+export { SchemaTableNode } from './SchemaTableNode';

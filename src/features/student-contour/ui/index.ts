@@ -1,0 +1,1 @@
+export { StudentContourTabs } from './StudentContourTabs';

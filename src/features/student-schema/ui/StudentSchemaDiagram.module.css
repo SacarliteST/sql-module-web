@@ -1,0 +1,32 @@
+.shell {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: min(620px, calc(100vh - 220px));
+  min-height: 420px;
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-gray-0);
+}
+
+.flow { background: var(--mantine-color-gray-0); }
+
+.loading {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+  justify-content: center;
+  color: var(--mantine-color-dimmed);
+  background: color-mix(in srgb, var(--mantine-color-white) 80%, transparent);
+  pointer-events: none;
+}
+
+@media (max-width: 48em) {
+  .shell {
+    height: 480px;
+    min-height: 360px;
+  }
+}
