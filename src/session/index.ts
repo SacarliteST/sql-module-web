@@ -31,4 +31,4 @@ export {
 } from './providers';
 export { AccessDeniedPage, RequireAuth, RequireRole } from './guards';
 export { useSessionStore } from './store';
-export { LaunchPage, LoginPage, TeacherLaunchPage } from './ui';
+export { LaunchPage, LoginPage, TeacherLaunchPage, TeacherSessionExpiredPage } from './ui';

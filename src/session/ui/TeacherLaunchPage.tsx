@@ -28,7 +28,7 @@ export function TeacherLaunchPage() {
 
       if (!accessToken || !user || !user.roles.some((role) => role === 'Teacher' || role === 'Admin')) {
         await provider.clear?.();
-        clearSession();
+        if (useSessionStore.getState().mode === 'handoff') clearSession();
         resetActiveTokenProvider();
         setState('invalid-link');
         return;
@@ -62,6 +62,28 @@ export function TeacherLaunchPage() {
           Ссылка отсутствует, устарела или не даёт доступа к редактору заданий. Вернитесь на платформу и откройте модуль ещё раз.
         </Alert>
         <Button component="a" href="/" variant="light">На главную</Button>
+      </Stack>
+    </Center>
+  );
+}
+
+export function TeacherSessionExpiredPage() {
+  const navigate = useNavigate();
+  const setSessionIssue = useSessionStore((state) => state.setSessionIssue);
+
+  const goHome = () => {
+    setSessionIssue(null);
+    navigate('/', { replace: true });
+  };
+
+  return (
+    <Center mih={320}>
+      <Stack maw={520} gap="md">
+        <Title order={2}>Сессия истекла</Title>
+        <Alert color="orange">
+          Вернитесь на платформу и откройте редактор заданий ещё раз. Несохранённые изменения формы могут быть потеряны.
+        </Alert>
+        <Button variant="light" onClick={goHome}>На главную</Button>
       </Stack>
     </Center>
   );

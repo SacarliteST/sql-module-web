@@ -1,7 +1,14 @@
 import { Loader } from '@mantine/core';
 import { lazy, Suspense } from 'react';
 import { Outlet, Route, Routes } from 'react-router-dom';
-import { LaunchPage, LoginPage, RequireAuth, RequireRole, TeacherLaunchPage } from '../../session';
+import {
+  LaunchPage,
+  LoginPage,
+  RequireAuth,
+  RequireRole,
+  TeacherLaunchPage,
+  TeacherSessionExpiredPage,
+} from '../../session';
 import {
   AdminEventsPage,
   AdminHomePage,
@@ -49,6 +56,7 @@ export function AppRouter() {
         <Route path="login" element={<LoginPage />} />
         <Route path="launch" element={<LaunchPage />} />
         <Route path="teacher/launch" element={<TeacherLaunchPage />} />
+        <Route path="teacher/session-expired" element={<TeacherSessionExpiredPage />} />
         <Route
           path="admin"
           element={

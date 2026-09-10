@@ -1,3 +1,3 @@
 export { LoginPage } from './LoginPage';
 export { LaunchPage } from './LaunchPage';
-export { TeacherLaunchPage } from './TeacherLaunchPage';
+export { TeacherLaunchPage, TeacherSessionExpiredPage } from './TeacherLaunchPage';
