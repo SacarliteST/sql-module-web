@@ -13,6 +13,7 @@ export {
 export {
   ACTIVE_LAUNCH_CONTEXT_STORAGE_KEY,
   clearActiveLaunchContext,
+  consumeLaunchToken,
   getActiveLaunchContext,
   setActiveLaunchContext,
 } from './launch';
@@ -30,4 +31,4 @@ export {
 } from './providers';
 export { AccessDeniedPage, RequireAuth, RequireRole } from './guards';
 export { useSessionStore } from './store';
-export { LaunchPage, LoginPage } from './ui';
+export { LaunchPage, LoginPage, TeacherLaunchPage } from './ui';
