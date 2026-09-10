@@ -55,7 +55,7 @@
 | TAI-007 | UX ошибок и истечения токена | Frontend/UI | P1 | Done | TAI-002, TAI-006 | Для невалидной ссылки и истёкшей сессии показаны понятные действия без раскрытия токена и внутренних backend-ответов |
 | TAI-008 | Backend-аудит authoring authorization | Backend/SqlModule | P0 | Ready | Нет | Подтверждено, что все authoring endpoints используют `ContentAuthor` и не требуют `session_id` |
 | TAI-009 | Backend integration-сценарий teacher token | Backend/SqlModule | P1 | Backlog | TAI-008 | JWT `aud=sql-module-api`, `role=Teacher`, без `session_id` может читать темы и создать авторский ресурс; студент получает 403 |
-| TAI-010 | Регрессионная проверка standalone | Frontend + Backend | P0 | Backlog | TAI-003–TAI-007 | Обычный login и преподавательский авторинг без платформы продолжают работать; student launch не изменился |
+| TAI-010 | Регрессионная проверка standalone | Frontend + Backend | P0 | Done | TAI-003–TAI-007 | Обычный login и преподавательский авторинг без платформы работают; student-контур и обработка launch-ссылок не нарушены |
 | TAI-011 | Сквозной smoke перехода с платформы | E2E | P0 | Blocked | Внешние MOD-017 и MOD-018; TAI-001–TAI-010 | Кнопка платформы открывает модуль, преподаватель создаёт БД, тему, задание и эталон без повторного входа |
 | TAI-012 | Проверка production-маршрутизации и заголовков | Infrastructure | P1 | Blocked | Развёрнутая интеграционная среда | SPA fallback обслуживает `/teacher/launch`; CSP/Referrer-Policy и proxy не раскрывают токен |
 
@@ -229,5 +229,22 @@ SQL-модуль в целевом окружении.
   возможной потере несохранённой формы;
 - токен и технические детали backend не выводятся.
 
+
+### TAI-010 — регрессионная проверка standalone
+
+Выполнено 2026-09-10:
+
+- на реальных локальных IdentityService и SqlModule проверен standalone-вход
+  преподавателя и загрузка тем и учебных баз;
+- проверены standalone logout, вход студента и загрузка опубликованных заданий;
+- пустой student launch и повреждённый teacher launch показывают безопасную
+  ошибку и не удаляют активную standalone-сессию;
+- teacher launch удаляет переданный фрагмент из адресной строки;
+- ошибок и предупреждений в консоли браузера не обнаружено;
+- временно запущенные frontend, IdentityService и SqlModule остановлены;
+- typecheck и production build ранее пройдены на текущем коде.
+
+Valid teacher handoff от платформы и сценарий создания полного комплекта контента
+остаются частью `TAI-011`, поскольку требуют внешнего authoring-link.
 Проверки для `TAI-006…TAI-007`: `npm.cmd run typecheck` и production build
 успешны. В build остаётся известное предупреждение Vite о крупных чанках.
