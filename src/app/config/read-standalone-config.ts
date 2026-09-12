@@ -4,7 +4,7 @@ type StandaloneRuntimeConfig = Partial<
   Pick<AppConfig, 'sqlModuleApiUrl' | 'identityApiUrl' | 'basePath'>
 >;
 
-const runtimeConfigUrl = '/runtime-config.json';
+const runtimeConfigUrl = `${import.meta.env.BASE_URL}runtime-config.json`;
 
 function readEnvConfig(): AppConfig {
   return {

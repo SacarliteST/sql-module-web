@@ -53,8 +53,8 @@
 | TAI-005 | Изоляция от студенческого launch-контекста | Frontend/session | P0 | Done | TAI-002 | Преподавательский запуск не создаёт student-context; устаревший контекст предыдущего студенческого запуска не влияет на авторинг |
 | TAI-006 | Завершение handoff и восстановление standalone | Frontend/session | P1 | Done | TAI-002 | Logout/401 очищает handoff-токен и сразу восстанавливает ранее сохранённую standalone-сессию без перезагрузки |
 | TAI-007 | UX ошибок и истечения токена | Frontend/UI | P1 | Done | TAI-002, TAI-006 | Для невалидной ссылки и истёкшей сессии показаны понятные действия без раскрытия токена и внутренних backend-ответов |
-| TAI-008 | Backend-аудит authoring authorization | Backend/SqlModule | P0 | Ready | Нет | Подтверждено, что все authoring endpoints используют `ContentAuthor` и не требуют `session_id` |
-| TAI-009 | Backend integration-сценарий teacher token | Backend/SqlModule | P1 | Backlog | TAI-008 | JWT `aud=sql-module-api`, `role=Teacher`, без `session_id` может читать темы и создать авторский ресурс; студент получает 403 |
+| TAI-008 | Backend-аудит authoring authorization | Backend/SqlModule | P0 | Done | Нет | Все authoring endpoints явно используют `ContentAuthor`; закрыты 22 GET, ранее использовавшие только fallback-аутентификацию; `session_id` не требуется |
+| TAI-009 | Backend integration-сценарий teacher token | Backend/SqlModule | P1 | Done | TAI-008 | Настоящий JWT `aud=sql-module-api`, `role=Teacher`, без `session_id` читает темы и создаёт SQL-задание; Student получает 403 |
 | TAI-010 | Регрессионная проверка standalone | Frontend + Backend | P0 | Done | TAI-003–TAI-007 | Обычный login и преподавательский авторинг без платформы работают; student-контур и обработка launch-ссылок не нарушены |
 | TAI-011 | Сквозной smoke перехода с платформы | E2E | P0 | Blocked | Внешние MOD-017 и MOD-018; TAI-001–TAI-010 | Кнопка платформы открывает модуль, преподаватель создаёт БД, тему, задание и эталон без повторного входа |
 | TAI-012 | Проверка production-маршрутизации и заголовков | Infrastructure | P1 | Blocked | Развёрнутая интеграционная среда | SPA fallback обслуживает `/teacher/launch`; CSP/Referrer-Policy и proxy не раскрывают токен |
@@ -229,6 +229,29 @@ SQL-модуль в целевом окружении.
   возможной потере несохранённой формы;
 - токен и технические детали backend не выводятся.
 
+### TAI-008 — backend-аудит authoring authorization
+
+Выполнено 2026-09-10:
+
+- политика `ContentAuthor` подтверждена как `Teacher`/`Admin` без требования
+  `session_id` и `ModuleSession`;
+- 22 GET endpoint'а справочников СУБД, учебных баз, схемы, данных и эталонных
+  запросов переведены с общей fallback-аутентификации на явный `ContentAuthor`;
+- добавлен регрессионный аудит всех endpoint-файлов преподавательского контура.
+
+### TAI-009 — backend integration-сценарий teacher token
+
+Выполнено 2026-09-10:
+
+- integration-тест использует настоящую JwtBearer-проверку токена, а не тестовые
+  заголовки;
+- Teacher JWT с `aud=sql-module-api` и без `session_id` читает темы и атомарно
+  создаёт Draft SQL-задание с эталонным запросом;
+- автор задания берётся из `sub`; Student JWT получает `403` на authoring API;
+- backend-проверки: format и build успешны, unit 43/43, integration 346/346.
+
+Проверки для `TAI-006…TAI-007`: `npm.cmd run typecheck` и production build
+успешны. В build остаётся известное предупреждение Vite о крупных чанках.
 
 ### TAI-010 — регрессионная проверка standalone
 
@@ -246,5 +269,3 @@ SQL-модуль в целевом окружении.
 
 Valid teacher handoff от платформы и сценарий создания полного комплекта контента
 остаются частью `TAI-011`, поскольку требуют внешнего authoring-link.
-Проверки для `TAI-006…TAI-007`: `npm.cmd run typecheck` и production build
-успешны. В build остаётся известное предупреждение Vite о крупных чанках.
