@@ -4,7 +4,7 @@ import { clearActiveTokens, resetActiveTokenProvider } from '../../session/provi
 import { useSessionStore } from '../../session/store';
 
 async function handleUnauthorizedResponse() {
-  const { status, clearSession } = useSessionStore.getState();
+  const { status, mode, clearSession, setSessionIssue } = useSessionStore.getState();
 
   await clearActiveTokens();
   clearActiveLaunchContext();
@@ -12,6 +12,7 @@ async function handleUnauthorizedResponse() {
 
   if (status === 'authenticated') {
     clearSession();
+    if (mode === 'handoff') setSessionIssue('handoff-expired');
   }
 }
 

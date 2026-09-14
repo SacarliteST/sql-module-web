@@ -1,7 +1,14 @@
 import { Loader } from '@mantine/core';
 import { lazy, Suspense } from 'react';
 import { Outlet, Route, Routes } from 'react-router-dom';
-import { LaunchPage, LoginPage, RequireAuth, RequireRole } from '../../session';
+import {
+  LaunchPage,
+  LoginPage,
+  RequireAuth,
+  RequireRole,
+  TeacherLaunchPage,
+  TeacherSessionExpiredPage,
+} from '../../session';
 import {
   AdminEventsPage,
   AdminHomePage,
@@ -48,6 +55,8 @@ export function AppRouter() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="launch" element={<LaunchPage />} />
+        <Route path="teacher/launch" element={<TeacherLaunchPage />} />
+        <Route path="teacher/session-expired" element={<TeacherSessionExpiredPage />} />
         <Route
           path="admin"
           element={
@@ -102,7 +111,7 @@ export function AppRouter() {
           path="teacher"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Teacher']}>
+              <RequireRole allowedRoles={['Teacher', 'Admin']}>
                 <TeacherHomePage />
               </RequireRole>
             </RequireAuth>
@@ -112,7 +121,7 @@ export function AppRouter() {
           path="teacher/topics"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Teacher']}>
+              <RequireRole allowedRoles={['Teacher', 'Admin']}>
                 <TeacherTopicsPage />
               </RequireRole>
             </RequireAuth>
@@ -122,7 +131,7 @@ export function AppRouter() {
           path="teacher/topics/:topicId/tasks/:taskId"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Teacher']}>
+              <RequireRole allowedRoles={['Teacher', 'Admin']}>
                 <TeacherTaskDetailsPage />
               </RequireRole>
             </RequireAuth>
@@ -132,7 +141,7 @@ export function AppRouter() {
           path="teacher/topics/:topicId"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Teacher']}>
+              <RequireRole allowedRoles={['Teacher', 'Admin']}>
                 <TeacherTopicDetailsPage />
               </RequireRole>
             </RequireAuth>
@@ -142,18 +151,18 @@ export function AppRouter() {
           path="teacher/databases"
           element={
             <RequireAuth>
-              <RequireRole allowedRoles={['Teacher']}>
+              <RequireRole allowedRoles={['Teacher', 'Admin']}>
                 <TeacherDatabasesPage />
               </RequireRole>
             </RequireAuth>
           }
         />
-        <Route path="teacher/databases/new" element={<RequireAuth><RequireRole allowedRoles={['Teacher']}><TeacherDatabaseCreatePage /></RequireRole></RequireAuth>} />
-        <Route path="teacher/databases/:targetDbId" element={<RequireAuth><RequireRole allowedRoles={['Teacher']}><TeacherDatabaseDetailsPage /></RequireRole></RequireAuth>} />
-        <Route path="teacher/databases/:targetDbId/schema" element={<RequireAuth><RequireRole allowedRoles={['Teacher']}><TeacherDatabaseSchemaPage /></RequireRole></RequireAuth>} />
-        <Route path="teacher/databases/:targetDbId/data" element={<RequireAuth><RequireRole allowedRoles={['Teacher']}><TeacherDatabaseDataPage /></RequireRole></RequireAuth>} />
-        <Route path="teacher/attempts" element={<RequireAuth><RequireRole allowedRoles={['Teacher']}><TeacherAttemptsPage /></RequireRole></RequireAuth>} />
-        <Route path="teacher/dbms" element={<RequireAuth><RequireRole allowedRoles={['Teacher']}><TeacherDbmsPage /></RequireRole></RequireAuth>} />
+        <Route path="teacher/databases/new" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseCreatePage /></RequireRole></RequireAuth>} />
+        <Route path="teacher/databases/:targetDbId" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseDetailsPage /></RequireRole></RequireAuth>} />
+        <Route path="teacher/databases/:targetDbId/schema" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseSchemaPage /></RequireRole></RequireAuth>} />
+        <Route path="teacher/databases/:targetDbId/data" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseDataPage /></RequireRole></RequireAuth>} />
+        <Route path="teacher/attempts" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherAttemptsPage /></RequireRole></RequireAuth>} />
+        <Route path="teacher/dbms" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDbmsPage /></RequireRole></RequireAuth>} />
         <Route path="student" element={<StudentRouteLayout />}>
           <Route index element={<StudentHomePage />} />
           <Route path="tasks" element={<StudentTasksPage />} />

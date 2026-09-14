@@ -5,3 +5,4 @@ export {
   setActiveLaunchContext,
 } from './launch-context';
 export type { ActiveLaunchContext } from './launch-context';
+export { consumeLaunchToken } from './consume-launch-token';
