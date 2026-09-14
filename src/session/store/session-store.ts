@@ -15,8 +15,10 @@ type SessionState = {
   mode: 'standalone' | 'handoff' | null;
   standaloneAccessToken: string | null;
   standaloneUser: SessionUser | null;
+  sessionIssue: 'handoff-expired' | null;
   setSession(payload: SetSessionPayload): void;
   setTransientSession(payload: SetSessionPayload): void;
+  setSessionIssue(issue: SessionState['sessionIssue']): void;
   clearSession(): void;
 };
 
@@ -63,6 +65,7 @@ export const useSessionStore = create<SessionState>()(
       mode: null,
       standaloneAccessToken: null,
       standaloneUser: null,
+      sessionIssue: null,
       setSession: ({ accessToken, user }) =>
         set({
           accessToken,
@@ -71,6 +74,7 @@ export const useSessionStore = create<SessionState>()(
           mode: 'standalone',
           standaloneAccessToken: accessToken,
           standaloneUser: user,
+          sessionIssue: null,
         }),
       setTransientSession: ({ accessToken, user }) =>
         set({
@@ -78,16 +82,22 @@ export const useSessionStore = create<SessionState>()(
           user,
           status: 'authenticated',
           mode: 'handoff',
+          sessionIssue: null,
         }),
+      setSessionIssue: (sessionIssue) => set({ sessionIssue }),
       clearSession: () =>
-        set((state) => ({
-          accessToken: null,
-          user: null,
-          status: 'anonymous',
-          mode: null,
-          standaloneAccessToken: state.mode === 'standalone' ? null : state.standaloneAccessToken,
-          standaloneUser: state.mode === 'standalone' ? null : state.standaloneUser,
-        })),
+        set((state) => {
+          const restoreStandalone = state.mode === 'handoff' && state.standaloneAccessToken && state.standaloneUser;
+
+          return {
+            accessToken: restoreStandalone ? state.standaloneAccessToken : null,
+            user: restoreStandalone ? state.standaloneUser : null,
+            status: restoreStandalone ? 'authenticated' : 'anonymous',
+            mode: restoreStandalone ? 'standalone' : null,
+            standaloneAccessToken: state.mode === 'standalone' ? null : state.standaloneAccessToken,
+            standaloneUser: state.mode === 'standalone' ? null : state.standaloneUser,
+          };
+        }),
     }),
     {
       name: 'sql-module-session',

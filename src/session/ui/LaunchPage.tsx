@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getCurrentModuleSession } from '../../api/sqlmodule/module-integration/module-integration';
 import {
   clearActiveLaunchContext,
+  consumeLaunchToken,
   setActiveLaunchContext,
 } from '../launch';
 import { decodeSessionUser } from '../lib';
@@ -15,14 +16,6 @@ import {
 import { useSessionStore } from '../store';
 
 type LaunchState = 'loading' | 'invalid-link' | 'unavailable';
-
-function consumeLaunchToken(): string | null {
-  const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  const accessToken = fragment.get('access_token');
-
-  window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
-  return accessToken;
-}
 
 export function LaunchPage() {
   const navigate = useNavigate();

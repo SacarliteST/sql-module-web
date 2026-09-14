@@ -3,13 +3,14 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   clearActiveLaunchContext,
   clearActiveTokens,
+  getDefaultSessionRoute,
   resetActiveTokenProvider,
   useSessionStore,
 } from '../../session';
 import './AppLayout.css';
 
 function canSeeTeacher(roles: string[]): boolean {
-  return roles.includes('Teacher');
+  return roles.includes('Teacher') || roles.includes('Admin');
 }
 
 function canSeeStudent(roles: string[]): boolean {
@@ -44,7 +45,8 @@ export function AppLayout() {
     clearActiveLaunchContext();
     clearSession();
     resetActiveTokenProvider();
-    navigate('/login');
+    const restoredUser = useSessionStore.getState().user;
+    navigate(restoredUser ? getDefaultSessionRoute(restoredUser) : '/login');
   };
 
   return (

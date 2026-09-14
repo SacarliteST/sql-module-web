@@ -5,6 +5,11 @@ import { useSessionStore } from '../store';
 export function RequireAuth({ children }: PropsWithChildren) {
   const location = useLocation();
   const status = useSessionStore((state) => state.status);
+  const sessionIssue = useSessionStore((state) => state.sessionIssue);
+
+  if (sessionIssue === 'handoff-expired' && location.pathname.startsWith('/teacher')) {
+    return <Navigate to="/teacher/session-expired" replace />;
+  }
 
   if (status !== 'authenticated') {
     return <Navigate to="/login" replace state={{ from: location }} />;
