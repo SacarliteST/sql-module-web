@@ -51,6 +51,11 @@ export default function MonacoSqlEditor({ ariaLabel, disabled, readOnly, value, 
         ariaLabel,
         accessibilitySupport: 'auto',
         automaticLayout: true,
+        // Monaco 0.56 включает EditContext-based ввод по умолчанию — он всё ещё
+        // помечен в типах как "experimental" и на практике теряет отдельные
+        // нажатия (в т.ч. пробел) в некоторых браузерах/раскладках. Классический
+        // textarea-ввод годами стабилен, поэтому отключаем EditContext явно.
+        editContext: false,
         fontSize: 14,
         minimap: { enabled: false },
         padding: { top: 12, bottom: 12 },
