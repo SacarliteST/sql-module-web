@@ -9,24 +9,32 @@ import type { StudentAttemptListItemResponseReason } from './studentAttemptListI
 import type { StudentAttemptListItemResponseStatus } from './studentAttemptListItemResponseStatus';
 
 export interface StudentAttemptListItemResponse {
-  id?: string;
-  taskId?: string;
-  taskName?: string;
-  topicId?: string;
-  topicName?: string;
-  submittedSql?: string;
-  status?: StudentAttemptListItemResponseStatus;
-  isCorrect?: boolean;
-  reason?: StudentAttemptListItemResponseReason;
+  id: string;
+  taskId: string;
+  taskName: string;
+  topicId: string;
+  topicName: string;
+  submittedSql: string;
+  status: StudentAttemptListItemResponseStatus;
+  isCorrect: boolean;
+  reason: StudentAttemptListItemResponseReason;
   /**
      * Количество строк, прочитанных для сравнения в рамках внутреннего comparison-лимита. Это не общее количество строк полного неограниченного результата; returnedRowCount содержит число строк публичного snapshot, а resultRowLimit — его отдельный лимит.
      * @nullable
      */
-  rowCount?: number | null;
+  rowCount: number | null;
   /** @nullable */
-  durationMs?: number | null;
+  durationMs: number | null;
   /** @nullable */
-  publicError?: string | null;
-  startedAt?: string;
-  finishedAt?: string;
+  publicError: string | null;
+  startedAt: string;
+  finishedAt: string;
+  /** @nullable */
+  attemptNumber: number | null;
+  /** @nullable */
+  score: number | null;
+  /** @nullable */
+  progressId: string | null;
+  /** @nullable */
+  validationVersionId: string | null;
 }

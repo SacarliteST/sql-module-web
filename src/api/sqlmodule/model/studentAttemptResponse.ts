@@ -5,43 +5,46 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { AttemptScoringResponse } from './attemptScoringResponse';
 import type { StudentAttemptResponseReason } from './studentAttemptResponseReason';
 import type { StudentAttemptResponseResultSnapshotState } from './studentAttemptResponseResultSnapshotState';
 import type { StudentAttemptResponseStatus } from './studentAttemptResponseStatus';
 
 export interface StudentAttemptResponse {
-  id?: string;
-  taskId?: string;
-  taskName?: string;
-  topicId?: string;
-  topicName?: string;
-  submittedSql?: string;
-  status?: StudentAttemptResponseStatus;
-  isCorrect?: boolean;
-  reason?: StudentAttemptResponseReason;
+  id: string;
+  taskId: string;
+  taskName: string;
+  topicId: string;
+  topicName: string;
+  submittedSql: string;
+  status: StudentAttemptResponseStatus;
+  isCorrect: boolean;
+  reason: StudentAttemptResponseReason;
   /**
      * Количество строк, прочитанных для сравнения в рамках внутреннего comparison-лимита. Это не общее количество строк полного неограниченного результата; returnedRowCount содержит число строк публичного snapshot, а resultRowLimit — его отдельный лимит.
      * @nullable
      */
-  rowCount?: number | null;
+  rowCount: number | null;
   /** @nullable */
-  durationMs?: number | null;
+  durationMs: number | null;
   /** @nullable */
-  publicError?: string | null;
-  startedAt?: string;
-  finishedAt?: string;
+  publicError: string | null;
+  startedAt: string;
+  finishedAt: string;
   resultSnapshotState: StudentAttemptResponseResultSnapshotState;
   /** @nullable */
-  actualColumns?: string[] | null;
+  actualColumns: string[] | null;
   /** @nullable */
-  actualRows?: ((string | null)[])[] | null;
+  actualRows: ((string | null)[])[] | null;
   /** @nullable */
-  returnedRowCount?: number | null;
-  isResultTruncated?: boolean;
+  returnedRowCount: number | null;
+  isResultTruncated: boolean;
   /** @nullable */
-  resultRowLimit?: number | null;
+  resultRowLimit: number | null;
   /** @nullable */
-  resultSnapshotCreatedAt?: string | null;
+  resultSnapshotCreatedAt: string | null;
   /** @nullable */
-  resultSnapshotExpiresAt?: string | null;
+  resultSnapshotExpiresAt: string | null;
+  /** Составная оценка попытки и актуальное состояние progress. */
+  scoring: AttemptScoringResponse | null;
 }

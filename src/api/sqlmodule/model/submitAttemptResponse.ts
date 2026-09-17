@@ -5,6 +5,8 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { AttemptCheckResultResponse } from './attemptCheckResultResponse';
+import type { AttemptHintResponse } from './attemptHintResponse';
 import type { SubmitAttemptResponseReason } from './submitAttemptResponseReason';
 import type { SubmitAttemptResponseResultSnapshotState } from './submitAttemptResponseResultSnapshotState';
 import type { SubmitAttemptResponseStatus } from './submitAttemptResponseStatus';
@@ -13,31 +15,57 @@ import type { SubmitAttemptResponseStatus } from './submitAttemptResponseStatus'
  * Результат проверки попытки выполнения задания.
  */
 export interface SubmitAttemptResponse {
-  attemptId?: string;
-  status?: SubmitAttemptResponseStatus;
-  isCorrect?: boolean;
-  reason?: SubmitAttemptResponseReason;
+  attemptId: string;
+  status: SubmitAttemptResponseStatus;
+  isCorrect: boolean;
+  reason: SubmitAttemptResponseReason;
   /**
      * Количество строк, прочитанных для сравнения в рамках внутреннего comparison-лимита. Это не общее количество строк полного неограниченного результата; returnedRowCount содержит число строк публичного snapshot, а resultRowLimit — его отдельный лимит.
      * @nullable
      */
-  rowCount?: number | null;
+  rowCount: number | null;
   /** @nullable */
-  durationMs?: number | null;
+  durationMs: number | null;
   /** @nullable */
-  publicError?: string | null;
+  publicError: string | null;
   /** @nullable */
-  actualColumns?: string[] | null;
+  actualColumns: string[] | null;
   /** @nullable */
-  actualRows?: ((string | null)[])[] | null;
-  isResultTruncated?: boolean;
+  actualRows: ((string | null)[])[] | null;
+  isResultTruncated: boolean;
   resultSnapshotState: SubmitAttemptResponseResultSnapshotState;
   /** @nullable */
-  returnedRowCount?: number | null;
+  returnedRowCount: number | null;
   /** @nullable */
-  resultRowLimit?: number | null;
+  resultRowLimit: number | null;
   /** @nullable */
-  resultSnapshotCreatedAt?: string | null;
+  resultSnapshotCreatedAt: string | null;
   /** @nullable */
-  resultSnapshotExpiresAt?: string | null;
+  resultSnapshotExpiresAt: string | null;
+  /** @nullable */
+  progressId: string | null;
+  /** @nullable */
+  validationVersionId: string | null;
+  /** @nullable */
+  attemptNumber: number | null;
+  /** @nullable */
+  score: number | null;
+  /** @nullable */
+  bestScore: number | null;
+  /** @nullable */
+  passingScore: number | null;
+  /** @nullable */
+  isPassed: boolean | null;
+  /** @nullable */
+  attemptsUsed: number | null;
+  /** @nullable */
+  attemptsRemaining: number | null;
+  /** @nullable */
+  canSubmit: boolean | null;
+  /** @nullable */
+  canFinalize: boolean | null;
+  /** @nullable */
+  checks: AttemptCheckResultResponse[] | null;
+  /** @nullable */
+  hints: AttemptHintResponse[] | null;
 }

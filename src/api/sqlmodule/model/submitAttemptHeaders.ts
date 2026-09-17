@@ -8,9 +8,9 @@
 
 export type SubmitAttemptHeaders = {
 /**
- * Уникальный UUID операции в формате xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. Действует 24 часа в пределах текущего студента.
+ * Уникальный UUID операции в формате xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
  * @minLength 36
- * @maxLength 128
+ * @maxLength 36
  */
 'Idempotency-Key': string;
 };

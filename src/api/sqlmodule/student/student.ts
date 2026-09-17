@@ -6,29 +6,38 @@
  * OpenAPI spec version: v1
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
+  FinalizeStudentTaskProgressHeaders,
   GetStudentAttemptsParams,
   GetStudentTasksParams,
   GetStudentTopicsParams,
   HttpValidationProblemDetails,
   ProblemDetails,
+  ProgressFinalizationResponse,
+  RestartStudentTaskProgressHeaders,
+  StartStudentTaskProgressHeaders,
   StudentAttemptListItemResponsePageResponse,
   StudentAttemptResponse,
   StudentTaskDetailsResponse,
+  StudentTaskProgressResponse,
   StudentTaskResponsePageResponse,
   StudentTaskSchemaResponse,
   StudentTopicResponsePageResponse
@@ -837,3 +846,322 @@ export function useGetStudentAttemptById<TData = Awaited<ReturnType<typeof getSt
 
 
 
+export type finalizeStudentTaskProgressResponse200 = {
+  data: ProgressFinalizationResponse
+  status: 200
+}
+
+export type finalizeStudentTaskProgressResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type finalizeStudentTaskProgressResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type finalizeStudentTaskProgressResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type finalizeStudentTaskProgressResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type finalizeStudentTaskProgressResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type finalizeStudentTaskProgressResponseSuccess = (finalizeStudentTaskProgressResponse200) & {
+  headers: Headers;
+};
+export type finalizeStudentTaskProgressResponseError = (finalizeStudentTaskProgressResponse401 | finalizeStudentTaskProgressResponse403 | finalizeStudentTaskProgressResponse404 | finalizeStudentTaskProgressResponse409 | finalizeStudentTaskProgressResponse422) & {
+  headers: Headers;
+};
+
+export type finalizeStudentTaskProgressResponse = (finalizeStudentTaskProgressResponseSuccess | finalizeStudentTaskProgressResponseError)
+
+export const getFinalizeStudentTaskProgressUrl = (taskId: string,) => {
+
+
+
+
+  return `/api/v1/student/tasks/${taskId}/progress/finalize`
+}
+
+/**
+ * Фиксирует фактический BestScore. Передать итоговый балл с клиента нельзя.
+ * @summary Завершить standalone-прохождение
+ */
+export const finalizeStudentTaskProgress = async (taskId: string,
+    headers: FinalizeStudentTaskProgressHeaders, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<finalizeStudentTaskProgressResponse> => {
+
+  return sqlmoduleFetch<finalizeStudentTaskProgressResponse>(getFinalizeStudentTaskProgressUrl(taskId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { ...headers, ...options?.headers }
+
+  }
+);}
+
+
+
+
+
+export const getFinalizeStudentTaskProgressMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeStudentTaskProgress>>, TError,{taskId: string;headers: FinalizeStudentTaskProgressHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof finalizeStudentTaskProgress>>, TError,{taskId: string;headers: FinalizeStudentTaskProgressHeaders}, TContext> => {
+
+const mutationKey = ['finalizeStudentTaskProgress'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finalizeStudentTaskProgress>>, {taskId: string;headers: FinalizeStudentTaskProgressHeaders}> = (props) => {
+          const {taskId,headers} = props ?? {};
+
+          return  finalizeStudentTaskProgress(taskId,headers,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FinalizeStudentTaskProgressMutationResult = NonNullable<Awaited<ReturnType<typeof finalizeStudentTaskProgress>>>
+
+    export type FinalizeStudentTaskProgressMutationError = ProblemDetails | HttpValidationProblemDetails
+
+    /**
+ * @summary Завершить standalone-прохождение
+ */
+export const useFinalizeStudentTaskProgress = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeStudentTaskProgress>>, TError,{taskId: string;headers: FinalizeStudentTaskProgressHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof finalizeStudentTaskProgress>>,
+        TError,
+        {taskId: string;headers: FinalizeStudentTaskProgressHeaders},
+        TContext
+      > => {
+      return useMutation(getFinalizeStudentTaskProgressMutationOptions(options), queryClient);
+    }
+    export type startStudentTaskProgressResponse200 = {
+  data: StudentTaskProgressResponse
+  status: 200
+}
+
+export type startStudentTaskProgressResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type startStudentTaskProgressResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type startStudentTaskProgressResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type startStudentTaskProgressResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type startStudentTaskProgressResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type startStudentTaskProgressResponseSuccess = (startStudentTaskProgressResponse200) & {
+  headers: Headers;
+};
+export type startStudentTaskProgressResponseError = (startStudentTaskProgressResponse401 | startStudentTaskProgressResponse403 | startStudentTaskProgressResponse404 | startStudentTaskProgressResponse409 | startStudentTaskProgressResponse422) & {
+  headers: Headers;
+};
+
+export type startStudentTaskProgressResponse = (startStudentTaskProgressResponseSuccess | startStudentTaskProgressResponseError)
+
+export const getStartStudentTaskProgressUrl = (taskId: string,) => {
+
+
+
+
+  return `/api/v1/student/tasks/${taskId}/progress`
+}
+
+export const startStudentTaskProgress = async (taskId: string,
+    headers: StartStudentTaskProgressHeaders, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<startStudentTaskProgressResponse> => {
+
+  return sqlmoduleFetch<startStudentTaskProgressResponse>(getStartStudentTaskProgressUrl(taskId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { ...headers, ...options?.headers }
+
+  }
+);}
+
+
+
+
+
+export const getStartStudentTaskProgressMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startStudentTaskProgress>>, TError,{taskId: string;headers: StartStudentTaskProgressHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startStudentTaskProgress>>, TError,{taskId: string;headers: StartStudentTaskProgressHeaders}, TContext> => {
+
+const mutationKey = ['startStudentTaskProgress'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startStudentTaskProgress>>, {taskId: string;headers: StartStudentTaskProgressHeaders}> = (props) => {
+          const {taskId,headers} = props ?? {};
+
+          return  startStudentTaskProgress(taskId,headers,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartStudentTaskProgressMutationResult = NonNullable<Awaited<ReturnType<typeof startStudentTaskProgress>>>
+
+    export type StartStudentTaskProgressMutationError = ProblemDetails | HttpValidationProblemDetails
+
+    export const useStartStudentTaskProgress = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startStudentTaskProgress>>, TError,{taskId: string;headers: StartStudentTaskProgressHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startStudentTaskProgress>>,
+        TError,
+        {taskId: string;headers: StartStudentTaskProgressHeaders},
+        TContext
+      > => {
+      return useMutation(getStartStudentTaskProgressMutationOptions(options), queryClient);
+    }
+    export type restartStudentTaskProgressResponse200 = {
+  data: StudentTaskProgressResponse
+  status: 200
+}
+
+export type restartStudentTaskProgressResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type restartStudentTaskProgressResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type restartStudentTaskProgressResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type restartStudentTaskProgressResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type restartStudentTaskProgressResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type restartStudentTaskProgressResponseSuccess = (restartStudentTaskProgressResponse200) & {
+  headers: Headers;
+};
+export type restartStudentTaskProgressResponseError = (restartStudentTaskProgressResponse401 | restartStudentTaskProgressResponse403 | restartStudentTaskProgressResponse404 | restartStudentTaskProgressResponse409 | restartStudentTaskProgressResponse422) & {
+  headers: Headers;
+};
+
+export type restartStudentTaskProgressResponse = (restartStudentTaskProgressResponseSuccess | restartStudentTaskProgressResponseError)
+
+export const getRestartStudentTaskProgressUrl = (taskId: string,) => {
+
+
+
+
+  return `/api/v1/student/tasks/${taskId}/progress/restart`
+}
+
+export const restartStudentTaskProgress = async (taskId: string,
+    headers: RestartStudentTaskProgressHeaders, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<restartStudentTaskProgressResponse> => {
+
+  return sqlmoduleFetch<restartStudentTaskProgressResponse>(getRestartStudentTaskProgressUrl(taskId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { ...headers, ...options?.headers }
+
+  }
+);}
+
+
+
+
+
+export const getRestartStudentTaskProgressMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restartStudentTaskProgress>>, TError,{taskId: string;headers: RestartStudentTaskProgressHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof restartStudentTaskProgress>>, TError,{taskId: string;headers: RestartStudentTaskProgressHeaders}, TContext> => {
+
+const mutationKey = ['restartStudentTaskProgress'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof restartStudentTaskProgress>>, {taskId: string;headers: RestartStudentTaskProgressHeaders}> = (props) => {
+          const {taskId,headers} = props ?? {};
+
+          return  restartStudentTaskProgress(taskId,headers,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RestartStudentTaskProgressMutationResult = NonNullable<Awaited<ReturnType<typeof restartStudentTaskProgress>>>
+
+    export type RestartStudentTaskProgressMutationError = ProblemDetails | HttpValidationProblemDetails
+
+    export const useRestartStudentTaskProgress = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restartStudentTaskProgress>>, TError,{taskId: string;headers: RestartStudentTaskProgressHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof restartStudentTaskProgress>>,
+        TError,
+        {taskId: string;headers: RestartStudentTaskProgressHeaders},
+        TContext
+      > => {
+      return useMutation(getRestartStudentTaskProgressMutationOptions(options), queryClient);
+    }

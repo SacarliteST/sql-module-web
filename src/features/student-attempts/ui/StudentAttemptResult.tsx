@@ -1,7 +1,8 @@
-import { Alert, Badge, Group, Stack } from '@mantine/core';
+import { Alert, Badge, Group, Stack, Text } from '@mantine/core';
 import type { SubmitAttemptResponse } from '../../../api/sqlmodule/model';
 import { SubmitAttemptResponseReason, SubmitAttemptResponseStatus } from '../../../api/sqlmodule/model';
 import { formatStudentAttemptStatus } from '../../../shared/lib/student-display';
+import { getHintGroupLabel, getValidationCheckKindLabel, getValidationCheckStatusLabel } from '../../../entities/sql-task';
 import { StudentAttemptSnapshot } from './StudentAttemptSnapshot';
 
 type Verdict = { color: 'green' | 'red' | 'yellow'; description: string; title: string };
@@ -40,22 +41,33 @@ function verdictFor(result: SubmitAttemptResponse): Verdict {
 function statusColor(result: SubmitAttemptResponse) {
   if (result.status === SubmitAttemptResponseStatus.TimedOut) return 'yellow';
   if (result.status === SubmitAttemptResponseStatus.Error) return 'red';
+  if (result.score !== null) return result.isPassed ? 'green' : 'blue';
   return result.isCorrect ? 'green' : 'blue';
 }
 
 export function StudentAttemptResult({ result }: { result: SubmitAttemptResponse }) {
   const verdict = verdictFor(result);
+  const hasScoring = result.score !== null && result.bestScore !== null && result.passingScore !== null;
 
   return <Stack gap="md">
-    <Alert aria-live="polite" color={verdict.color} role="status" title={verdict.title}>{verdict.description}</Alert>
+    <Alert aria-live="polite" color={hasScoring ? result.isPassed ? 'green' : 'yellow' : verdict.color} role="status" title={hasScoring ? result.isPassed ? 'Проходной балл достигнут' : 'Попытка оценена' : verdict.title}>{hasScoring ? `Эта попытка: ${result.score} из 100. Лучший результат: ${result.bestScore} из 100. Проходной балл: ${result.passingScore}.` : verdict.description}</Alert>
     <Group gap="xs">
-      {typeof result.isCorrect === 'boolean'
+      {hasScoring ? <Badge color={result.isPassed ? 'green' : 'yellow'} variant="light">{result.isPassed ? 'Задание пройдено' : 'Порог не достигнут'}</Badge> : typeof result.isCorrect === 'boolean'
         ? <Badge color={result.isCorrect ? 'green' : 'red'} variant="light">{result.isCorrect ? 'Верно' : 'Неверно'}</Badge>
         : <Badge color="gray" variant="light">Корректность не определена</Badge>}
       <Badge color={statusColor(result)} variant="light">Статус: {formatStudentAttemptStatus(result.status)}</Badge>
+      {hasScoring && result.attemptNumber !== null ? <Badge variant="outline">Попытка №{result.attemptNumber}</Badge> : null}
       {result.rowCount !== null && result.rowCount !== undefined ? <Badge color="gray" variant="outline">Обработано строк: {result.rowCount}</Badge> : null}
       {result.durationMs !== null && result.durationMs !== undefined ? <Badge color="gray" variant="outline">{result.durationMs} мс</Badge> : null}
     </Group>
+
+    {hasScoring ? <Stack gap="xs">
+      <Text size="sm">Использовано попыток: {result.attemptsUsed ?? '—'} · Осталось: {result.attemptsRemaining ?? 'без лимита'}</Text>
+      {result.checks?.length ? <Stack gap={4}><Text fw={600} size="sm">Показанные критерии</Text>{result.checks.map((check, index) => <Group key={`${check.kind}-${index}`} gap="xs"><Badge color={check.status === 'Passed' ? 'green' : check.status === 'Failed' ? 'red' : 'gray'} variant="light">{getValidationCheckStatusLabel(check.status)}</Badge><Text size="sm">{getValidationCheckKindLabel(check.kind)}: {check.awardedScore} из {check.weight} баллов{check.message ? ` — ${check.message}` : ''}</Text></Group>)}</Stack> : <Text c="dimmed" size="sm">Детализация критериев скрыта преподавателем.</Text>}
+      {result.hints?.length ? <Stack gap={4}><Text fw={600} size="sm">Подсказки</Text>{result.hints.map((hint, index) => <Text key={`${hint.group}-${index}`} size="sm">{getHintGroupLabel(hint.group)}: {hint.message}</Text>)}</Stack> : null}
+      {result.publicError ? <Alert color="red">{result.publicError}</Alert> : null}
+      {result.canSubmit === false ? <Text c="dimmed" size="sm">Новые отправки в этом прохождении недоступны.</Text> : null}
+    </Stack> : null}
 
     <StudentAttemptSnapshot
       actualColumns={result.actualColumns}

@@ -30,6 +30,7 @@ import type {
   CreatePhysicalTypeRequest,
   DbmsDictionaryResponse,
   DbmsDictionaryResponsePageResponse,
+  DbmsValidationCapabilitiesResponse,
   GetAllDbmsDictionariesParams,
   GetAllParameterDefinitionsParams,
   GetAllPhysicalTypesParams,
@@ -65,6 +66,139 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export type getDbmsValidationCapabilitiesResponse200 = {
+  data: DbmsValidationCapabilitiesResponse
+  status: 200
+}
+
+export type getDbmsValidationCapabilitiesResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getDbmsValidationCapabilitiesResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getDbmsValidationCapabilitiesResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getDbmsValidationCapabilitiesResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type getDbmsValidationCapabilitiesResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type getDbmsValidationCapabilitiesResponseSuccess = (getDbmsValidationCapabilitiesResponse200) & {
+  headers: Headers;
+};
+export type getDbmsValidationCapabilitiesResponseError = (getDbmsValidationCapabilitiesResponse401 | getDbmsValidationCapabilitiesResponse403 | getDbmsValidationCapabilitiesResponse404 | getDbmsValidationCapabilitiesResponse422 | getDbmsValidationCapabilitiesResponse500) & {
+  headers: Headers;
+};
+
+export type getDbmsValidationCapabilitiesResponse = (getDbmsValidationCapabilitiesResponseSuccess | getDbmsValidationCapabilitiesResponseError)
+
+export const getGetDbmsValidationCapabilitiesUrl = (dbmsId: string,) => {
+
+
+
+
+  return `/api/v1/dbms/${dbmsId}/validation-capabilities`
+}
+
+export const getDbmsValidationCapabilities = async (dbmsId: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getDbmsValidationCapabilitiesResponse> => {
+
+  return sqlmoduleFetch<getDbmsValidationCapabilitiesResponse>(getGetDbmsValidationCapabilitiesUrl(dbmsId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDbmsValidationCapabilitiesQueryKey = (dbmsId: string,) => {
+    return [
+    `/api/v1/dbms/${dbmsId}/validation-capabilities`
+    ] as const;
+    }
+
+
+export const getGetDbmsValidationCapabilitiesQueryOptions = <TData = Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError = ProblemDetails | HttpValidationProblemDetails>(dbmsId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDbmsValidationCapabilitiesQueryKey(dbmsId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDbmsValidationCapabilities>>> = ({ signal }) => getDbmsValidationCapabilities(dbmsId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: dbmsId !== null && dbmsId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDbmsValidationCapabilitiesQueryResult = NonNullable<Awaited<ReturnType<typeof getDbmsValidationCapabilities>>>
+export type GetDbmsValidationCapabilitiesQueryError = ProblemDetails | HttpValidationProblemDetails
+
+
+export function useGetDbmsValidationCapabilities<TData = Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ dbmsId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDbmsValidationCapabilities>>,
+          TError,
+          Awaited<ReturnType<typeof getDbmsValidationCapabilities>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDbmsValidationCapabilities<TData = Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ dbmsId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDbmsValidationCapabilities>>,
+          TError,
+          Awaited<ReturnType<typeof getDbmsValidationCapabilities>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDbmsValidationCapabilities<TData = Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ dbmsId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDbmsValidationCapabilities<TData = Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ dbmsId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDbmsValidationCapabilities>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDbmsValidationCapabilitiesQueryOptions(dbmsId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
 
 export type createPhysicalTypeResponse201 = {
   data: PhysicalTypeResponse

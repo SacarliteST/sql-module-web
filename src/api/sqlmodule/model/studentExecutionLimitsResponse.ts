@@ -7,7 +7,7 @@
  */
 
 export interface StudentExecutionLimitsResponse {
-  timeoutSeconds?: number;
-  maxRows?: number;
-  maxSqlLength?: number;
+  timeoutSeconds: number;
+  maxRows: number;
+  maxSqlLength: number;
 }

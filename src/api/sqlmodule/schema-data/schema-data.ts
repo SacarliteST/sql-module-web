@@ -28,8 +28,10 @@ import type {
   BatchTableRowsRequest,
   BatchTableRowsResponse,
   BatchTargetDbTableRowsHeaders,
+  GetTargetDbTableLookupValuesParams,
   GetTargetDbTableRowsParams,
   HttpValidationProblemDetails,
+  LookupValuesResponse,
   ProblemDetails,
   TableRowsResponse
 } from '../model';
@@ -228,10 +230,20 @@ export type batchTargetDbTableRowsResponse422 = {
   status: 422
 }
 
+export type batchTargetDbTableRowsResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type batchTargetDbTableRowsResponse503 = {
+  data: ProblemDetails
+  status: 503
+}
+
 export type batchTargetDbTableRowsResponseSuccess = (batchTargetDbTableRowsResponse200) & {
   headers: Headers;
 };
-export type batchTargetDbTableRowsResponseError = (batchTargetDbTableRowsResponse404 | batchTargetDbTableRowsResponse409 | batchTargetDbTableRowsResponse412 | batchTargetDbTableRowsResponse422) & {
+export type batchTargetDbTableRowsResponseError = (batchTargetDbTableRowsResponse404 | batchTargetDbTableRowsResponse409 | batchTargetDbTableRowsResponse412 | batchTargetDbTableRowsResponse422 | batchTargetDbTableRowsResponse500 | batchTargetDbTableRowsResponse503) & {
   headers: Headers;
 };
 
@@ -311,3 +323,160 @@ export const useBatchTargetDbTableRows = <TError = ProblemDetails | HttpValidati
       > => {
       return useMutation(getBatchTargetDbTableRowsMutationOptions(options), queryClient);
     }
+    export type getTargetDbTableLookupValuesResponse200 = {
+  data: LookupValuesResponse
+  status: 200
+}
+
+export type getTargetDbTableLookupValuesResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getTargetDbTableLookupValuesResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getTargetDbTableLookupValuesResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getTargetDbTableLookupValuesResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type getTargetDbTableLookupValuesResponseSuccess = (getTargetDbTableLookupValuesResponse200) & {
+  headers: Headers;
+};
+export type getTargetDbTableLookupValuesResponseError = (getTargetDbTableLookupValuesResponse401 | getTargetDbTableLookupValuesResponse403 | getTargetDbTableLookupValuesResponse404 | getTargetDbTableLookupValuesResponse422) & {
+  headers: Headers;
+};
+
+export type getTargetDbTableLookupValuesResponse = (getTargetDbTableLookupValuesResponseSuccess | getTargetDbTableLookupValuesResponseError)
+
+export const getGetTargetDbTableLookupValuesUrl = (targetDbId: string,
+    tableId: string,
+    params: GetTargetDbTableLookupValuesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/target-dbs/${targetDbId}/tables/${tableId}/lookup-values?${stringifiedParams}` : `/api/v1/target-dbs/${targetDbId}/tables/${tableId}/lookup-values`
+}
+
+/**
+ * @summary Получить страницу значений связанной таблицы
+ */
+export const getTargetDbTableLookupValues = async (targetDbId: string,
+    tableId: string,
+    params: GetTargetDbTableLookupValuesParams, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getTargetDbTableLookupValuesResponse> => {
+
+  return sqlmoduleFetch<getTargetDbTableLookupValuesResponse>(getGetTargetDbTableLookupValuesUrl(targetDbId,tableId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTargetDbTableLookupValuesQueryKey = (targetDbId: string,
+    tableId: string,
+    params?: GetTargetDbTableLookupValuesParams,) => {
+    return [
+    `/api/v1/target-dbs/${targetDbId}/tables/${tableId}/lookup-values`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTargetDbTableLookupValuesQueryOptions = <TData = Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError = ProblemDetails | HttpValidationProblemDetails>(targetDbId: string,
+    tableId: string,
+    params: GetTargetDbTableLookupValuesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTargetDbTableLookupValuesQueryKey(targetDbId,tableId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTargetDbTableLookupValues>>> = ({ signal }) => getTargetDbTableLookupValues(targetDbId,tableId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: targetDbId !== null && targetDbId !== undefined && tableId !== null && tableId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTargetDbTableLookupValuesQueryResult = NonNullable<Awaited<ReturnType<typeof getTargetDbTableLookupValues>>>
+export type GetTargetDbTableLookupValuesQueryError = ProblemDetails | HttpValidationProblemDetails
+
+
+export function useGetTargetDbTableLookupValues<TData = Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ targetDbId: string,
+    tableId: string,
+    params: GetTargetDbTableLookupValuesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTargetDbTableLookupValues>>,
+          TError,
+          Awaited<ReturnType<typeof getTargetDbTableLookupValues>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTargetDbTableLookupValues<TData = Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ targetDbId: string,
+    tableId: string,
+    params: GetTargetDbTableLookupValuesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTargetDbTableLookupValues>>,
+          TError,
+          Awaited<ReturnType<typeof getTargetDbTableLookupValues>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTargetDbTableLookupValues<TData = Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ targetDbId: string,
+    tableId: string,
+    params: GetTargetDbTableLookupValuesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить страницу значений связанной таблицы
+ */
+
+export function useGetTargetDbTableLookupValues<TData = Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ targetDbId: string,
+    tableId: string,
+    params: GetTargetDbTableLookupValuesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetDbTableLookupValues>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTargetDbTableLookupValuesQueryOptions(targetDbId,tableId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
