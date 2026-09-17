@@ -6,14 +6,17 @@
  * OpenAPI spec version: v1
  */
 import type { StudentExecutionLimitsResponse } from './studentExecutionLimitsResponse';
+import type { StudentTaskValidationResponse } from './studentTaskValidationResponse';
 
 export interface StudentTaskDetailsResponse {
-  id?: string;
-  topicId?: string;
-  topicName?: string;
-  taskName?: string;
-  taskText?: string;
-  difficultyLevel?: number;
-  dbmsName?: string;
-  executionLimits?: StudentExecutionLimitsResponse;
+  id: string;
+  topicId: string;
+  topicName: string;
+  taskName: string;
+  taskText: string;
+  difficultyLevel: number;
+  dbmsName: string;
+  executionLimits: StudentExecutionLimitsResponse;
+  /** Безопасная validation-часть student task details. */
+  validation: StudentTaskValidationResponse | null;
 }

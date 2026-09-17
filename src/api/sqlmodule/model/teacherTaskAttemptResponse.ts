@@ -19,4 +19,8 @@ export interface TeacherTaskAttemptResponse {
   /** @nullable */
   durationMs?: number | null;
   finishedAt?: string;
+  /** @nullable */
+  attemptNumber?: number | null;
+  /** @nullable */
+  score?: number | null;
 }
