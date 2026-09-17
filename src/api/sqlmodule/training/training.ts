@@ -2524,15 +2524,30 @@ export type getAllAttemptsResponse200 = {
   status: 200
 }
 
+export type getAllAttemptsResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getAllAttemptsResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
 export type getAllAttemptsResponse422 = {
   data: HttpValidationProblemDetails
   status: 422
 }
 
+export type getAllAttemptsResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
 export type getAllAttemptsResponseSuccess = (getAllAttemptsResponse200) & {
   headers: Headers;
 };
-export type getAllAttemptsResponseError = (getAllAttemptsResponse422) & {
+export type getAllAttemptsResponseError = (getAllAttemptsResponse401 | getAllAttemptsResponse403 | getAllAttemptsResponse422 | getAllAttemptsResponse500) & {
   headers: Headers;
 };
 
@@ -2554,7 +2569,7 @@ export const getGetAllAttemptsUrl = (params?: GetAllAttemptsParams,) => {
 }
 
 /**
- * Возвращает 200 OK со страницей попыток, отсортированных по убыванию даты начала. offset — количество пропускаемых записей (>= 0, по умолчанию 0). limit — размер страницы (1–100, по умолчанию 20). taskId — необязательный фильтр по заданию. userId — необязательный фильтр по студенту. 400 — невалидные параметры пагинации.
+ * Возвращает 200 OK со страницей попыток, отсортированных по убыванию даты начала. offset — количество пропускаемых записей (>= 0, по умолчанию 0). limit — размер страницы (1–100, по умолчанию 20). taskId — необязательный фильтр по заданию. userId — необязательный фильтр по студенту. progressId и validationVersionId — фильтры Phase 2b. scoreFrom/scoreTo — включительный диапазон баллов 0–100. finalizationReason — причина финализации прохождения. 422 — некорректные параметры фильтрации или пагинации.
  * @summary Список попыток с пагинацией
  */
 export const getAllAttempts = async (params?: GetAllAttemptsParams, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getAllAttemptsResponse> => {
@@ -2579,7 +2594,7 @@ export const getGetAllAttemptsQueryKey = (params?: GetAllAttemptsParams,) => {
     }
 
 
-export const getGetAllAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+export const getGetAllAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = ProblemDetails | HttpValidationProblemDetails>(params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -2598,10 +2613,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAllAttemptsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllAttempts>>>
-export type GetAllAttemptsQueryError = HttpValidationProblemDetails
+export type GetAllAttemptsQueryError = ProblemDetails | HttpValidationProblemDetails
 
 
-export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(
+export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = ProblemDetails | HttpValidationProblemDetails>(
  params: undefined |  GetAllAttemptsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllAttempts>>,
@@ -2611,7 +2626,7 @@ export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttemp
       >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(
+export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = ProblemDetails | HttpValidationProblemDetails>(
  params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllAttempts>>,
@@ -2621,7 +2636,7 @@ export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttemp
       >, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(
+export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = ProblemDetails | HttpValidationProblemDetails>(
  params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2629,7 +2644,7 @@ export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttemp
  * @summary Список попыток с пагинацией
  */
 
-export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = HttpValidationProblemDetails>(
+export function useGetAllAttempts<TData = Awaited<ReturnType<typeof getAllAttempts>>, TError = ProblemDetails | HttpValidationProblemDetails>(
  params?: GetAllAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllAttempts>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2686,10 +2701,15 @@ export type submitAttemptResponse500 = {
   status: 500
 }
 
+export type submitAttemptResponse503 = {
+  data: ProblemDetails
+  status: 503
+}
+
 export type submitAttemptResponseSuccess = (submitAttemptResponse201) & {
   headers: Headers;
 };
-export type submitAttemptResponseError = (submitAttemptResponse400 | submitAttemptResponse401 | submitAttemptResponse403 | submitAttemptResponse404 | submitAttemptResponse409 | submitAttemptResponse422 | submitAttemptResponse500) & {
+export type submitAttemptResponseError = (submitAttemptResponse400 | submitAttemptResponse401 | submitAttemptResponse403 | submitAttemptResponse404 | submitAttemptResponse409 | submitAttemptResponse422 | submitAttemptResponse500 | submitAttemptResponse503) & {
   headers: Headers;
 };
 

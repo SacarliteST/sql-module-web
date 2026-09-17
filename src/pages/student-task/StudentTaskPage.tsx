@@ -10,13 +10,9 @@ import { StudentContourTabs } from '../../features/student-contour';
 import { useStudentSqlDraft } from '../../features/student-drafts';
 import { mapStudentApiError, StudentErrorAlert, type StudentErrorView } from '../../features/student-errors';
 import { StudentTaskSchema } from '../../features/student-schema';
-import {
-  clearActiveLaunchContext,
-  clearActiveTokens,
-  getActiveLaunchContext,
-  resetActiveTokenProvider,
-  useSessionStore,
-} from '../../session';
+import { StudentTaskValidation } from '../../features/student-tasks/ui/StudentTaskValidation';
+import { StudentTaskFinalization } from '../../features/student-tasks/ui/StudentTaskFinalization';
+import { useSessionStore } from '../../session';
 import { formatStudentDifficulty } from '../../shared/lib/student-display';
 import { AppCard, ConfirmModal, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
@@ -64,7 +60,8 @@ export function StudentTaskPage() {
   const catalogUrl = `/student/tasks${catalogSearch ? `?${catalogSearch}` : ''}`;
   const transferState = parseSqlTransfer(location.state, taskId);
   const studentId = useSessionStore((state) => state.user?.id);
-  const clearSession = useSessionStore((state) => state.clearSession);
+  const sessionMode = useSessionStore((state) => state.mode);
+  const isPlatformSession = sessionMode === 'handoff';
   const draft = useStudentSqlDraft({ studentId, taskId });
   const consumedLocationKey = useRef<string | null>(null);
   const [pendingTransfer, setPendingTransfer] = useState<SqlTransfer | null>(null);
@@ -116,19 +113,9 @@ export function StudentTaskPage() {
     transferConfirm.close();
   };
 
-  const handleAttemptResult = async (result: SubmitAttemptResponse) => {
+  const handleAttemptResult = (result: SubmitAttemptResponse) => {
     setLastAttempt(result);
-
-    if (!result.isCorrect) return;
-
-    const launchContext = getActiveLaunchContext();
-    if (!launchContext) return;
-
-    clearActiveLaunchContext();
-    await clearActiveTokens();
-    clearSession();
-    resetActiveTokenProvider();
-    window.location.assign(launchContext.returnUrl);
+    void query.refetch();
   };
 
   if (query.isPending) return <StudentTaskLoading />;
@@ -137,6 +124,7 @@ export function StudentTaskPage() {
 
   const task = response.data;
   const limits = task.executionLimits;
+  const validation = task.validation;
 
   return <Page><Stack gap="lg">
     <PageBreadcrumbs items={[
@@ -178,6 +166,8 @@ export function StudentTaskPage() {
         {!limits ? <Text c="dimmed" size="sm">Дополнительные серверные лимиты не указаны.</Text> : null}
       </Stack></AppCard></Grid.Col>
     </Grid>
+    <StudentTaskValidation taskId={taskId} validation={validation} isPlatformSession={isPlatformSession} onStarted={() => void query.refetch()} />
+    {validation?.progress ? <AppCard><StudentTaskFinalization key={validation.progress.id} taskId={taskId} progress={validation.progress} passingScore={validation.passingScore} isPlatformSession={isPlatformSession} onFinalized={() => void query.refetch()} /></AppCard> : null}
     <StudentTaskSchema taskId={taskId} />
     <Grid>
       <Grid.Col span={{ base: 12, md: 7 }}><AppCard h="100%"><Stack gap="md">
@@ -195,9 +185,12 @@ export function StudentTaskPage() {
         </Text>
         <Divider />
         <SubmitStudentAttempt
+          disabled={Boolean(validation && !validation.progress?.canSubmit)}
           maxSqlLength={limits?.maxSqlLength}
           onSubmissionStart={() => setLastAttempt(null)}
-          onResult={(result) => void handleAttemptResult(result)}
+          onResult={handleAttemptResult}
+          onStateChanged={() => void query.refetch()}
+          progressId={validation?.progress?.id}
           sql={draft.value}
           taskId={taskId}
         />

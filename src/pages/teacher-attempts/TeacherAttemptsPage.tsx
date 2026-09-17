@@ -16,15 +16,18 @@ import {
 import { useDebouncedValue } from '@mantine/hooks';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ExecutionStatus } from '../../api/sqlmodule/model';
+import { ExecutionStatus, GetAllAttemptsFinalizationReason } from '../../api/sqlmodule/model';
 import type { AttemptListItemResponse } from '../../api/sqlmodule/model';
 import {
   useGetAllAttempts,
+  useGetAttemptById,
   useGetAttemptStudentFilterOptions,
   useGetAttemptTaskFilterOptions,
   useGetAttemptTopicFilterOptions,
 } from '../../api/sqlmodule/training/training';
 import { TeacherContourTabs } from '../../features/teacher-contour';
+import { AttemptScoringDetails } from '../../entities/attempt/ui/AttemptScoringDetails';
+import { getFinalizationReasonLabel } from '../../entities/sql-task';
 import { formatAuditDateTime } from '../../shared/lib/teacher-audit';
 import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
@@ -74,6 +77,13 @@ export function TeacherAttemptsPage() {
   const isCorrect = correctParam === 'true' ? true : correctParam === 'false' ? false : undefined;
   const dateFrom = searchParams.get('dateFrom') ?? '';
   const dateTo = searchParams.get('dateTo') ?? '';
+  const progressId = searchParams.get('progressId') ?? '';
+  const versionId = searchParams.get('versionId') ?? '';
+  const scoreFrom = searchParams.get('scoreFrom') ?? '';
+  const scoreTo = searchParams.get('scoreTo') ?? '';
+  const reason = Object.values(GetAllAttemptsFinalizationReason).find((value) => value === searchParams.get('reason'));
+  const selectedQuery = useGetAttemptById(selected?.id ?? '', { query: { enabled: Boolean(selected?.id) } });
+  const selectedDetail = selectedQuery.data?.status === 200 ? selectedQuery.data.data : null;
 
   const setFilters = (updates: Record<string, string | null>) => {
     setSearchParams((current) => {
@@ -97,6 +107,11 @@ export function TeacherAttemptsPage() {
     IsCorrect: isCorrect,
     DateFrom: dateFrom ? new Date(`${dateFrom}T00:00:00`).toISOString() : undefined,
     DateTo: dateTo ? new Date(`${dateTo}T23:59:59.999`).toISOString() : undefined,
+    ProgressId: progressId || undefined,
+    ValidationVersionId: versionId || undefined,
+    ScoreFrom: scoreFrom === '' ? undefined : Number(scoreFrom),
+    ScoreTo: scoreTo === '' ? undefined : Number(scoreTo),
+    FinalizationReason: reason,
   });
 
   const studentOptionsQuery = useGetAttemptStudentFilterOptions({
@@ -190,7 +205,7 @@ export function TeacherAttemptsPage() {
   const pageCount = Math.max(1, Math.ceil((data?.count ?? 0) / PAGE_SIZE));
   const filterOptionsFailed = [studentOptionsQuery, selectedStudentQuery, topicOptionsQuery, selectedTopicQuery, taskOptionsQuery, selectedTaskQuery]
     .some((item) => item.isError || (item.data && item.data.status !== 200));
-  const hasFilters = Boolean(taskId || userId || topicId || status || correctParam || dateFrom || dateTo);
+  const hasFilters = Boolean(taskId || userId || topicId || status || correctParam || dateFrom || dateTo || progressId || versionId || scoreFrom || scoreTo || reason);
 
   return (
     <Page>
@@ -207,11 +222,15 @@ export function TeacherAttemptsPage() {
               <Select clearable searchable label="Тема" placeholder="Название темы" nothingFoundMessage="Темы не найдены" data={topicOptions} value={topicId || null} onSearchChange={setTopicSearch} onChange={(value) => setFilters({ topicId: value, taskId: null })} />
               <Select clearable searchable label="Задание" placeholder="Название задания" nothingFoundMessage="Задания не найдены" data={taskOptions} value={taskId || null} onSearchChange={setTaskSearch} onChange={(value) => setFilters({ taskId: value })} />
               <Select clearable label="Статус" placeholder="Любой" value={status ?? null} data={[{ value: ExecutionStatus.Succeeded, label: 'Завершена' }, { value: ExecutionStatus.Error, label: 'Ошибка' }, { value: ExecutionStatus.TimedOut, label: 'Таймаут' }]} onChange={(value) => setFilters({ status: value })} />
-              <Select clearable label="Результат" placeholder="Любой" value={correctParam === 'true' || correctParam === 'false' ? correctParam : null} data={[{ value: 'true', label: 'Верно' }, { value: 'false', label: 'Неверно' }]} onChange={(value) => setFilters({ correct: value })} />
+              <Select clearable label="Совпадение результата" placeholder="Любое" value={correctParam === 'true' || correctParam === 'false' ? correctParam : null} data={[{ value: 'true', label: 'Да' }, { value: 'false', label: 'Нет' }]} onChange={(value) => setFilters({ correct: value })} />
               <Group align="flex-end" grow>
                 <TextInput type="date" label="С даты" value={dateFrom} onChange={(event) => setFilters({ dateFrom: event.currentTarget.value || null })} />
                 <TextInput type="date" label="По дату" value={dateTo} onChange={(event) => setFilters({ dateTo: event.currentTarget.value || null })} />
               </Group>
+              <TextInput label="ID прохождения" value={progressId} onChange={(event) => setFilters({ progressId: event.currentTarget.value || null })} />
+              <TextInput label="ID версии проверки" value={versionId} onChange={(event) => setFilters({ versionId: event.currentTarget.value || null })} />
+              <Group grow align="flex-end"><TextInput label="Балл от" type="number" min={0} max={100} value={scoreFrom} onChange={(event) => setFilters({ scoreFrom: event.currentTarget.value || null })} /><TextInput label="Балл до" type="number" min={0} max={100} value={scoreTo} onChange={(event) => setFilters({ scoreTo: event.currentTarget.value || null })} /></Group>
+              <Select clearable label="Причина завершения" value={reason ?? null} data={Object.values(GetAllAttemptsFinalizationReason).map((value) => ({ value, label: getFinalizationReasonLabel(value) }))} onChange={(value) => setFilters({ reason: value })} />
             </SimpleGrid>
             <Group justify="flex-end"><Button disabled={!hasFilters} variant="default" onClick={() => setSearchParams({})}>Сбросить все фильтры</Button></Group>
           </Stack>
@@ -223,12 +242,12 @@ export function TeacherAttemptsPage() {
             <Stack>
               <Table.ScrollContainer minWidth={900}>
                 <Table striped highlightOnHover>
-                  <Table.Thead><Table.Tr><Table.Th>Студент</Table.Th><Table.Th>Тема / задание</Table.Th><Table.Th>Результат</Table.Th><Table.Th>Время</Table.Th><Table.Th /></Table.Tr></Table.Thead>
+                  <Table.Thead><Table.Tr><Table.Th>Студент</Table.Th><Table.Th>Тема / задание</Table.Th><Table.Th>Оценка</Table.Th><Table.Th>Время</Table.Th><Table.Th /></Table.Tr></Table.Thead>
                   <Table.Tbody>{data.items.map((attempt) => (
                     <Table.Tr key={attempt.id}>
                       <Table.Td>{attempt.studentName?.trim() || 'Студент недоступен'}</Table.Td>
-                      <Table.Td><Text size="sm">{attempt.taskName?.trim() || 'Задание недоступно'}</Text><Text size="xs" c="dimmed">{attempt.topicName?.trim() || 'Тема не указана'}</Text></Table.Td>
-                      <Table.Td><Badge color={attempt.isCorrect ? 'green' : 'red'} variant="light">{attempt.isCorrect ? 'Верно' : 'Неверно'}</Badge></Table.Td>
+                      <Table.Td><Text size="sm">{attempt.taskName?.trim() || 'Задание недоступно'}{attempt.attemptNumber ? ` · №${attempt.attemptNumber}` : ''}</Text><Text size="xs" c="dimmed">{attempt.topicName?.trim() || 'Тема не указана'}</Text>{attempt.validationVersionId ? <Text size="xs" c="dimmed">Версия: {attempt.validationVersionId}</Text> : null}</Table.Td>
+                      <Table.Td>{attempt.score !== null ? <Badge color="blue" variant="light">{attempt.score} / 100</Badge> : <Badge color={attempt.isCorrect ? 'green' : 'red'} variant="light">{attempt.isCorrect ? 'Верно' : 'Неверно'}</Badge>}</Table.Td>
                       <Table.Td>{formatAuditDateTime(attempt.startedAt ?? attempt.createdAt)}</Table.Td>
                       <Table.Td ta="right"><Button size="xs" variant="subtle" onClick={() => setSelected(attempt)}>Открыть</Button></Table.Td>
                     </Table.Tr>
@@ -243,8 +262,11 @@ export function TeacherAttemptsPage() {
 
       <Modal opened={Boolean(selected)} onClose={() => setSelected(null)} title="Детали попытки" size="lg">
         <Stack>
-          {selected?.publicError ? <Alert color="red">{selected.publicError}</Alert> : null}
-          <Group><Badge color={selected?.isCorrect ? 'green' : 'red'}>{selected?.isCorrect ? 'Верно' : 'Неверно'}</Badge><Text size="sm">Строк: {selected?.rowCount ?? '—'}, время: {selected?.durationMs ?? '—'} мс</Text></Group>
+          {selectedQuery.isPending ? <Text>Загрузка диагностики…</Text> : null}
+          {selectedQuery.isError || (selectedQuery.data && selectedQuery.data.status !== 200) ? <Alert color="red">Не удалось загрузить диагностику попытки.</Alert> : null}
+          {selectedDetail?.publicError ? <Alert color="red">{selectedDetail.publicError}</Alert> : null}
+          {selectedDetail?.scoring ? <AttemptScoringDetails scoring={selectedDetail.scoring} /> : null}
+          <Group>{!selectedDetail?.scoring ? <Badge color={selected?.isCorrect ? 'green' : 'red'}>{selected?.isCorrect ? 'Верно' : 'Неверно'}</Badge> : null}<Text size="sm">Строк: {selected?.rowCount ?? '—'}, время: {selected?.durationMs ?? '—'} мс</Text></Group>
           <Text size="sm" fw={600}>Отправленный SQL</Text>
           <Code block>{selected?.submittedSql || 'SQL не сохранён'}</Code>
           <Text size="sm" c="dimmed">Причина: {String(selected?.reason ?? 'не указана')}</Text>

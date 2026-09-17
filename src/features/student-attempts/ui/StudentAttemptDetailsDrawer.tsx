@@ -1,6 +1,7 @@
 import { Alert, Badge, Button, Code, Drawer, Group, Skeleton, Stack, Text, Title } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { useGetStudentAttemptById } from '../../../api/sqlmodule/student/student';
+import { AttemptScoringDetails } from '../../../entities/attempt/ui/AttemptScoringDetails';
 import { formatStudentAttemptReason, formatStudentAttemptStatus } from '../../../shared/lib/student-display';
 import { mapStudentApiError, StudentErrorAlert } from '../../student-errors';
 import { StudentAttemptSnapshot } from './StudentAttemptSnapshot';
@@ -30,12 +31,13 @@ export function StudentAttemptDetailsDrawer({ attemptId, onClose }: Props) {
         <Text c="dimmed" size="sm">{attempt.topicName || 'Тема не указана'}</Text>
       </Stack>
       <Group gap="xs">
-        {typeof attempt.isCorrect === 'boolean'
+        {!attempt.scoring && typeof attempt.isCorrect === 'boolean'
           ? <Badge color={attempt.isCorrect ? 'green' : 'red'} variant="light">{attempt.isCorrect ? 'Верно' : 'Неверно'}</Badge>
           : <Badge color="gray" variant="light">Без вердикта</Badge>}
         <Badge variant="outline">{formatStudentAttemptStatus(attempt.status)}</Badge>
         {attempt.reason ? <Badge color="gray" variant="light">{formatStudentAttemptReason(attempt.reason)}</Badge> : null}
       </Group>
+      {attempt.scoring ? <AttemptScoringDetails scoring={attempt.scoring} /> : null}
       <Text size="sm">Начало: {formatDate(attempt.startedAt)}</Text>
       {attempt.finishedAt ? <Text size="sm">Завершение: {formatDate(attempt.finishedAt)}</Text> : null}
       <Group gap="xs">

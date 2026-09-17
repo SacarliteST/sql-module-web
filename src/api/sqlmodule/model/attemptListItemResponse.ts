@@ -12,37 +12,45 @@ import type { AttemptListItemResponseStatus } from './attemptListItemResponseSta
  * Элемент списка журнала попыток без тяжёлого snapshot.
  */
 export interface AttemptListItemResponse {
-  id?: string;
-  userId?: string;
-  studentName?: string;
-  taskId?: string;
-  submittedSql?: string;
-  status?: AttemptListItemResponseStatus;
-  isCorrect?: boolean;
-  reason?: AttemptListItemResponseReason;
+  id: string;
+  userId: string;
+  studentName: string;
+  taskId: string;
+  submittedSql: string;
+  status: AttemptListItemResponseStatus;
+  isCorrect: boolean;
+  reason: AttemptListItemResponseReason;
   /**
      * Количество строк, прочитанных для сравнения в рамках внутреннего comparison-лимита. Это не общее количество строк полного неограниченного результата; returnedRowCount содержит число строк публичного snapshot, а resultRowLimit — его отдельный лимит.
      * @nullable
      */
-  rowCount?: number | null;
+  rowCount: number | null;
   /** @nullable */
-  durationMs?: number | null;
+  durationMs: number | null;
   /** @nullable */
-  errorMessage?: string | null;
-  startedAt?: string;
-  finishedAt?: string;
-  createdById?: string;
-  createdAt?: string;
-  updatedById?: string;
-  updatedAt?: string;
+  errorMessage: string | null;
+  startedAt: string;
+  finishedAt: string;
+  createdById: string;
+  createdAt: string;
+  updatedById: string;
+  updatedAt: string;
   /** @nullable */
-  taskName?: string | null;
+  taskName: string | null;
   /** @nullable */
-  topicName?: string | null;
+  topicName: string | null;
   /** @nullable */
-  publicError?: string | null;
+  publicError: string | null;
   /** @nullable */
-  createdByName?: string | null;
+  createdByName: string | null;
   /** @nullable */
-  updatedByName?: string | null;
+  updatedByName: string | null;
+  /** @nullable */
+  progressId: string | null;
+  /** @nullable */
+  validationVersionId: string | null;
+  /** @nullable */
+  attemptNumber: number | null;
+  /** @nullable */
+  score: number | null;
 }

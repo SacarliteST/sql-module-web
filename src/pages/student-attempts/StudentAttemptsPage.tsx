@@ -110,7 +110,7 @@ export function StudentAttemptsPage() {
         <Select clearable searchable label="Тема" placeholder="Все темы" data={topics.map((topic) => ({ value: topic.id, label: `${'— '.repeat(topic.depth)}${topic.topicName || 'Без названия'}` }))} disabled={topicsQuery.isPending} value={topicId ?? null} onChange={(value) => setFilter('topicId', value, true)} />
         <Select clearable searchable label="Задание" placeholder="Все задания" data={taskSelectData} disabled={taskOptionsQuery.isPending} value={taskId ?? null} onChange={(value) => setFilter('taskId', value)} />
         <Select clearable label="Статус" placeholder="Любой" data={Object.values(GetStudentAttemptsStatus).map((value) => ({ value, label: formatStudentAttemptStatus(value) }))} value={status ?? null} onChange={(value) => setFilter('status', value)} />
-        <Select clearable label="Вердикт" placeholder="Любой" data={[{ value: 'true', label: 'Верно' }, { value: 'false', label: 'Неверно' }]} value={correctValue} onChange={(value) => setFilter('correct', value)} />
+        <Select clearable label="Совпадение результата" description="Фильтр старой бинарной проверки" placeholder="Любое" data={[{ value: 'true', label: 'Да' }, { value: 'false', label: 'Нет' }]} value={correctValue} onChange={(value) => setFilter('correct', value)} />
         <TextInput label="Дата от" type="date" value={dateFrom ?? ''} onChange={(event) => setFilter('dateFrom', event.currentTarget.value || null)} />
         <TextInput label="Дата до" type="date" value={dateTo ?? ''} onChange={(event) => setFilter('dateTo', event.currentTarget.value || null)} />
       </SimpleGrid>
@@ -125,12 +125,12 @@ export function StudentAttemptsPage() {
     {pageData?.items?.length ? <AppCard><Stack gap="md">
       <Table.ScrollContainer minWidth={980}><Table highlightOnHover striped withTableBorder>
         <Table.Caption>История попыток текущего студента</Table.Caption>
-        <Table.Thead><Table.Tr><Table.Th>Задание</Table.Th><Table.Th>Время</Table.Th><Table.Th>Статус</Table.Th><Table.Th>Вердикт</Table.Th><Table.Th>Строки</Table.Th><Table.Th>Длительность</Table.Th><Table.Th /></Table.Tr></Table.Thead>
+        <Table.Thead><Table.Tr><Table.Th>Задание</Table.Th><Table.Th>Время</Table.Th><Table.Th>Статус</Table.Th><Table.Th>Оценка</Table.Th><Table.Th>Строки</Table.Th><Table.Th>Длительность</Table.Th><Table.Th /></Table.Tr></Table.Thead>
         <Table.Tbody>{pageData.items.map((attempt, index) => <Table.Tr key={attempt.id ?? `${page}-${index}`}>
-          <Table.Td><Text fw={500} size="sm">{attempt.taskName || 'Задание без названия'}</Text><Text c="dimmed" size="xs">{attempt.topicName || 'Тема не указана'}</Text></Table.Td>
+          <Table.Td><Text fw={500} size="sm">{attempt.taskName || 'Задание без названия'}{attempt.attemptNumber ? ` · №${attempt.attemptNumber}` : ''}</Text><Text c="dimmed" size="xs">{attempt.topicName || 'Тема не указана'}</Text>{attempt.validationVersionId ? <Text c="dimmed" size="xs">Версия: {attempt.validationVersionId}</Text> : null}</Table.Td>
           <Table.Td><Text size="sm">{formatDate(attempt.startedAt)}</Text></Table.Td>
           <Table.Td><Badge color={statusColor(attempt.status)} variant="light">{formatStudentAttemptStatus(attempt.status)}</Badge></Table.Td>
-          <Table.Td><Badge color={typeof attempt.isCorrect !== 'boolean' ? 'gray' : attempt.isCorrect ? 'green' : 'red'} variant="light">{formatStudentAttemptReason(attempt.reason)}</Badge></Table.Td>
+          <Table.Td>{attempt.score !== null ? <Badge color="blue" variant="light">{attempt.score} / 100</Badge> : <Badge color={typeof attempt.isCorrect !== 'boolean' ? 'gray' : attempt.isCorrect ? 'green' : 'red'} variant="light">{formatStudentAttemptReason(attempt.reason)}</Badge>}</Table.Td>
           <Table.Td>{attempt.rowCount ?? '—'}</Table.Td><Table.Td>{attempt.durationMs !== null && attempt.durationMs !== undefined ? `${attempt.durationMs} мс` : '—'}</Table.Td>
           <Table.Td><Button disabled={!attempt.id} size="xs" variant="subtle" onClick={() => setSelectedAttemptId(attempt.id ?? null)}>Открыть</Button></Table.Td>
         </Table.Tr>)}</Table.Tbody></Table>
