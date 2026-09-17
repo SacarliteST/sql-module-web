@@ -49,10 +49,11 @@ export function RecentStudentAttempts({ currentSql, onUseSql, taskId }: Props) {
     {pageData && !pageData.items?.length ? <Text c="dimmed" size="sm">Попыток по этому заданию пока нет.</Text> : null}
     {pageData?.items?.length ? <Table.ScrollContainer minWidth={720}><Table highlightOnHover striped>
       <Table.Caption>Пять последних попыток по текущему заданию</Table.Caption>
-      <Table.Thead><Table.Tr><Table.Th>Время</Table.Th><Table.Th>Результат</Table.Th><Table.Th>Строки</Table.Th><Table.Th>Длительность</Table.Th><Table.Th /></Table.Tr></Table.Thead>
+      <Table.Thead><Table.Tr><Table.Th>Время</Table.Th><Table.Th>Попытка</Table.Th><Table.Th>Оценка</Table.Th><Table.Th>Строки</Table.Th><Table.Th>Длительность</Table.Th><Table.Th /></Table.Tr></Table.Thead>
       <Table.Tbody>{pageData.items.map((attempt, index) => <Table.Tr key={attempt.id ?? index}>
         <Table.Td><Text size="sm">{formatDate(attempt.startedAt)}</Text></Table.Td>
-        <Table.Td>{typeof attempt.isCorrect === 'boolean' ? <Badge color={attempt.isCorrect ? 'green' : 'red'} variant="light">{attempt.isCorrect ? 'Верно' : 'Неверно'}</Badge> : <Badge color="gray" variant="light">Без вердикта</Badge>}</Table.Td>
+        <Table.Td>{attempt.attemptNumber ? `№${attempt.attemptNumber}` : '—'}</Table.Td>
+        <Table.Td>{attempt.score !== null ? <Badge color="blue" variant="light">{attempt.score} / 100</Badge> : typeof attempt.isCorrect === 'boolean' ? <Badge color={attempt.isCorrect ? 'green' : 'red'} variant="light">{attempt.isCorrect ? 'Верно' : 'Неверно'}</Badge> : <Badge color="gray" variant="light">Без вердикта</Badge>}</Table.Td>
         <Table.Td>{attempt.rowCount ?? '—'}</Table.Td>
         <Table.Td>{attempt.durationMs !== null && attempt.durationMs !== undefined ? `${attempt.durationMs} мс` : '—'}</Table.Td>
         <Table.Td ta="right"><Button disabled={!attempt.submittedSql || attempt.submittedSql === currentSql} size="xs" variant="subtle" onClick={() => requestUseSql(attempt.submittedSql ?? '')}>Подставить SQL</Button></Table.Td>

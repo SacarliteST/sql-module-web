@@ -37,6 +37,7 @@ import {
   usePublishSqlTask,
 } from '../../api/sqlmodule/training/training';
 import { SqlQueryValidationPreview, SqlTaskFormModal } from '../../features/sql-tasks';
+import { TaskValidationScoreEditor } from '../../features/sql-tasks/ui/TaskValidationScoreEditor';
 import { TeacherContourTabs } from '../../features/teacher-contour';
 import { formatAuditActor, formatAuditDateTime } from '../../shared/lib/teacher-audit';
 import {
@@ -325,7 +326,7 @@ export function TeacherTaskDetailsPage() {
                 loading={publishMutation.isPending}
                 onClick={openPublishModal}
               >
-                Опубликовать
+                Опубликовать задание
               </Button>
               <Button disabled={!task?.canEditReferenceQuery} variant="light" onClick={editTaskModal.open}>
                 Эталон и проверка
@@ -379,6 +380,7 @@ export function TeacherTaskDetailsPage() {
         </AppCard>
       ) : task ? (
         <Stack gap="xl">
+          <TaskValidationScoreEditor taskId={task.taskId ?? taskId} targetDbId={targetDb?.targetDbId ?? null} />
           <SimpleGrid cols={{ base: 1, sm: 2, xl: 5 }} spacing="md">
             <MetricCard label="Сложность" value={`${task.difficultyLevel ?? 'н/д'} из 5`} />
             <MetricCard label="Учебная база" value={databaseName} />
@@ -600,7 +602,7 @@ export function TeacherTaskDetailsPage() {
       <ConfirmModal
         opened={publishOpened}
         title="Опубликовать задание"
-        message="После публикации задание станет доступно студентам в разрешённых сценариях. Backend проверит эталонный результат, учебную базу и наличие попыток."
+        message="Это публикация самого задания: после неё оно станет доступно студентам в разрешённых сценариях. Правила оценки публикуются отдельно кнопкой «Опубликовать проверку». Backend проверит эталонный результат, учебную базу и наличие попыток."
         confirmLabel="Опубликовать"
         confirmColor="blue"
         loading={publishMutation.isPending}

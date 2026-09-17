@@ -5,6 +5,7 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { GetAllAttemptsFinalizationReason } from './getAllAttemptsFinalizationReason';
 import type { GetAllAttemptsStatus } from './getAllAttemptsStatus';
 
 export type GetAllAttemptsParams = {
@@ -44,4 +45,24 @@ DateFrom?: string;
  * Верхняя граница даты начала.
  */
 DateTo?: string;
+/**
+ * Необязательный фильтр по прохождению.
+ */
+ProgressId?: string;
+/**
+ * Необязательный фильтр по версии проверки.
+ */
+ValidationVersionId?: string;
+/**
+ * Минимальный балл включительно, от 0 до 100.
+ */
+ScoreFrom?: number;
+/**
+ * Максимальный балл включительно, от 0 до 100.
+ */
+ScoreTo?: number;
+/**
+ * Причина финализации связанного прохождения.
+ */
+FinalizationReason?: GetAllAttemptsFinalizationReason;
 };

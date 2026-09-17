@@ -3,12 +3,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SubmitAttemptResponse } from '../../../api/sqlmodule/model';
 import { useSubmitAttempt } from '../../../api/sqlmodule/training/training';
-import { mapStudentApiError, StudentErrorAlert, type StudentErrorView } from '../../student-errors';
+import { mapStudentApiError, problemCode, StudentErrorAlert, type StudentErrorView } from '../../student-errors';
 
 type SubmitStudentAttemptProps = {
+  disabled?: boolean;
   maxSqlLength?: number;
   onSubmissionStart?: () => void;
   onResult: (result: SubmitAttemptResponse) => void;
+  onStateChanged?: () => void;
+  progressId?: string | null;
   sql: string;
   taskId: string;
 };
@@ -17,14 +20,10 @@ type PendingSubmission = {
   idempotencyKey: string;
   sql: string;
   taskId: string;
+  progressId?: string | null;
 };
 
-function problemCode(value: unknown) {
-  if (typeof value !== 'object' || value === null || !('code' in value)) return undefined;
-  return typeof value.code === 'string' ? value.code : undefined;
-}
-
-export function SubmitStudentAttempt({ maxSqlLength, onResult, onSubmissionStart, sql, taskId }: SubmitStudentAttemptProps) {
+export function SubmitStudentAttempt({ disabled = false, maxSqlLength, onResult, onStateChanged, onSubmissionStart, progressId, sql, taskId }: SubmitStudentAttemptProps) {
   const queryClient = useQueryClient();
   const abortController = useMemo(() => new AbortController(), [taskId]);
   const mutation = useSubmitAttempt({ request: { signal: abortController.signal } });
@@ -41,10 +40,10 @@ export function SubmitStudentAttempt({ maxSqlLength, onResult, onSubmissionStart
     pendingSubmission.current = null;
     setHasUncertainSubmission(false);
     setMessage(null);
-  }, [sql, taskId]);
+  }, [sql, taskId, progressId]);
 
   const submit = async () => {
-    if (submissionLock.current || !normalizedSql || tooLong) return;
+    if (submissionLock.current || disabled || !normalizedSql || tooLong) return;
     submissionLock.current = true;
     setSubmitting(true);
     setMessage(null);
@@ -52,17 +51,28 @@ export function SubmitStudentAttempt({ maxSqlLength, onResult, onSubmissionStart
     onSubmissionStart?.();
     try {
       const previous = pendingSubmission.current;
-      const idempotencyKey = previous?.sql === sql && previous.taskId === taskId
+      const idempotencyKey = previous?.sql === sql && previous.taskId === taskId && previous.progressId === progressId
         ? previous.idempotencyKey
         : crypto.randomUUID();
-      pendingSubmission.current = { idempotencyKey, sql, taskId };
+      pendingSubmission.current = { idempotencyKey, sql, taskId, progressId };
       const response = await mutation.mutateAsync({
         data: { taskId, submittedSql: sql },
         headers: { 'Idempotency-Key': idempotencyKey },
       });
-      pendingSubmission.current = null;
       if (response.status !== 201) {
         const code = problemCode(response.data);
+        if (response.status === 409 && code === 'IdempotencyRequestInProgress') {
+          setHasUncertainSubmission(true);
+          setMessage(mapStudentApiError(response.status, response.data));
+          return;
+        }
+        if (response.status === 503 || response.status === 500) {
+          setHasUncertainSubmission(true);
+          setMessage({ ...mapStudentApiError(response.status, response.data), canRetry: false, message: 'Проверка временно недоступна. Эта попытка не подтверждена. Повторите неизменённый SQL — будет использован тот же ключ отправки.' });
+          return;
+        }
+        pendingSubmission.current = null;
+        if (response.status === 409 || response.status === 422) onStateChanged?.();
         if (response.status === 409 && code === 'IdempotencyKeyPayloadMismatch') {
           setMessage({ canRetry: false, color: 'red', status: 409, title: 'Конфликт отправки', message: 'Состав решения изменился. Повторите отправку — для неё будет создан новый ключ.' });
           return;
@@ -74,6 +84,7 @@ export function SubmitStudentAttempt({ maxSqlLength, onResult, onSubmissionStart
         setMessage(mapStudentApiError(response.status, response.data));
         return;
       }
+      pendingSubmission.current = null;
       onResult(response.data);
       await queryClient.invalidateQueries({ queryKey: ['/api/v1/student/attempts'] });
     } catch (error) {
@@ -91,7 +102,7 @@ export function SubmitStudentAttempt({ maxSqlLength, onResult, onSubmissionStart
     {tooLong ? <Text c="red" size="sm">Сократите запрос до {maxSqlLength} символов.</Text> : null}
     {message ? <StudentErrorAlert error={message} /> : null}
     <Button
-      disabled={!normalizedSql || tooLong}
+      disabled={disabled || !normalizedSql || tooLong}
       loading={submitting}
       onClick={() => void submit()}
     >{submitting ? 'Запрос выполняется' : hasUncertainSubmission ? 'Повторить отправку безопасно' : 'Отправить решение'}</Button>
