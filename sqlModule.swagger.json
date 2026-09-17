@@ -6,6 +6,73 @@
     "version": "v1"
   },
   "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Standalone-вход через SqlModule",
+        "description": "Тонкий прокси: логинит пользователя в IdentityService и сразу обменивает полученный токен на audience SqlModule, без session_id. Секрет клиента обмена остаётся на сервере — в браузер попадает только уже готовый обменянный токен.",
+        "operationId": "StandaloneLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/StandaloneLoginRequest"
+                  }
+                ],
+                "description": "Учётные данные для standalone-входа."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneLoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/dbms/{dbmsId}/validation-capabilities": {
       "get": {
         "tags": [
@@ -9989,6 +10056,33 @@
         "additionalProperties": false,
         "description": "Ответ в виде страницы с информацией о элементах и их кол-ве"
       },
+      "StandaloneLoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Учётные данные для standalone-входа."
+      },
+      "StandaloneLoginResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Токен, уже обменянный на audience SqlModule — готов к использованию против его API."
+      },
       "StudentAttemptListItemResponse": {
         "required": [
           "attemptNumber",
@@ -12661,6 +12755,9 @@
     }
   ],
   "tags": [
+    {
+      "name": "Auth"
+    },
     {
       "name": "DbmsCatalog"
     },

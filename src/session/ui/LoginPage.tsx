@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { useLogin } from '../../api/identity/auth/auth';
-import type { ProblemDetails } from '../../api/identity/model';
+import { useStandaloneLogin } from '../../api/sqlmodule/auth/auth';
+import type { ProblemDetails } from '../../api/sqlmodule/model';
 import {
   getIdentityProblemMessage,
   getIdentityProblemPresentation,
@@ -50,7 +50,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const setSession = useSessionStore((state) => state.setSession);
   const [formError, setFormError] = useState<IdentityApiProblemPresentation | null>(null);
-  const loginMutation = useLogin();
+  const loginMutation = useStandaloneLogin();
 
   const {
     formState: { errors },
@@ -75,7 +75,7 @@ export function LoginPage() {
 
     if (!response) {
       setFormError({
-        title: 'IdentityService недоступен',
+        title: 'SQL Module недоступен',
         message: 'Проверьте адрес сервиса и runtime config.',
       });
       return;
@@ -105,7 +105,7 @@ export function LoginPage() {
     if (!response.data.accessToken) {
       setFormError({
         title: 'Ошибка токена',
-        message: 'IdentityService не вернул access token.',
+        message: 'SQL Module не вернул access token.',
       });
       return;
     }
