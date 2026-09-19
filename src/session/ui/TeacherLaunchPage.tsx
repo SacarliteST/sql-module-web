@@ -1,7 +1,15 @@
 import { Alert, Button, Center, Loader, Stack, Text, Title } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clearActiveLaunchContext, consumeLaunchToken } from '../launch';
+import { getSqlTaskById } from '../../api/sqlmodule/training/training';
+import {
+  clearActiveLaunchContext,
+  clearPlatformReturnPath,
+  consumeLaunchToken,
+  parsePlatformReturnPath,
+  parseTaskRef,
+  savePlatformReturnPath,
+} from '../launch';
 import { decodeSessionUser } from '../lib';
 import {
   createHandoffTokenProvider,
@@ -11,6 +19,22 @@ import {
 import { useSessionStore } from '../store';
 
 type LaunchState = 'loading' | 'invalid-link';
+
+const DEFAULT_TEACHER_ROUTE = '/teacher/topics';
+
+/** Открывает сразу задание из ссылки платформы; при любой неудаче — обычная стартовая страница. */
+async function resolveTeacherRoute(taskRef: string | null): Promise<string> {
+  if (!taskRef) return DEFAULT_TEACHER_ROUTE;
+  try {
+    const response = await getSqlTaskById(taskRef);
+    if (response.status === 200 && response.data.topicId) {
+      return `/teacher/topics/${encodeURIComponent(response.data.topicId)}/tasks/${encodeURIComponent(taskRef)}`;
+    }
+  } catch {
+    // задание недоступно — не блокируем вход
+  }
+  return DEFAULT_TEACHER_ROUTE;
+}
 
 export function TeacherLaunchPage() {
   const navigate = useNavigate();
@@ -37,7 +61,16 @@ export function TeacherLaunchPage() {
       await provider.setTokens?.({ accessToken });
       setActiveTokenProvider(provider);
       setTransientSession({ accessToken, user, kind: 'teacher' });
-      navigate('/teacher/topics', { replace: true });
+
+      const params = new URLSearchParams(window.location.search);
+      const returnPath = parsePlatformReturnPath(params.get('return'));
+      if (returnPath) {
+        savePlatformReturnPath(returnPath);
+      } else {
+        clearPlatformReturnPath();
+      }
+
+      navigate(await resolveTeacherRoute(parseTaskRef(params.get('task'))), { replace: true });
     }
 
     void launch();
