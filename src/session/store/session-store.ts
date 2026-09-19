@@ -40,15 +40,17 @@ const restoreSessionState = (
     : null;
   const handoffUser = handoffToken ? decodeSessionUser(handoffToken) : null;
   const handoffContext = typeof sessionStorage !== 'undefined' ? getActiveLaunchContext() : null;
+  const isStudentHandoff = handoffUser?.roles.includes('Student') && Boolean(handoffContext);
+  const isTeacherHandoff = handoffUser?.roles.some((role) => role === 'Teacher' || role === 'Admin') ?? false;
 
-  if (handoffToken && handoffUser?.roles.includes('Student') && handoffContext) {
+  if (handoffToken && handoffUser && (isStudentHandoff || isTeacherHandoff)) {
     return {
       ...currentState,
       accessToken: handoffToken,
       user: handoffUser,
       status: 'authenticated',
       mode: 'handoff',
-      handoffKind: 'student',
+      handoffKind: isStudentHandoff ? 'student' : 'teacher',
     };
   }
 
