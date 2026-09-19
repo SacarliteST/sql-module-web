@@ -48,3 +48,19 @@ export function clearPlatformReturnPath(): void {
     // нечего очищать
   }
 }
+
+/**
+ * Адрес выхода студента на платформу без завершения прохождения. Берём адрес возврата исходной
+ * сессии, но убираем параметр `session`: с ним платформа ждёт оценку завершённой попытки, а тут
+ * сессия остаётся активной и на платформе должны быть «Продолжить» и вкладка теста.
+ */
+export function buildStudentPlatformLeaveUrl(returnUrl: string): string | null {
+  try {
+    const url = new URL(returnUrl, window.location.origin);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    url.searchParams.delete('session');
+    return url.origin === window.location.origin ? `${url.pathname}${url.search}${url.hash}` : url.toString();
+  } catch {
+    return null;
+  }
+}
