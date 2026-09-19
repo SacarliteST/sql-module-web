@@ -3,7 +3,9 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   clearActiveLaunchContext,
   clearActiveTokens,
+  clearPlatformReturnPath,
   getDefaultSessionRoute,
+  readPlatformReturnPath,
   RequireHandoffScope,
   resetActiveTokenProvider,
   useSessionStore,
@@ -31,6 +33,7 @@ export function AppLayout() {
   const mode = useSessionStore((state) => state.mode);
   const handoffKind = useSessionStore((state) => state.handoffKind);
   const isStudentHandoff = mode === 'handoff' && handoffKind === 'student';
+  const platformReturnPath = mode === 'handoff' && handoffKind === 'teacher' ? readPlatformReturnPath() : null;
   const userRoles = user?.roles ?? [];
   const navigationItems = [
     {
@@ -47,6 +50,7 @@ export function AppLayout() {
   const handleLogout = async () => {
     await clearActiveTokens();
     clearActiveLaunchContext();
+    clearPlatformReturnPath();
     clearSession();
     resetActiveTokenProvider();
     const restoredUser = useSessionStore.getState().user;
@@ -94,14 +98,26 @@ export function AppLayout() {
               ))}
           </nav>
           {status === 'authenticated' ? (
-            <Button
-              color="gray"
-              size="xs"
-              variant="outline"
-              onClick={() => void handleLogout()}
-            >
-              Выйти
-            </Button>
+            <Group gap="xs">
+              {platformReturnPath ? (
+                <Button
+                  color="gray"
+                  size="xs"
+                  variant="default"
+                  onClick={() => window.location.assign(platformReturnPath)}
+                >
+                  Вернуться на платформу
+                </Button>
+              ) : null}
+              <Button
+                color="gray"
+                size="xs"
+                variant="outline"
+                onClick={() => void handleLogout()}
+              >
+                Выйти
+              </Button>
+            </Group>
           ) : !isLoginPage ? (
             <Button color="blue" size="xs" variant="filled" onClick={() => navigate('/login')}>
               Войти
