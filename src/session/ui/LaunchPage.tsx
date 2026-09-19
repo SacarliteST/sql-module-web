@@ -42,7 +42,7 @@ export function LaunchPage() {
 
       await handoffProvider.setTokens?.({ accessToken });
       setActiveTokenProvider(handoffProvider);
-      setTransientSession({ accessToken, user });
+      setTransientSession({ accessToken, user, kind: 'student' });
 
       try {
         const response = await getCurrentModuleSession({ signal: controller.signal });
@@ -57,6 +57,7 @@ export function LaunchPage() {
 
         setActiveLaunchContext({
           sessionId: requestedSessionId,
+          taskId: response.data.taskId,
           returnUrl: response.data.returnUrl,
         });
         navigate(`/student/tasks/${response.data.taskId}`, { replace: true });

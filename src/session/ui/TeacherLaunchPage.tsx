@@ -36,7 +36,7 @@ export function TeacherLaunchPage() {
 
       await provider.setTokens?.({ accessToken });
       setActiveTokenProvider(provider);
-      setTransientSession({ accessToken, user });
+      setTransientSession({ accessToken, user, kind: 'teacher' });
       navigate('/teacher/topics', { replace: true });
     }
 

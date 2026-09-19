@@ -42,12 +42,12 @@ function StudentTaskLoading() {
   </Stack></Page>;
 }
 
-type TaskUnavailableProps = { catalogUrl: string; error: StudentErrorView; retry: () => void };
+type TaskUnavailableProps = { catalogUrl: string; error: StudentErrorView; isPlatformSession: boolean; retry: () => void };
 
-function TaskUnavailable({ catalogUrl, error, retry }: TaskUnavailableProps) {
+function TaskUnavailable({ catalogUrl, error, isPlatformSession, retry }: TaskUnavailableProps) {
   return <Page><Stack gap="md">
     <StudentErrorAlert error={error} onRetry={error.canRetry ? retry : undefined} />
-    <Group>{error.status === 401 ? <Button component={Link} to="/login">Войти</Button> : null}<Button component={Link} to={catalogUrl} variant="default">Вернуться в каталог</Button></Group>
+    {!isPlatformSession ? <Group>{error.status === 401 ? <Button component={Link} to="/login">Войти</Button> : null}<Button component={Link} to={catalogUrl} variant="default">Вернуться в каталог</Button></Group> : null}
   </Stack></Page>;
 }
 
@@ -119,7 +119,7 @@ export function StudentTaskPage() {
   };
 
   if (query.isPending) return <StudentTaskLoading />;
-  if (taskError) return <TaskUnavailable catalogUrl={catalogUrl} error={taskError} retry={() => void query.refetch()} />;
+  if (taskError) return <TaskUnavailable catalogUrl={catalogUrl} error={taskError} isPlatformSession={isPlatformSession} retry={() => void query.refetch()} />;
   if (!response || response.status !== 200) return null;
 
   const task = response.data;
@@ -127,18 +127,18 @@ export function StudentTaskPage() {
   const validation = task.validation;
 
   return <Page><Stack gap="lg">
-    <PageBreadcrumbs items={[
+    {!isPlatformSession ? <PageBreadcrumbs items={[
       { label: 'Главная', to: '/' },
       { label: 'Студент', to: '/student' },
       { label: 'Задания', to: catalogUrl },
       { label: task.taskName || 'Задание' },
-    ]} />
+    ]} /> : null}
     <PageHeader
       title={task.taskName || 'SQL-задание'}
       description="Изучите условие, подготовьте read-only SQL-запрос и отправьте его на проверку."
-      actions={<Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button>}
+      actions={!isPlatformSession ? <Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button> : undefined}
     />
-    <StudentContourTabs />
+    {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Завершите прохождение, чтобы вернуться на платформу.</Alert> : <StudentContourTabs />}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'applied' ? <Alert color="blue" title="SQL загружен из истории">Текст выбранной попытки подставлен один раз. Reload не заменит более свежий черновик.</Alert> : null}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'cancelled' ? <Alert color="yellow" title="Перенос отменён">Текущий черновик оставлен без изменений.</Alert> : null}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'invalid' ? <Alert color="yellow" title="SQL не перенесён">Данные перехода из истории устарели или имеют неверный формат.</Alert> : null}
@@ -200,7 +200,7 @@ export function StudentTaskPage() {
         : <EmptyState title="Результат проверки" description="Здесь появится безопасный вердикт и фактический результат после отправки решения." />}
       </AppCard></Grid.Col>
     </Grid>
-    <AppCard><RecentStudentAttempts currentSql={draft.value} onUseSql={draft.setValue} taskId={taskId} /></AppCard>
+    {!isPlatformSession ? <AppCard><RecentStudentAttempts currentSql={draft.value} onUseSql={draft.setValue} taskId={taskId} /></AppCard> : null}
     <ConfirmModal
       confirmColor="blue"
       confirmLabel="Подставить"

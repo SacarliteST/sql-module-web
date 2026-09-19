@@ -4,6 +4,7 @@ import {
   clearActiveLaunchContext,
   clearActiveTokens,
   getDefaultSessionRoute,
+  RequireHandoffScope,
   resetActiveTokenProvider,
   useSessionStore,
 } from '../../session';
@@ -27,6 +28,9 @@ export function AppLayout() {
   const status = useSessionStore((state) => state.status);
   const user = useSessionStore((state) => state.user);
   const clearSession = useSessionStore((state) => state.clearSession);
+  const mode = useSessionStore((state) => state.mode);
+  const handoffKind = useSessionStore((state) => state.handoffKind);
+  const isStudentHandoff = mode === 'handoff' && handoffKind === 'student';
   const userRoles = user?.roles ?? [];
   const navigationItems = [
     {
@@ -79,7 +83,7 @@ export function AppLayout() {
             </Group>
           ) : null}
         </div>
-        <div className="app-shell__nav-row">
+        {!isStudentHandoff ? <div className="app-shell__nav-row">
           <nav className="app-shell__nav" aria-label="Primary navigation">
             {navigationItems
               .filter((item) => item.visible)
@@ -103,10 +107,10 @@ export function AppLayout() {
               Войти
             </Button>
           ) : null}
-        </div>
+        </div> : <div className="app-shell__nav-row"><Text c="gray.4" size="sm">Платформенное задание · доступ ограничен текущей сессией</Text></div>}
       </header>
       <main className="app-shell__main">
-        <Outlet />
+        <RequireHandoffScope><Outlet /></RequireHandoffScope>
       </main>
     </div>
   );

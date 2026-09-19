@@ -2,6 +2,7 @@ export const ACTIVE_LAUNCH_CONTEXT_STORAGE_KEY = 'sql-module-active-launch-conte
 
 export type ActiveLaunchContext = {
   sessionId: string;
+  taskId: string;
   returnUrl: string;
 };
 
@@ -13,6 +14,8 @@ function isActiveLaunchContext(value: unknown): value is ActiveLaunchContext {
   return (
     typeof candidate.sessionId === 'string' &&
     candidate.sessionId.trim().length > 0 &&
+    typeof candidate.taskId === 'string' &&
+    candidate.taskId.trim().length > 0 &&
     typeof candidate.returnUrl === 'string' &&
     candidate.returnUrl.trim().length > 0
   );
@@ -42,7 +45,7 @@ export function setActiveLaunchContext(
   storage: Storage = sessionStorage,
 ): void {
   if (!isActiveLaunchContext(context)) {
-    throw new Error('Active launch context requires sessionId and returnUrl');
+    throw new Error('Active launch context requires sessionId, taskId and returnUrl');
   }
 
   storage.setItem(ACTIVE_LAUNCH_CONTEXT_STORAGE_KEY, JSON.stringify(context));

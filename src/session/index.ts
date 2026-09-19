@@ -29,6 +29,6 @@ export {
   resetActiveTokenProvider,
   setActiveTokenProvider,
 } from './providers';
-export { AccessDeniedPage, RequireAuth, RequireRole } from './guards';
+export { AccessDeniedPage, RequireAuth, RequireHandoffScope, RequireRole } from './guards';
 export { useSessionStore } from './store';
 export { LaunchPage, LoginPage, TeacherLaunchPage, TeacherSessionExpiredPage } from './ui';

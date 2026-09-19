@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { decodeSessionUser } from '../lib/decode-session-user';
+import { getActiveLaunchContext } from '../launch/launch-context';
+import { HANDOFF_ACCESS_TOKEN_STORAGE_KEY } from '../providers/handoff-token-provider';
 import type { SessionStatus, SessionUser } from '../model';
 
 type SetSessionPayload = {
@@ -8,16 +10,21 @@ type SetSessionPayload = {
   user: SessionUser;
 };
 
+type SetTransientSessionPayload = SetSessionPayload & {
+  kind: 'student' | 'teacher';
+};
+
 type SessionState = {
   accessToken: string | null;
   user: SessionUser | null;
   status: SessionStatus;
   mode: 'standalone' | 'handoff' | null;
+  handoffKind: 'student' | 'teacher' | null;
   standaloneAccessToken: string | null;
   standaloneUser: SessionUser | null;
   sessionIssue: 'handoff-expired' | null;
   setSession(payload: SetSessionPayload): void;
-  setTransientSession(payload: SetSessionPayload): void;
+  setTransientSession(payload: SetTransientSessionPayload): void;
   setSessionIssue(issue: SessionState['sessionIssue']): void;
   clearSession(): void;
 };
@@ -28,6 +35,23 @@ const restoreSessionState = (
   persistedState: unknown,
   currentState: SessionState,
 ): SessionState => {
+  const handoffToken = typeof sessionStorage !== 'undefined'
+    ? sessionStorage.getItem(HANDOFF_ACCESS_TOKEN_STORAGE_KEY)
+    : null;
+  const handoffUser = handoffToken ? decodeSessionUser(handoffToken) : null;
+  const handoffContext = typeof sessionStorage !== 'undefined' ? getActiveLaunchContext() : null;
+
+  if (handoffToken && handoffUser?.roles.includes('Student') && handoffContext) {
+    return {
+      ...currentState,
+      accessToken: handoffToken,
+      user: handoffUser,
+      status: 'authenticated',
+      mode: 'handoff',
+      handoffKind: 'student',
+    };
+  }
+
   const persistedSession = persistedState as Partial<PersistedSessionState> | null;
 
   if (!persistedSession?.accessToken || !persistedSession.user) {
@@ -51,6 +75,7 @@ const restoreSessionState = (
     },
     status: 'authenticated',
     mode: 'standalone',
+    handoffKind: null,
     standaloneAccessToken: persistedSession.accessToken,
     standaloneUser: persistedSession.user,
   };
@@ -63,6 +88,7 @@ export const useSessionStore = create<SessionState>()(
       user: null,
       status: 'anonymous',
       mode: null,
+      handoffKind: null,
       standaloneAccessToken: null,
       standaloneUser: null,
       sessionIssue: null,
@@ -72,16 +98,18 @@ export const useSessionStore = create<SessionState>()(
           user,
           status: 'authenticated',
           mode: 'standalone',
+          handoffKind: null,
           standaloneAccessToken: accessToken,
           standaloneUser: user,
           sessionIssue: null,
         }),
-      setTransientSession: ({ accessToken, user }) =>
+      setTransientSession: ({ accessToken, user, kind }) =>
         set({
           accessToken,
           user,
           status: 'authenticated',
           mode: 'handoff',
+          handoffKind: kind,
           sessionIssue: null,
         }),
       setSessionIssue: (sessionIssue) => set({ sessionIssue }),
@@ -94,6 +122,7 @@ export const useSessionStore = create<SessionState>()(
             user: restoreStandalone ? state.standaloneUser : null,
             status: restoreStandalone ? 'authenticated' : 'anonymous',
             mode: restoreStandalone ? 'standalone' : null,
+            handoffKind: null,
             standaloneAccessToken: state.mode === 'standalone' ? null : state.standaloneAccessToken,
             standaloneUser: state.mode === 'standalone' ? null : state.standaloneUser,
           };
