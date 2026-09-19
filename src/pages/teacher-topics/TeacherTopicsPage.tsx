@@ -188,10 +188,10 @@ function TopicTreeButton({
         <Paper
           p="xs"
           radius="sm"
-          bg={isSelected ? '#0d6efd' : 'transparent'}
+          bg={isSelected ? 'indigo.6' : 'transparent'}
           style={{
             border: '1px solid',
-            borderColor: isSelected ? '#0d6efd' : 'transparent',
+            borderColor: isSelected ? 'var(--mantine-primary-color-filled)' : 'transparent',
             cursor: 'pointer',
             marginLeft: level * 14,
           }}

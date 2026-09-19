@@ -56,6 +56,7 @@ export default function MonacoSqlEditor({ ariaLabel, disabled, readOnly, value, 
         // нажатия (в т.ч. пробел) в некоторых браузерах/раскладках. Классический
         // textarea-ввод годами стабилен, поэтому отключаем EditContext явно.
         editContext: false,
+        fontFamily: 'IBM Plex Mono, ui-monospace, monospace',
         fontSize: 14,
         minimap: { enabled: false },
         padding: { top: 12, bottom: 12 },

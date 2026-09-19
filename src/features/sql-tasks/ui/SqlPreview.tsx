@@ -60,6 +60,8 @@ const tokenPattern =
 function getTokenColor(token: string): string | undefined {
   const normalized = token.toLowerCase();
 
+  // These literals belong to the SQL syntax-highlighting palette, not the application UI.
+
   if (token.startsWith('--') || token.startsWith('/*')) {
     return '#6a9955';
   }
@@ -118,12 +120,12 @@ export function SqlPreview({
 
   return (
     <Box
-      bg="#1f2933"
+      bg="gray.9"
       c="gray.1"
       p="md"
       style={{
-        borderRadius: 4,
-        fontFamily: 'JetBrains Mono, Consolas, monospace',
+        borderRadius: 'var(--mantine-radius-sm)',
+        fontFamily: 'var(--mantine-font-family-monospace)',
         fontSize: 13,
         lineHeight: 1.55,
         minHeight: 92,

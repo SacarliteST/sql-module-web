@@ -11,6 +11,7 @@ import {
   SimpleGrid,
   Stack,
   Table,
+  Tabs,
   Text,
   TextInput,
   Textarea,
@@ -121,7 +122,7 @@ function DifficultyIndicator({ value }: { value: number | null }) {
             key={index}
             h={10}
             w={10}
-            bg={index < normalizedValue ? '#0d6efd' : '#dee2e6'}
+            bg={index < normalizedValue ? 'indigo.6' : 'gray.3'}
             style={{ borderRadius: '50%' }}
           />
         ))}
@@ -142,8 +143,8 @@ function MetricCard({
   tone: 'blue' | 'gray' | 'orange';
   value: string | number;
 }) {
-  const toneColor = tone === 'blue' ? '#0d6efd' : tone === 'orange' ? '#b16000' : '#6c757d';
-  const toneBackground = tone === 'blue' ? '#e7f1ff' : tone === 'orange' ? '#fff3e0' : '#f1f3f5';
+  const toneColor = tone === 'blue' ? 'var(--mantine-primary-color-filled)' : tone === 'orange' ? 'var(--mantine-color-orange-8)' : 'var(--mantine-color-gray-6)';
+  const toneBackground = tone === 'blue' ? 'var(--mantine-primary-color-light)' : tone === 'orange' ? 'var(--mantine-color-orange-0)' : 'var(--mantine-color-gray-1)';
 
   return (
     <AppCard p="md" shadow="xs">
@@ -517,8 +518,15 @@ export function TeacherTopicDetailsPage() {
             <MetricCard label="Последнее изменение" tone="gray" value={formatDate(topic.updatedAt)} />
           </SimpleGrid>
 
-          <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="xl">
-            <Stack gap="md">
+          <Tabs defaultValue="subtopics" keepMounted={false}>
+            <Tabs.List mb="lg">
+              <Tabs.Tab value="subtopics">Подтемы</Tabs.Tab>
+              <Tabs.Tab value="tasks">Задания</Tabs.Tab>
+              <Tabs.Tab value="description">Описание</Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="subtopics">
+              <Stack gap="md">
               <Title order={3} size="h4">
                 Подтемы
               </Title>
@@ -561,9 +569,11 @@ export function TeacherTopicDetailsPage() {
                   />
                 </AppCard>
               )}
-            </Stack>
+              </Stack>
+            </Tabs.Panel>
 
-            <Stack gap="md">
+            <Tabs.Panel value="tasks">
+              <Stack gap="md">
               <Group justify="space-between" gap="md" wrap="wrap">
                 <Title order={3} size="h4">
                   Задания темы
@@ -576,7 +586,7 @@ export function TeacherTopicDetailsPage() {
                   <>
                   <Table.ScrollContainer minWidth={720}>
                     <Table highlightOnHover withColumnBorders={false}>
-                      <Table.Thead bg="#f3f4f5">
+                      <Table.Thead bg="gray.1">
                         <Table.Tr>
                           <Table.Th>Название</Table.Th>
                           <Table.Th>База / СУБД</Table.Th>
@@ -623,19 +633,22 @@ export function TeacherTopicDetailsPage() {
                   />
                 )}
               </AppCard>
-            </Stack>
-          </SimpleGrid>
+              </Stack>
+            </Tabs.Panel>
 
-          <AppCard p="xl">
-            <Stack gap="sm">
-              <Title order={3} size="h5">
-                Описание темы
-              </Title>
-              <Text c="dimmed" maw={860}>
-                {topic.description || 'Описание темы не заполнено.'}
-              </Text>
-            </Stack>
-          </AppCard>
+            <Tabs.Panel value="description">
+              <AppCard p="xl">
+                <Stack gap="sm">
+                  <Title order={3} size="h5">
+                    Описание темы
+                  </Title>
+                  <Text c="dimmed" maw={860}>
+                    {topic.description || 'Описание темы не заполнено.'}
+                  </Text>
+                </Stack>
+              </AppCard>
+            </Tabs.Panel>
+          </Tabs>
         </Stack>
       ) : (
         <AppCard p="md">

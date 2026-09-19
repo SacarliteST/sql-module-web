@@ -159,7 +159,7 @@ export function SqlQueryValidationPreview({
           {columns.length > 0 ? (
             <Table.ScrollContainer minWidth={Math.max(520, columns.length * 160)}>
               <Table striped highlightOnHover withTableBorder withColumnBorders>
-                <Table.Thead bg="#f3f4f5">
+                <Table.Thead bg="gray.1">
                   <Table.Tr>
                     {columns.map((column, index) => (
                       <Table.Th key={`${column}-${index}`}>{column || `Колонка ${index + 1}`}</Table.Th>

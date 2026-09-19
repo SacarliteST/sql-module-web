@@ -9,6 +9,7 @@ import {
   SimpleGrid,
   Stack,
   Table,
+  Tabs,
   Text,
   Title,
 } from '@mantine/core';
@@ -380,7 +381,6 @@ export function TeacherTaskDetailsPage() {
         </AppCard>
       ) : task ? (
         <Stack gap="xl">
-          <TaskValidationScoreEditor taskId={task.taskId ?? taskId} targetDbId={targetDb?.targetDbId ?? null} />
           <SimpleGrid cols={{ base: 1, sm: 2, xl: 5 }} spacing="md">
             <MetricCard label="Сложность" value={`${task.difficultyLevel ?? 'н/д'} из 5`} />
             <MetricCard label="Учебная база" value={databaseName} />
@@ -389,12 +389,20 @@ export function TeacherTaskDetailsPage() {
             <MetricCard label="Последнее изменение" value={formatAuditDateTime(task.updatedAt)} />
           </SimpleGrid>
 
-          <Grid gutter="xl" align="flex-start">
+          <Tabs defaultValue="overview" keepMounted={false}>
+            <Tabs.List mb="lg">
+              <Tabs.Tab value="overview">Задание и эталон</Tabs.Tab>
+              <Tabs.Tab value="validation">Проверка</Tabs.Tab>
+              <Tabs.Tab value="attempts">Попытки</Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="overview">
+              <Grid gutter="xl" align="flex-start">
             <Grid.Col span={{ base: 12, lg: 8 }}>
               <Stack gap="md">
                 <AppCard p={0}>
                   <Stack gap={0}>
-                    <Group p="md" style={{ borderBottom: '1px solid #dee2e6' }}>
+                    <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
                       <Title order={2} size="h5">
                         Условие задания
                       </Title>
@@ -407,7 +415,7 @@ export function TeacherTaskDetailsPage() {
 
                 <AppCard p={0}>
                   <Stack gap={0}>
-                    <Group justify="space-between" p="md" style={{ borderBottom: '1px solid #dee2e6' }}>
+                    <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
                       <Title order={2} size="h5">
                         Эталонный SQL-запрос
                       </Title>
@@ -415,7 +423,7 @@ export function TeacherTaskDetailsPage() {
                         read-only sandbox
                       </Badge>
                     </Group>
-                    <Box bg="#1f2933" p="md">
+                    <Box bg="gray.9" p="md">
                       <Code
                         block
                         c="gray.1"
@@ -524,17 +532,23 @@ export function TeacherTaskDetailsPage() {
                 </AppCard>
               </Stack>
             </Grid.Col>
-          </Grid>
+              </Grid>
+            </Tabs.Panel>
 
-          <Stack gap="md">
-            <Title order={2} size="h4">
-              Последние попытки
-            </Title>
-            <AppCard p={0}>
+            <Tabs.Panel value="validation">
+              <TaskValidationScoreEditor taskId={task.taskId ?? taskId} targetDbId={targetDb?.targetDbId ?? null} />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="attempts">
+              <Stack gap="md">
+                <Title order={2} size="h4">
+                  Последние попытки
+                </Title>
+                <AppCard p={0}>
               {attempts.length > 0 ? (
                 <Table.ScrollContainer minWidth={760}>
                   <Table striped highlightOnHover>
-                    <Table.Thead bg="#f3f4f5">
+                    <Table.Thead bg="gray.1">
                       <Table.Tr>
                         <Table.Th>Студент</Table.Th>
                         <Table.Th>Статус</Table.Th>
@@ -566,8 +580,10 @@ export function TeacherTaskDetailsPage() {
                   description="После отправки решений студентами здесь появится краткая история."
                 />
               )}
-            </AppCard>
-          </Stack>
+                </AppCard>
+              </Stack>
+            </Tabs.Panel>
+          </Tabs>
         </Stack>
       ) : (
         <AppCard p="md">
