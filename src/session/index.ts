@@ -13,8 +13,10 @@ export {
 export {
   ACTIVE_LAUNCH_CONTEXT_STORAGE_KEY,
   clearActiveLaunchContext,
+  clearPlatformReturnPath,
   consumeLaunchToken,
   getActiveLaunchContext,
+  readPlatformReturnPath,
   setActiveLaunchContext,
 } from './launch';
 export type { ActiveLaunchContext } from './launch';
