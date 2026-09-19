@@ -12,6 +12,7 @@ export {
 } from './lib';
 export {
   ACTIVE_LAUNCH_CONTEXT_STORAGE_KEY,
+  buildStudentPlatformLeaveUrl,
   clearActiveLaunchContext,
   clearPlatformReturnPath,
   consumeLaunchToken,
