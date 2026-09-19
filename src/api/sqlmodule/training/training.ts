@@ -1034,6 +1034,16 @@ export type deleteSqlTaskResponse204 = {
   status: 204
 }
 
+export type deleteSqlTaskResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type deleteSqlTaskResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
 export type deleteSqlTaskResponse404 = {
   data: ProblemDetails
   status: 404
@@ -1044,10 +1054,15 @@ export type deleteSqlTaskResponse409 = {
   status: 409
 }
 
+export type deleteSqlTaskResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
 export type deleteSqlTaskResponseSuccess = (deleteSqlTaskResponse204) & {
   headers: Headers;
 };
-export type deleteSqlTaskResponseError = (deleteSqlTaskResponse404 | deleteSqlTaskResponse409) & {
+export type deleteSqlTaskResponseError = (deleteSqlTaskResponse401 | deleteSqlTaskResponse403 | deleteSqlTaskResponse404 | deleteSqlTaskResponse409 | deleteSqlTaskResponse500) & {
   headers: Headers;
 };
 
@@ -1062,7 +1077,7 @@ export const getDeleteSqlTaskUrl = (id: string,) => {
 }
 
 /**
- * Удаляет задание по Id. Возвращает 204 No Content. 404 — задание не найдено. 409 — задание имеет попытки выполнения.
+ * Удаляет задание, которым никто не пользовался: статус Draft или Archived, нет попыток и прохождений студентов (включая платформенные). Одной транзакцией удаляются задание, версии оценки, конфигурация оценки и эталонный запрос. Те же правила видны в teacher-details (canDelete, deleteBlockReasons). Возвращает 204 No Content.
  * @summary Удалить SQL-задание
  */
 export const deleteSqlTask = async (id: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<deleteSqlTaskResponse> => {
@@ -1350,6 +1365,16 @@ export const useUpdateSqlTask = <TError = ProblemDetails | HttpValidationProblem
   status: 200
 }
 
+export type publishSqlTaskResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type publishSqlTaskResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
 export type publishSqlTaskResponse404 = {
   data: ProblemDetails
   status: 404
@@ -1365,10 +1390,15 @@ export type publishSqlTaskResponse422 = {
   status: 422
 }
 
+export type publishSqlTaskResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
 export type publishSqlTaskResponseSuccess = (publishSqlTaskResponse200) & {
   headers: Headers;
 };
-export type publishSqlTaskResponseError = (publishSqlTaskResponse404 | publishSqlTaskResponse409 | publishSqlTaskResponse422) & {
+export type publishSqlTaskResponseError = (publishSqlTaskResponse401 | publishSqlTaskResponse403 | publishSqlTaskResponse404 | publishSqlTaskResponse409 | publishSqlTaskResponse422 | publishSqlTaskResponse500) & {
   headers: Headers;
 };
 
@@ -1383,7 +1413,7 @@ export const getPublishSqlTaskUrl = (id: string,) => {
 }
 
 /**
- * Публикует подготовленное Draft-задание. Эталонный запрос должен иметь проверенный результат, учебная база должна существовать, а у задания не должно быть попыток. Перед публикацией эталон повторно проверяется; превышение лимита сравнения возвращает ReferenceResultExceedsComparisonLimit. Возвращает 200 OK с обновлённым заданием.
+ * Публикует подготовленное Draft-задание только если оно готово к запуску студентом: опубликована оценка решения, эталон задан и проверен (результат актуален для схемы и данных), учебная база существует, у задания нет попыток. Готовность проверяется на backend независимо от клиента; полный список причин — в teacher-details (publishBlockers). При отказе статус задания не меняется. Код и статус ответа определяет первая причина, все причины перечислены в errors. Возвращает 200 OK с обновлённым заданием.
  * @summary Опубликовать SQL-задание
  */
 export const publishSqlTask = async (id: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<publishSqlTaskResponse> => {
@@ -1551,15 +1581,30 @@ export const useUpdateTaskReferenceQuery = <TError = ProblemDetails | HttpValida
   status: 200
 }
 
+export type getTeacherTaskDetailsResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getTeacherTaskDetailsResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
 export type getTeacherTaskDetailsResponse404 = {
   data: ProblemDetails
   status: 404
 }
 
+export type getTeacherTaskDetailsResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
 export type getTeacherTaskDetailsResponseSuccess = (getTeacherTaskDetailsResponse200) & {
   headers: Headers;
 };
-export type getTeacherTaskDetailsResponseError = (getTeacherTaskDetailsResponse404) & {
+export type getTeacherTaskDetailsResponseError = (getTeacherTaskDetailsResponse401 | getTeacherTaskDetailsResponse403 | getTeacherTaskDetailsResponse404 | getTeacherTaskDetailsResponse500) & {
   headers: Headers;
 };
 
@@ -1574,7 +1619,7 @@ export const getGetTeacherTaskDetailsUrl = (taskId: string,) => {
 }
 
 /**
- * Возвращает задание, тему, эталонный запрос, учебную базу, состав таблиц, общее число попыток и пять последних попыток.
+ * Возвращает задание, тему, эталонный запрос, учебную базу, состав таблиц, общее число попыток, пять последних попыток и причины, мешающие публикации (publishBlockers — тот же набор правил, что использует операция публикации).
  * @summary Получить агрегированные детали задания для преподавателя
  */
 export const getTeacherTaskDetails = async (taskId: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getTeacherTaskDetailsResponse> => {

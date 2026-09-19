@@ -5,14 +5,19 @@ import type { StudentDatabaseSchema } from '../model/student-schema';
 import { mapStudentApiError, StudentErrorAlert } from '../../student-errors';
 import { getStudentTaskTableRows } from '../api/student-table-rows';
 
+type RowsResponse = Awaited<ReturnType<typeof getStudentTaskTableRows>>;
+export type TableRowsLoader = (tableId: string, offset: number, limit: number, signal?: AbortSignal) => Promise<RowsResponse>;
+
 const PAGE_SIZE = 25;
 
 type Props = {
   schema: StudentDatabaseSchema;
-  taskId: string;
+  taskId?: string;
+  queryKey?: readonly unknown[];
+  loadRows?: TableRowsLoader;
 };
 
-export function StudentTableData({ schema, taskId }: Props) {
+export function StudentTableData({ schema, taskId, queryKey, loadRows }: Props) {
   const [tableId, setTableId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const tableOptions = useMemo(
@@ -25,9 +30,11 @@ export function StudentTableData({ schema, taskId }: Props) {
   useEffect(() => setPage(1), [tableId]);
 
   const query = useQuery({
-    queryKey: ['student-task-table-rows', taskId, tableId, page],
-    queryFn: ({ signal }) => getStudentTaskTableRows(taskId, tableId!, (page - 1) * PAGE_SIZE, PAGE_SIZE, signal),
-    enabled: Boolean(taskId && tableId),
+    queryKey: [...(queryKey ?? ['student-task-table-rows', taskId]), tableId, page],
+    queryFn: ({ signal }) => loadRows
+      ? loadRows(tableId!, (page - 1) * PAGE_SIZE, PAGE_SIZE, signal)
+      : getStudentTaskTableRows(taskId!, tableId!, (page - 1) * PAGE_SIZE, PAGE_SIZE, signal),
+    enabled: Boolean((taskId || loadRows) && tableId),
     retry: false,
   });
 

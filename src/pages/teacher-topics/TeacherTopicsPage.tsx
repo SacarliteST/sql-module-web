@@ -270,21 +270,11 @@ export function TeacherTopicsPage() {
   );
 
   useEffect(() => {
-    if (visibleTopics.length === 0) {
-      setSelectedTopicId('');
-      return;
-    }
-
-    const selectedTopicVisible = visibleTopics.some((topic) => topic.id === selectedTopicId);
-
-    if (!selectedTopicVisible) {
-      setSelectedTopicId(visibleTopics[0].id);
-    }
+    if (selectedTopicId && !visibleTopics.some((topic) => topic.id === selectedTopicId)) setSelectedTopicId('');
   }, [selectedTopicId, visibleTopics]);
 
   const allTopics = useMemo(() => flattenTopicTree(topicTree), [topicTree]);
-  const selectedTopic =
-    allTopics.find((topic) => topic.id === selectedTopicId) ?? visibleTopics[0] ?? null;
+  const selectedTopic = allTopics.find((topic) => topic.id === selectedTopicId) ?? null;
   const selectedParentTopic = selectedTopic?.parentTopicId
     ? allTopics.find((topic) => topic.id === selectedTopic.parentTopicId)
     : null;
@@ -565,7 +555,7 @@ export function TeacherTopicsPage() {
                         Серверная выборка по теме с агрегированными базой, СУБД и числом попыток.
                       </Text>
                     </Stack>
-                    <Button onClick={createTaskModal.open} size="xs">
+                    <Button disabled={!selectedTopic} onClick={createTaskModal.open} size="xs">
                       Создать задание
                     </Button>
                   </Group>

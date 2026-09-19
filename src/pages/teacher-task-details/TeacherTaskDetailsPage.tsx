@@ -5,6 +5,7 @@ import {
   Button,
   Code,
   Grid,
+  Drawer,
   Group,
   SimpleGrid,
   Stack,
@@ -21,6 +22,7 @@ import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms
 import type {
   HttpValidationProblemDetails,
   ProblemDetails,
+  PublishBlockerResponse,
   TeacherTaskAttemptResponse,
 } from '../../api/sqlmodule/model';
 import {
@@ -39,6 +41,7 @@ import {
 } from '../../api/sqlmodule/training/training';
 import { SqlQueryValidationPreview, SqlTaskFormModal } from '../../features/sql-tasks';
 import { TaskValidationScoreEditor } from '../../features/sql-tasks/ui/TaskValidationScoreEditor';
+import { TargetDbSchemaPreview } from '../../features/sql-tasks/ui/TargetDbSchemaPreview';
 import { TeacherContourTabs } from '../../features/teacher-contour';
 import { formatAuditActor, formatAuditDateTime } from '../../shared/lib/teacher-audit';
 import {
@@ -156,6 +159,31 @@ function MetricCard({
   );
 }
 
+function PublishReadiness({ blockers, canPublish, loading, onPublish }: {
+  blockers: PublishBlockerResponse[];
+  canPublish: boolean;
+  loading: boolean;
+  onPublish: () => void;
+}) {
+  const validationBlockers = blockers.filter(({ code }) => code === 'SqlTask.ValidationVersionNotPublished');
+  const taskBlockers = blockers.filter(({ code }) => code !== 'SqlTask.ValidationVersionNotPublished');
+  const step = (label: string, issues: PublishBlockerResponse[]) => <Group justify="space-between" align="flex-start" wrap="nowrap">
+    <Stack gap={2}><Text fw={600}>{label}</Text>{issues.map((issue) => <Text c="dimmed" key={issue.code} size="sm">{issue.message}</Text>)}</Stack>
+    <Badge color={issues.length ? 'yellow' : 'green'} variant="light">{issues.length ? 'Не выполнено' : 'Выполнено'}</Badge>
+  </Group>;
+
+  return <AppCard><Stack gap="md">
+    <Title order={2} size="h5">Готовность к публикации</Title>
+    {step('1. Условие, база и эталон', taskBlockers)}
+    {step('2. Оценка решения', validationBlockers)}
+    {step('3. Публикация', blockers)}
+    <Group justify="space-between" align="flex-end">
+      <Text c="dimmed" size="sm">Публикация оценки и публикация самого задания — два разных действия.</Text>
+      <Button disabled={!canPublish} loading={loading} onClick={onPublish}>Опубликовать задание</Button>
+    </Group>
+  </Stack></AppCard>;
+}
+
 export function TeacherTaskDetailsPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -167,6 +195,7 @@ export function TeacherTaskDetailsPage() {
   const [publishOpened, publishModal] = useDisclosure(false);
   const [deleteOpened, deleteModal] = useDisclosure(false);
   const [archiveOpened, archiveModal] = useDisclosure(false);
+  const [schemaOpened, schemaDrawer] = useDisclosure(false);
   const [publishError, setPublishError] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [archiveError, setArchiveError] = useState('');
@@ -303,6 +332,15 @@ export function TeacherTaskDetailsPage() {
 
   return (
     <Page>
+      <Drawer
+        opened={schemaOpened}
+        onClose={schemaDrawer.close}
+        position="right"
+        size="xl"
+        title="Схема и данные учебной базы"
+      >
+        {targetDb?.targetDbId ? <TargetDbSchemaPreview targetDbId={targetDb.targetDbId} /> : null}
+      </Drawer>
       <PageBreadcrumbs
         items={[
           { label: 'Главная', to: '/' },
@@ -321,13 +359,6 @@ export function TeacherTaskDetailsPage() {
             <>
               <Button disabled={!task?.canEditTask} variant="light" onClick={editTaskModal.open}>
                 Изменить
-              </Button>
-              <Button
-                disabled={!canPublish}
-                loading={publishMutation.isPending}
-                onClick={openPublishModal}
-              >
-                Опубликовать задание
               </Button>
               <Button disabled={!task?.canEditReferenceQuery} variant="light" onClick={editTaskModal.open}>
                 Эталон и проверка
@@ -388,6 +419,12 @@ export function TeacherTaskDetailsPage() {
             <MetricCard label="Попыток" value={String(task.attemptsCount ?? attempts.length)} />
             <MetricCard label="Последнее изменение" value={formatAuditDateTime(task.updatedAt)} />
           </SimpleGrid>
+          <PublishReadiness
+            blockers={task.publishBlockers}
+            canPublish={canPublish}
+            loading={publishMutation.isPending}
+            onPublish={openPublishModal}
+          />
 
           <Tabs defaultValue="overview" keepMounted={false}>
             <Tabs.List mb="lg">
@@ -483,16 +520,7 @@ export function TeacherTaskDetailsPage() {
                           : 'В учебной базе нет таблиц.'}
                       </Text>
                     </Stack>
-                    <Button
-                      component={Link}
-                      disabled={!targetDb?.targetDbId}
-                      to={
-                        targetDb?.targetDbId
-                          ? `/teacher/databases/${targetDb.targetDbId}/schema`
-                          : '#'
-                      }
-                      variant="outline"
-                    >
+                    <Button disabled={!targetDb?.targetDbId} onClick={schemaDrawer.open} variant="outline">
                       Открыть схему
                     </Button>
                   </Stack>

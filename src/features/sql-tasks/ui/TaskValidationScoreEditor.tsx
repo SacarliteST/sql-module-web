@@ -1,4 +1,4 @@
-import { Alert, Badge, Button, Checkbox, Group, NumberInput, Select, Stack, Table, Text, Title } from '@mantine/core';
+import { Alert, Badge, Button, Checkbox, Group, NumberInput, SegmentedControl, Select, Stack, Table, Text, Title } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useGetDbmsValidationCapabilities } from '../../../api/sqlmodule/dbms-catalog/dbms-catalog';
@@ -99,6 +99,7 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
   }) : null;
   const previewIsCurrent = preview?.fingerprint === draftFingerprint;
   const previewPassed = Boolean(previewIsCurrent && preview?.result.isValid && preview.result.referenceScore === 100);
+  const hasActiveVersion = Boolean(configuration?.validationVersionId);
   const isValid = Boolean(
     capabilities?.canConfigure &&
     Boolean(schema) && !hasDuplicate && !hasConflict && !hasUnsupportedCheck && !hasUnsupportedHint &&
@@ -110,6 +111,8 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
       (check.kind === ValidationCheckKind.MainDatasetResult || Boolean(check.value?.trim())))
   );
   const kindOptions = useMemo(() => capabilities?.checkKindOptions.filter(({ value }) => value !== ValidationCheckKind.MainDatasetResult) ?? [], [capabilities]);
+  const canPublishValidation = Boolean(configuration && isValid && savedFingerprint === draftFingerprint &&
+    (hasActiveVersion ? previewPassed && configuration.hasUnpublishedChanges : true));
 
   const addCheck = () => {
     if (!addKind || !kindOptions.some(({ value }) => value === addKind)) return;
@@ -174,8 +177,7 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
   };
 
   const publish = async () => {
-    if (!configuration || !previewPassed || savedFingerprint !== draftFingerprint ||
-      !configuration.hasUnpublishedChanges || publishMutation.isPending) return;
+    if (!configuration || !canPublishValidation || publishMutation.isPending) return;
     setError('');
     setSuccess('');
     const key = publishKey?.version === configuration.version ? publishKey.key : crypto.randomUUID();
@@ -202,7 +204,13 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
     <Group justify="space-between"><Title order={2} size="h5">Оценка решения</Title><Badge variant="light">{configuration ? getValidationConfigurationStateLabel(configuration.state) : '—'}</Badge></Group>
     <Text size="sm" c="dimmed">Настройте правила, проверьте эталон, сохраните черновик и опубликуйте проверку. Это не публикует само задание: чтобы оно стало доступно студентам, отдельно нажмите «Опубликовать задание» вверху страницы.</Text>
     {configuration ? <Stack gap="xs">
-      <Group gap="xs"><Badge color={configuration.validationVersionId ? 'green' : 'yellow'} variant="light">{configuration.validationVersionId ? `Активная версия №${configuration.validationVersionNumber ?? '—'}` : 'Нет активной версии'}</Badge>{configuration.hasUnpublishedChanges ? <Badge color="orange" variant="light">Есть неопубликованные изменения</Badge> : null}</Group>
+      <Badge color={!hasActiveVersion ? 'yellow' : configuration.hasUnpublishedChanges ? 'orange' : 'green'} variant="light">
+        {!hasActiveVersion
+          ? 'Оценка решения не опубликована — студенты не смогут начать задание'
+          : configuration.hasUnpublishedChanges
+            ? `Есть неопубликованные изменения · для новых прохождений действует версия №${configuration.validationVersionNumber ?? '—'}`
+            : `Версия №${configuration.validationVersionNumber ?? '—'} действует`}
+      </Badge>
       <Text size="sm">Опубликована: {formatAuditDateTime(configuration.publishedAt)}{configuration.validationVersionId ? ` · ID: ${configuration.validationVersionId}` : ''}</Text>
       <Text size="sm">Текущая конфигурация: проходной балл {configuration.passingScore} из 100; попыток {configuration.maxAttempts ?? 'без лимита'}.</Text>
       <Text size="sm">Веса: {configuration.checks.map((check) => `${getValidationCheckKindLabel(check.kind)}${check.valueDisplayName ? ` (${check.valueDisplayName})` : ''} — ${check.weight}`).join('; ') || 'не заданы'}.</Text>
@@ -214,12 +222,12 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
     {configurationQuery.isError || capabilitiesQuery.isError || schemaQuery.isError || (configurationQuery.data && configurationQuery.data.status !== 200) || (capabilitiesQuery.data && capabilitiesQuery.data.status !== 200) || (schemaQuery.data && schemaQuery.data.status !== 200) ? <Alert color="red">Не удалось загрузить конфигурацию, возможности СУБД или схему базы.</Alert> : null}
     {capabilities && !capabilities.canConfigure ? <Alert color="red">СУБД вернула неподдерживаемые возможности проверки. Сохранение отключено.</Alert> : null}
     {configuration && capabilities && schema ? <>
-      <Group grow align="start"><NumberInput label="Проходной балл" min={0} max={100} value={passingScore} onChange={(value) => { setPassingScore(value); setSuccess(''); }} /><NumberInput label="Лимит попыток" description="Оставьте пустым для неограниченного числа попыток" min={1} max={capabilities.maxAttemptsLimit} value={maxAttempts} onChange={(value) => { setMaxAttempts(value); setSuccess(''); }} /></Group>
+      <Group grow align="start"><NumberInput label="Проходной балл" min={0} max={100} value={passingScore} onChange={(value) => { setPassingScore(value); setSuccess(''); }} /><Stack gap={6}><Text fw={500} size="sm">Лимит попыток</Text><SegmentedControl data={[{ label: 'Без ограничения', value: 'unlimited' }, { label: 'Не более N', value: 'limited' }]} value={maxAttempts === '' ? 'unlimited' : 'limited'} onChange={(value) => { setMaxAttempts(value === 'unlimited' ? '' : 1); setSuccess(''); }} />{maxAttempts !== '' ? <NumberInput aria-label="Максимальное число попыток" min={1} max={capabilities.maxAttemptsLimit} value={maxAttempts} onChange={(value) => { setMaxAttempts(value); setSuccess(''); }} /> : null}<Text c="dimmed" size="xs">В платформенной сессии этот лимит задаёт число отправок SQL. Число запусков самой практики отдельно ограничивает Education.</Text></Stack></Group>
       <Table.ScrollContainer minWidth={650}><Table striped><Table.Thead><Table.Tr><Table.Th>Критерий</Table.Th><Table.Th>Значение</Table.Th><Table.Th>Вес</Table.Th><Table.Th /></Table.Tr></Table.Thead><Table.Tbody>{checks.map((check, index) => <Table.Tr key={check.clientId}><Table.Td>{getValidationCheckKindLabel(check.kind)}</Table.Td><Table.Td>{check.kind === ValidationCheckKind.MainDatasetResult ? <Text size="sm" c="dimmed">Основной набор данных</Text> : <Select aria-label={`Значение критерия ${index + 1}`} placeholder={check.kind === ValidationCheckKind.RequiredTable || check.kind === ValidationCheckKind.ForbiddenTable ? 'Выберите таблицу' : 'Выберите конструкцию'} data={check.kind === ValidationCheckKind.RequiredTable || check.kind === ValidationCheckKind.ForbiddenTable ? tableOptions : capabilities.constructOptions} value={check.value ?? null} onChange={(value) => setChecks((current) => current.map((item) => item.clientId === check.clientId ? { ...item, value: value ?? '' } : item))} searchable clearable />}</Table.Td><Table.Td><NumberInput aria-label={`Вес критерия ${index + 1}`} min={1} max={100} w={105} value={check.weight ?? ''} onChange={(value) => setChecks((current) => current.map((item) => item.clientId === check.clientId ? { ...item, weight: typeof value === 'number' ? value : null } : item))} /></Table.Td><Table.Td>{check.kind !== ValidationCheckKind.MainDatasetResult ? <Button size="xs" color="red" variant="subtle" onClick={() => setChecks((current) => current.filter((item) => item.clientId !== check.clientId))}>Удалить</Button> : null}</Table.Td></Table.Tr>)}</Table.Tbody></Table></Table.ScrollContainer>
       <Group><Select label="Добавить критерий" placeholder="Выберите тип" data={kindOptions} value={addKind} onChange={setAddKind} searchable clearable disabled={!capabilities.canConfigure} /><Button variant="light" disabled={!addKind || !capabilities.canConfigure} onClick={addCheck}>Добавить</Button></Group>
       <Stack gap="xs"><Text fw={600}>Подсказки студенту</Text><Text size="sm" c="dimmed">Критерии проверяются всегда; этот выбор влияет только на видимость правил и диагностики.</Text><Checkbox.Group value={visibleHintGroups} onChange={(value) => { setVisibleHintGroups(value); setSuccess(''); }}><Group>{capabilities.hintGroupOptions.map(({ value, label }) => <Checkbox key={value} value={value} label={label} />)}</Group></Checkbox.Group></Stack>
       <Alert color="blue" title="Что увидит студент"><Stack gap={4}>{visibleHintGroups.length === 0 ? <Text size="sm">Подсказки скрыты.</Text> : visibleHintGroups.map((group) => { const matching = checks.filter((check) => group === HintGroup.RequiredConstructs ? check.kind === ValidationCheckKind.RequiredConstruct : group === HintGroup.ForbiddenConstructs ? check.kind === ValidationCheckKind.ForbiddenConstruct : group === HintGroup.RequiredTables ? check.kind === ValidationCheckKind.RequiredTable : group === HintGroup.ForbiddenTables ? check.kind === ValidationCheckKind.ForbiddenTable : check.kind === ValidationCheckKind.MainDatasetResult); return <Text key={group} size="sm">{getHintGroupLabel(group)}: {group === HintGroup.Result ? 'результат проверки' : matching.length ? matching.map((check) => group === HintGroup.RequiredTables || group === HintGroup.ForbiddenTables ? tableOptions.find(({ value }) => value === check.value)?.label ?? 'Неизвестная таблица' : getSqlConstructLabel(check.value)).join(', ') : 'правила не заданы'}</Text>; })}</Stack></Alert>
-      <Group justify="space-between"><Text c={weightSum === 100 ? 'green' : 'red'} fw={600}>Сумма весов: {weightSum} из 100</Text><Group><Button variant="light" disabled={!isValid} loading={previewMutation.isPending} onClick={() => void runPreview()}>Проверить эталон</Button><Button disabled={staleVersion || !isValid || !previewPassed || savedFingerprint === draftFingerprint} loading={saveMutation.isPending} onClick={() => void save()}>Сохранить черновик</Button><Button disabled={staleVersion || !previewPassed || savedFingerprint !== draftFingerprint || !configuration.hasUnpublishedChanges} loading={publishMutation.isPending} onClick={() => void publish()}>Опубликовать проверку</Button></Group></Group>
+      <Group justify="space-between"><Text c={weightSum === 100 ? 'green' : 'red'} fw={600}>Сумма весов: {weightSum} из 100</Text><Group><Button variant="light" disabled={!isValid} loading={previewMutation.isPending} onClick={() => void runPreview()}>Проверить эталон</Button>{savedFingerprint !== draftFingerprint ? <Button disabled={staleVersion || !isValid || !previewPassed} loading={saveMutation.isPending} onClick={() => void save()}>Сохранить черновик</Button> : null}<Button disabled={staleVersion || !canPublishValidation} loading={publishMutation.isPending} onClick={() => void publish()}>Опубликовать оценку</Button></Group></Group>
       {previewIsCurrent && preview ? <Alert color={previewPassed ? 'green' : 'red'} title={`Эталон: ${preview.result.referenceScore} из 100`}><Stack gap={4}><Text size="sm">Анализатор: {preview.result.analyzerVersion}</Text>{preview.result.checks.map((check, index) => <Text key={check.checkId ?? check.clientKey ?? index} size="sm">{getValidationCheckKindLabel(check.kind)} — {getValidationCheckStatusLabel(check.status)}, {check.awardedScore} баллов{check.message ? `: ${check.message}` : ''}</Text>)}{preview.result.violations.map((violation, index) => <Text key={`${violation.path}-${index}`} size="sm" c="red">{violation.path}: {violation.message}</Text>)}</Stack></Alert> : preview ? <Alert color="yellow">Правила изменены после проверки. Запустите preview ещё раз.</Alert> : null}
       {staleVersion ? <Alert color="yellow">Версия изменилась на сервере. Перезагрузите актуальные правила перед повтором.<Button size="xs" ml="sm" variant="light" onClick={() => void configurationQuery.refetch()}>Перезагрузить</Button></Alert> : null}
       {resultCount !== 1 ? <Alert color="red">Критерий результата должен присутствовать ровно один раз.</Alert> : null}
