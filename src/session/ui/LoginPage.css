@@ -9,9 +9,10 @@
 }
 
 .login-page__card {
-  background: #ffffff;
+  background: var(--mantine-color-white);
 }
 
 .login-page__title {
-  color: #212529;
+  color: var(--mantine-color-gray-9);
+  font-family: var(--mantine-font-family-headings);
 }

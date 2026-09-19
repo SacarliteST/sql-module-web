@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import type { AppConfig } from '../config/app-config';
 import { normalizeBasePath } from '../config/base-path';
 import { RuntimeConfigProvider } from './runtime-config-store';
+import { theme } from '../theme';
 
 type AppProvidersProps = PropsWithChildren<{
   config: AppConfig;
@@ -16,7 +17,7 @@ export function AppProviders({ children, config }: AppProvidersProps) {
   return (
     <RuntimeConfigProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider defaultColorScheme="light">
+        <MantineProvider defaultColorScheme="light" theme={theme}>
           <BrowserRouter basename={normalizeBasePath(config.basePath)}>
             {children}
           </BrowserRouter>

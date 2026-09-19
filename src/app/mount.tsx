@@ -1,4 +1,5 @@
 import '@mantine/core/styles.css';
+import './fonts';
 import { createRoot, type Root } from 'react-dom/client';
 import { App } from './App';
 import type { AppConfig } from './config/app-config';
