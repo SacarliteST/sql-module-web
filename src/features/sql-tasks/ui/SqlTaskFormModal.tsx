@@ -1,5 +1,6 @@
 import {
   Alert,
+  Accordion,
   Badge,
   Button,
   Divider,
@@ -36,6 +37,7 @@ import {
 } from '../../../api/sqlmodule/training/training';
 import { SqlCodeEditor } from './SqlCodeEditor';
 import { SqlQueryValidationPreview } from './SqlQueryValidationPreview';
+import { TargetDbSchemaPreview } from './TargetDbSchemaPreview';
 
 type TopicOption = {
   value: string;
@@ -97,6 +99,15 @@ const BACKEND_FIELD_MAP: Record<string, FormField> = {
   taskname: 'taskName',
   tasktext: 'taskText',
   topicid: 'topicId',
+};
+const FIELD_LABELS: Record<FormField, string> = {
+  taskName: 'название', topicId: 'тема', targetDbId: 'учебная база', queryText: 'эталонный SQL',
+  strictColumnOrder: 'порядок колонок', strictRowOrder: 'порядок строк', difficultyLevel: 'сложность',
+  publicationStatus: 'статус', taskText: 'условие',
+};
+const FIELD_IDS: Partial<Record<FormField, string>> = {
+  taskName: 'sql-task-name', topicId: 'sql-task-topic', targetDbId: 'sql-task-target-db',
+  queryText: 'sql-task-query', taskText: 'sql-task-text',
 };
 
 function normalizeFieldPath(path: string): string {
@@ -241,6 +252,7 @@ export function SqlTaskFormModal({
   const [validatedReferenceSignature, setValidatedReferenceSignature] = useState('');
   const [formError, setFormError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [schemaPanel, setSchemaPanel] = useState<string | null>(null);
 
   const isEditMode = mode === 'edit';
   const isSaving =
@@ -264,6 +276,7 @@ export function SqlTaskFormModal({
       );
       setFormError('');
       setFieldErrors({});
+      setSchemaPanel(null);
     }
   }, [initialTopicId, mode, opened, task]);
 
@@ -273,6 +286,8 @@ export function SqlTaskFormModal({
       .filter((item): item is TopicOption => item !== null)
       .sort((left, right) => left.label.localeCompare(right.label, 'ru'));
   }, [topics]);
+  const selectedTopic = topics.find((topic) => topic.id === values.topicId) ?? null;
+  const selectedTopicHasChildren = topics.some((topic) => topic.parentTopicId === values.topicId);
 
   const dbmsById = useMemo(() => {
     return new Map(
@@ -400,6 +415,14 @@ export function SqlTaskFormModal({
     }
 
     setFieldErrors(nextErrors);
+    const firstField = Object.keys(nextErrors)[0] as FormField | undefined;
+    if (firstField) {
+      requestAnimationFrame(() => {
+        const element = FIELD_IDS[firstField] ? document.getElementById(FIELD_IDS[firstField]!) : null;
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element?.focus();
+      });
+    }
     return Object.keys(nextErrors).length === 0;
   };
 
@@ -541,6 +564,7 @@ export function SqlTaskFormModal({
 
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
           <TextInput
+            id={FIELD_IDS.taskName}
             withAsterisk
             label="Название задания"
             placeholder="Например, Простой выбор всех полей"
@@ -550,7 +574,8 @@ export function SqlTaskFormModal({
             maxLength={300}
             onChange={(event) => setValue('taskName', event.currentTarget.value)}
           />
-          <Select
+          {isEditMode ? <Select
+            id={FIELD_IDS.topicId}
             withAsterisk
             label="Тема"
             data={topicOptions}
@@ -560,7 +585,7 @@ export function SqlTaskFormModal({
             searchable
             nothingFoundMessage="Темы не найдены"
             onChange={(value) => setValue('topicId', value ?? '')}
-          />
+          /> : <Stack gap={6}><Text fw={500} size="sm">Тема</Text><Badge color={selectedTopic ? 'indigo' : 'red'} size="lg" variant="light">{selectedTopic?.topicName?.trim() || 'Тема не выбрана'}</Badge>{fieldErrors.topicId ? <Text c="red" size="xs">{fieldErrors.topicId}</Text> : null}{selectedTopicHasChildren ? <Text c="dimmed" size="xs">Задания обычно размещают в подтемах, но создание в текущей теме разрешено.</Text> : null}</Stack>}
         </SimpleGrid>
 
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
@@ -600,6 +625,7 @@ export function SqlTaskFormModal({
         </SimpleGrid>
 
         <Textarea
+          id={FIELD_IDS.taskText}
           withAsterisk
           label="Условие задания"
           placeholder="Опишите задачу для студента..."
@@ -621,6 +647,7 @@ export function SqlTaskFormModal({
         ) : null}
 
         <Select
+          id={FIELD_IDS.targetDbId}
           withAsterisk
           label="Учебная база"
           description="База, в которой выполняется эталонный SELECT"
@@ -646,6 +673,13 @@ export function SqlTaskFormModal({
             </Badge>
           ) : null}
         </Group>
+
+        {values.targetDbId ? <Accordion variant="contained" value={schemaPanel} onChange={setSchemaPanel}>
+          <Accordion.Item value="schema-data">
+            <Accordion.Control>Схема и данные</Accordion.Control>
+            <Accordion.Panel>{schemaPanel === 'schema-data' ? <TargetDbSchemaPreview targetDbId={values.targetDbId} /> : null}</Accordion.Panel>
+          </Accordion.Item>
+        </Accordion> : null}
 
         <SqlCodeEditor
           ariaLabel="Эталонный SQL-запрос"
@@ -692,6 +726,10 @@ export function SqlTaskFormModal({
 
         <Divider />
 
+        {Object.keys(fieldErrors).length > 0 ? <Alert color="red" title="Заполните обязательные поля">
+          {Object.keys(fieldErrors).map((field) => FIELD_LABELS[field as FormField]).join(', ')}.
+        </Alert> : null}
+
         <Group justify="space-between" gap="md" wrap="wrap">
           <Text c="dimmed" size="sm">
             Эталон принадлежит только этому заданию и не выбирается из общего списка
@@ -701,13 +739,7 @@ export function SqlTaskFormModal({
               Отмена
             </Button>
             <Button
-              disabled={
-                (!isEditMode && !isReferenceValidated) ||
-                (isEditMode &&
-                  referenceChanged &&
-                  canEditReferenceQuery &&
-                  !isReferenceValidated)
-              }
+              disabled={isSaving}
               onClick={() => void handleSubmit()}
               loading={isSaving}
             >

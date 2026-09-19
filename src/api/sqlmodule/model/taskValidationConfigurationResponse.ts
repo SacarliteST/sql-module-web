@@ -13,21 +13,46 @@ import type { ValidationCheckResponse } from './validationCheckResponse';
  * Текущая конфигурация проверки и активная опубликованная версия.
  */
 export interface TaskValidationConfigurationResponse {
+  /** Идентификатор задания. */
   taskId: string;
+  /** Токен версии черновика; передаётся при сохранении и публикации. */
   version: string;
-  /** @nullable */
+  /**
+     * Идентификатор активной опубликованной версии. `null` — версия ни разу не публиковалась
+     * (задание нельзя опубликовать или запустить). Отсутствие версии определяется только этим полем.
+     * @nullable
+     */
   validationVersionId: string | null;
-  /** @nullable */
+  /**
+     * Номер активной версии; `null`, если версия не публиковалась.
+     * @nullable
+     */
   validationVersionNumber: number | null;
+  /** Состояние: `Draft` — версии нет или черновик изменён, `Published` — совпадает с активной. */
   state: TaskValidationConfigurationResponseState;
+  /**
+     * Черновик отличается от активной опубликованной версии. Если версии нет (`validationVersionId == null`),
+     * значение `false`: сравнивать не с чем. Поле не означает отсутствие версии.
+     */
   hasUnpublishedChanges: boolean;
+  /** Проходной балл (1–100). */
   passingScore: number;
-  /** @nullable */
+  /**
+     * Лимит попыток; `null` — без ограничения.
+     * @nullable
+     */
   maxAttempts: number | null;
+  /** Группы подсказок, видимые студенту. */
   visibleHintGroups: HintGroup[];
+  /** Критерии оценки. */
   checks: ValidationCheckResponse[];
+  /** Дата создания конфигурации. */
   createdAt: string;
+  /** Дата последнего изменения черновика. */
   updatedAt: string;
-  /** @nullable */
+  /**
+     * Дата публикации активной версии; `null`, если версии нет.
+     * @nullable
+     */
   publishedAt: string | null;
 }

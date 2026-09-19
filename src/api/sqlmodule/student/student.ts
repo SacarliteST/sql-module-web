@@ -27,6 +27,7 @@ import type {
 import type {
   FinalizeStudentTaskProgressHeaders,
   GetStudentAttemptsParams,
+  GetStudentTaskTableRowsParams,
   GetStudentTasksParams,
   GetStudentTopicsParams,
   HttpValidationProblemDetails,
@@ -40,7 +41,8 @@ import type {
   StudentTaskProgressResponse,
   StudentTaskResponsePageResponse,
   StudentTaskSchemaResponse,
-  StudentTopicResponsePageResponse
+  StudentTopicResponsePageResponse,
+  TableRowsResponse
 } from '../model';
 
 import { sqlmoduleFetch } from '../../../shared/http/sqlmodule-fetch';
@@ -577,6 +579,164 @@ export function useGetStudentTaskSchema<TData = Awaited<ReturnType<typeof getStu
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetStudentTaskSchemaQueryOptions(taskId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getStudentTaskTableRowsResponse200 = {
+  data: TableRowsResponse
+  status: 200
+}
+
+export type getStudentTaskTableRowsResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getStudentTaskTableRowsResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getStudentTaskTableRowsResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getStudentTaskTableRowsResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type getStudentTaskTableRowsResponseSuccess = (getStudentTaskTableRowsResponse200) & {
+  headers: Headers;
+};
+export type getStudentTaskTableRowsResponseError = (getStudentTaskTableRowsResponse401 | getStudentTaskTableRowsResponse403 | getStudentTaskTableRowsResponse404 | getStudentTaskTableRowsResponse422) & {
+  headers: Headers;
+};
+
+export type getStudentTaskTableRowsResponse = (getStudentTaskTableRowsResponseSuccess | getStudentTaskTableRowsResponseError)
+
+export const getGetStudentTaskTableRowsUrl = (taskId: string,
+    tableId: string,
+    params: GetStudentTaskTableRowsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/student/tasks/${taskId}/tables/${tableId}/rows?${stringifiedParams}` : `/api/v1/student/tasks/${taskId}/tables/${tableId}/rows`
+}
+
+/**
+ * Возвращает только данные таблицы опубликованного задания. Доступ ограничен taskId текущей платформенной сессии.
+ * @summary Получить страницу учебных данных таблицы задания
+ */
+export const getStudentTaskTableRows = async (taskId: string,
+    tableId: string,
+    params: GetStudentTaskTableRowsParams, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getStudentTaskTableRowsResponse> => {
+
+  return sqlmoduleFetch<getStudentTaskTableRowsResponse>(getGetStudentTaskTableRowsUrl(taskId,tableId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStudentTaskTableRowsQueryKey = (taskId: string,
+    tableId: string,
+    params?: GetStudentTaskTableRowsParams,) => {
+    return [
+    `/api/v1/student/tasks/${taskId}/tables/${tableId}/rows`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStudentTaskTableRowsQueryOptions = <TData = Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError = ProblemDetails | HttpValidationProblemDetails>(taskId: string,
+    tableId: string,
+    params: GetStudentTaskTableRowsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStudentTaskTableRowsQueryKey(taskId,tableId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStudentTaskTableRows>>> = ({ signal }) => getStudentTaskTableRows(taskId,tableId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: taskId !== null && taskId !== undefined && tableId !== null && tableId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStudentTaskTableRowsQueryResult = NonNullable<Awaited<ReturnType<typeof getStudentTaskTableRows>>>
+export type GetStudentTaskTableRowsQueryError = ProblemDetails | HttpValidationProblemDetails
+
+
+export function useGetStudentTaskTableRows<TData = Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ taskId: string,
+    tableId: string,
+    params: GetStudentTaskTableRowsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStudentTaskTableRows>>,
+          TError,
+          Awaited<ReturnType<typeof getStudentTaskTableRows>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStudentTaskTableRows<TData = Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ taskId: string,
+    tableId: string,
+    params: GetStudentTaskTableRowsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStudentTaskTableRows>>,
+          TError,
+          Awaited<ReturnType<typeof getStudentTaskTableRows>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStudentTaskTableRows<TData = Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ taskId: string,
+    tableId: string,
+    params: GetStudentTaskTableRowsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить страницу учебных данных таблицы задания
+ */
+
+export function useGetStudentTaskTableRows<TData = Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError = ProblemDetails | HttpValidationProblemDetails>(
+ taskId: string,
+    tableId: string,
+    params: GetStudentTaskTableRowsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskTableRows>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStudentTaskTableRowsQueryOptions(taskId,tableId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

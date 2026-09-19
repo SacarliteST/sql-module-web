@@ -5,6 +5,8 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { DeleteBlockerResponse } from './deleteBlockerResponse';
+import type { PublishBlockerResponse } from './publishBlockerResponse';
 import type { TeacherTaskAttemptResponse } from './teacherTaskAttemptResponse';
 import type { TeacherTaskDetailsResponsePublicationStatus } from './teacherTaskDetailsResponsePublicationStatus';
 import type { TeacherTaskSqlQueryResponse } from './teacherTaskSqlQueryResponse';
@@ -54,11 +56,24 @@ export interface TeacherTaskDetailsResponse {
   attemptsCount?: number;
   /** Последние попытки выполнения. */
   lastAttempts?: TeacherTaskAttemptResponse[];
-  /** Можно ли опубликовать задание сейчас. */
+  /**
+     * Все причины, мешающие публикации (или запуску уже опубликованного задания), в стабильном порядке.
+     * Пустой список означает готовность. Поля каждого элемента обязательны.
+     */
+  publishBlockers: PublishBlockerResponse[];
+  /**
+     * Все причины, мешающие удалению задания, в стабильном порядке; пустой список — удалять можно.
+     * Форма совпадает с `publishBlockers`. Поля каждого элемента обязательны.
+     */
+  deleteBlockReasons: DeleteBlockerResponse[];
+  /** Можно ли опубликовать задание сейчас: true только для черновика и при пустом `publishBlockers`. */
   canPublish?: boolean;
   /** Можно ли архивировать задание сейчас. */
   canArchive?: boolean;
-  /** Можно ли удалить задание сейчас. */
+  /**
+     * Можно ли удалить задание сейчас: true только при пустом `deleteBlockReasons` —
+     * статус Draft или Archived, нет попыток и прохождений студентов.
+     */
   canDelete?: boolean;
   /**
      * Причина запрета lifecycle-операции, если она общая.

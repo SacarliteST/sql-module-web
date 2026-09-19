@@ -329,10 +329,15 @@ export type deleteTargetDbResponse404 = {
   status: 404
 }
 
+export type deleteTargetDbResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type deleteTargetDbResponseSuccess = (deleteTargetDbResponse204) & {
   headers: Headers;
 };
-export type deleteTargetDbResponseError = (deleteTargetDbResponse404) & {
+export type deleteTargetDbResponseError = (deleteTargetDbResponse404 | deleteTargetDbResponse409) & {
   headers: Headers;
 };
 
@@ -1781,6 +1786,11 @@ export type updateMetaTableResponse404 = {
   status: 404
 }
 
+export type updateMetaTableResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type updateMetaTableResponse422 = {
   data: HttpValidationProblemDetails
   status: 422
@@ -1789,7 +1799,7 @@ export type updateMetaTableResponse422 = {
 export type updateMetaTableResponseSuccess = (updateMetaTableResponse204) & {
   headers: Headers;
 };
-export type updateMetaTableResponseError = (updateMetaTableResponse404 | updateMetaTableResponse422) & {
+export type updateMetaTableResponseError = (updateMetaTableResponse404 | updateMetaTableResponse409 | updateMetaTableResponse422) & {
   headers: Headers;
 };
 
@@ -2099,10 +2109,15 @@ export type deleteMetaRelationshipResponse404 = {
   status: 404
 }
 
+export type deleteMetaRelationshipResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type deleteMetaRelationshipResponseSuccess = (deleteMetaRelationshipResponse204) & {
   headers: Headers;
 };
-export type deleteMetaRelationshipResponseError = (deleteMetaRelationshipResponse404) & {
+export type deleteMetaRelationshipResponseError = (deleteMetaRelationshipResponse404 | deleteMetaRelationshipResponse409) & {
   headers: Headers;
 };
 
@@ -2309,6 +2324,11 @@ export type updateMetaRelationshipResponse404 = {
   status: 404
 }
 
+export type updateMetaRelationshipResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type updateMetaRelationshipResponse422 = {
   data: HttpValidationProblemDetails
   status: 422
@@ -2317,7 +2337,7 @@ export type updateMetaRelationshipResponse422 = {
 export type updateMetaRelationshipResponseSuccess = (updateMetaRelationshipResponse204) & {
   headers: Headers;
 };
-export type updateMetaRelationshipResponseError = (updateMetaRelationshipResponse404 | updateMetaRelationshipResponse422) & {
+export type updateMetaRelationshipResponseError = (updateMetaRelationshipResponse404 | updateMetaRelationshipResponse409 | updateMetaRelationshipResponse422) & {
   headers: Headers;
 };
 
@@ -2842,6 +2862,11 @@ export type updateMetaAttributeResponse404 = {
   status: 404
 }
 
+export type updateMetaAttributeResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type updateMetaAttributeResponse422 = {
   data: HttpValidationProblemDetails
   status: 422
@@ -2850,7 +2875,7 @@ export type updateMetaAttributeResponse422 = {
 export type updateMetaAttributeResponseSuccess = (updateMetaAttributeResponse204) & {
   headers: Headers;
 };
-export type updateMetaAttributeResponseError = (updateMetaAttributeResponse404 | updateMetaAttributeResponse422) & {
+export type updateMetaAttributeResponseError = (updateMetaAttributeResponse404 | updateMetaAttributeResponse409 | updateMetaAttributeResponse422) & {
   headers: Headers;
 };
 
@@ -3160,10 +3185,15 @@ export type deleteDataRecordResponse404 = {
   status: 404
 }
 
+export type deleteDataRecordResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type deleteDataRecordResponseSuccess = (deleteDataRecordResponse204) & {
   headers: Headers;
 };
-export type deleteDataRecordResponseError = (deleteDataRecordResponse404) & {
+export type deleteDataRecordResponseError = (deleteDataRecordResponse404 | deleteDataRecordResponse409) & {
   headers: Headers;
 };
 
@@ -3370,6 +3400,11 @@ export type updateDataRecordResponse404 = {
   status: 404
 }
 
+export type updateDataRecordResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type updateDataRecordResponse422 = {
   data: HttpValidationProblemDetails
   status: 422
@@ -3378,7 +3413,7 @@ export type updateDataRecordResponse422 = {
 export type updateDataRecordResponseSuccess = (updateDataRecordResponse204) & {
   headers: Headers;
 };
-export type updateDataRecordResponseError = (updateDataRecordResponse404 | updateDataRecordResponse422) & {
+export type updateDataRecordResponseError = (updateDataRecordResponse404 | updateDataRecordResponse409 | updateDataRecordResponse422) & {
   headers: Headers;
 };
 
@@ -3688,10 +3723,15 @@ export type deleteCellValueResponse404 = {
   status: 404
 }
 
+export type deleteCellValueResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type deleteCellValueResponseSuccess = (deleteCellValueResponse204) & {
   headers: Headers;
 };
-export type deleteCellValueResponseError = (deleteCellValueResponse404) & {
+export type deleteCellValueResponseError = (deleteCellValueResponse404 | deleteCellValueResponse409) & {
   headers: Headers;
 };
 
@@ -3898,6 +3938,11 @@ export type updateCellValueResponse404 = {
   status: 404
 }
 
+export type updateCellValueResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type updateCellValueResponse422 = {
   data: HttpValidationProblemDetails
   status: 422
@@ -3906,7 +3951,7 @@ export type updateCellValueResponse422 = {
 export type updateCellValueResponseSuccess = (updateCellValueResponse200) & {
   headers: Headers;
 };
-export type updateCellValueResponseError = (updateCellValueResponse404 | updateCellValueResponse422) & {
+export type updateCellValueResponseError = (updateCellValueResponse404 | updateCellValueResponse409 | updateCellValueResponse422) & {
   headers: Headers;
 };
 
@@ -4216,10 +4261,15 @@ export type deleteAttributeParameterValueResponse404 = {
   status: 404
 }
 
+export type deleteAttributeParameterValueResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type deleteAttributeParameterValueResponseSuccess = (deleteAttributeParameterValueResponse204) & {
   headers: Headers;
 };
-export type deleteAttributeParameterValueResponseError = (deleteAttributeParameterValueResponse404) & {
+export type deleteAttributeParameterValueResponseError = (deleteAttributeParameterValueResponse404 | deleteAttributeParameterValueResponse409) & {
   headers: Headers;
 };
 
@@ -4426,6 +4476,11 @@ export type updateAttributeParameterValueResponse404 = {
   status: 404
 }
 
+export type updateAttributeParameterValueResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type updateAttributeParameterValueResponse422 = {
   data: HttpValidationProblemDetails
   status: 422
@@ -4434,7 +4489,7 @@ export type updateAttributeParameterValueResponse422 = {
 export type updateAttributeParameterValueResponseSuccess = (updateAttributeParameterValueResponse204) & {
   headers: Headers;
 };
-export type updateAttributeParameterValueResponseError = (updateAttributeParameterValueResponse404 | updateAttributeParameterValueResponse422) & {
+export type updateAttributeParameterValueResponseError = (updateAttributeParameterValueResponse404 | updateAttributeParameterValueResponse409 | updateAttributeParameterValueResponse422) & {
   headers: Headers;
 };
 

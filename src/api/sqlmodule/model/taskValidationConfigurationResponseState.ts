@@ -6,6 +6,9 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Состояние: `Draft` — версии нет или черновик изменён, `Published` — совпадает с активной.
+ */
 export type TaskValidationConfigurationResponseState = typeof TaskValidationConfigurationResponseState[keyof typeof TaskValidationConfigurationResponseState];
 
 
