@@ -19,9 +19,7 @@ import {
   NotFoundPage,
   TeacherAttemptsPage,
   TeacherDatabaseCreatePage,
-  TeacherDatabaseDataPage,
   TeacherDatabaseDetailsPage,
-  TeacherDatabaseSchemaPage,
   TeacherDatabasesPage,
   TeacherDbmsPage,
   TeacherTaskDetailsPage,
@@ -157,9 +155,9 @@ export function AppRouter() {
           }
         />
         <Route path="teacher/databases/new" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseCreatePage /></RequireRole></RequireAuth>} />
-        <Route path="teacher/databases/:targetDbId" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseDetailsPage /></RequireRole></RequireAuth>} />
-        <Route path="teacher/databases/:targetDbId/schema" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseSchemaPage /></RequireRole></RequireAuth>} />
-        <Route path="teacher/databases/:targetDbId/data" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseDataPage /></RequireRole></RequireAuth>} />
+        <Route path="teacher/databases/:targetDbId" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseDetailsPage view="schema" /></RequireRole></RequireAuth>} />
+        <Route path="teacher/databases/:targetDbId/schema" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseDetailsPage view="schema" /></RequireRole></RequireAuth>} />
+        <Route path="teacher/databases/:targetDbId/data" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDatabaseDetailsPage view="data" /></RequireRole></RequireAuth>} />
         <Route path="teacher/attempts" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherAttemptsPage /></RequireRole></RequireAuth>} />
         <Route path="teacher/dbms" element={<RequireAuth><RequireRole allowedRoles={['Teacher', 'Admin']}><TeacherDbmsPage /></RequireRole></RequireAuth>} />
         <Route path="student" element={<StudentRouteLayout />}>

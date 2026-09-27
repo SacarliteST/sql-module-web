@@ -6,7 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGetDbmsDictionaryById } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type { HttpValidationProblemDetails, ProblemDetails } from '../../api/sqlmodule/model';
 import { getGetAllTargetDbsQueryKey, useDeleteTargetDb, useGetTargetDbById, useGetTargetDbSchema, useUpdateTargetDb } from '../../api/sqlmodule/schema/schema';
-import { formatAuditDateTime } from '../../shared/lib/teacher-audit';
+import { TeacherSchemaEditor, TeacherTableDataEditor } from '../../features/schema-editor';
 import { AppCard, ConfirmModal, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
 function problemMessage(problem: ProblemDetails | HttpValidationProblemDetails | null, fallback: string) {
@@ -17,7 +17,9 @@ function problemMessage(problem: ProblemDetails | HttpValidationProblemDetails |
   return problem?.detail?.trim() || problem?.title?.trim() || fallback;
 }
 
-export function TeacherDatabaseDetailsPage() {
+type DatabaseView = 'schema' | 'data';
+
+export function TeacherDatabaseDetailsPage({ view = 'schema' }: { view?: DatabaseView }) {
   const { targetDbId = '' } = useParams<{ targetDbId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -67,11 +69,23 @@ export function TeacherDatabaseDetailsPage() {
   return (
     <Page>
       <Stack gap="lg">
-        <PageBreadcrumbs items={[{ label: 'Главная', to: '/' }, { label: 'Преподаватель', to: '/teacher' }, { label: 'Учебные базы', to: '/teacher/databases' }, { label: database?.dbName?.trim() || 'Детали' }]} />
-        <PageHeader title={database?.dbName?.trim() || 'Учебная база'} description={database?.description?.trim() || 'Описание не заполнено'} actions={<Group gap="sm"><Button disabled={!database} variant="light" onClick={editModal.open}>Изменить</Button><Button component={Link} to={`/teacher/databases/${targetDbId}/schema`} variant="outline">Схема</Button><Button component={Link} to={`/teacher/databases/${targetDbId}/data`} variant="outline">Данные</Button><Button color="red" disabled={!schema?.capabilities.canDeleteTargetDb} title={schema?.capabilities.deleteTargetDbBlockReason ?? undefined} variant="outline" onClick={deleteModal.open}>Удалить</Button></Group>} />
+        <PageBreadcrumbs items={[{ label: 'Главная', to: '/' }, { label: 'Преподаватель', to: '/teacher' }, { label: 'Учебные базы', to: '/teacher/databases' }, { label: database?.dbName?.trim() || 'База' }, { label: view === 'schema' ? 'Схема' : 'Данные' }]} />
+        <PageHeader title={database?.dbName?.trim() || 'Учебная база'} description={database?.description?.trim() || 'Описание не заполнено'} actions={<Button disabled={!database} variant="light" onClick={editModal.open}>Изменить</Button>} />
         {error ? <Alert color="red">{error}</Alert> : null}
         {query.isPending ? <AppCard><Text c="dimmed">Загрузка базы...</Text></AppCard> : database ? (
-          <AppCard><Stack gap="sm"><Group gap="xs"><Badge color="blue" variant="light">{dbms?.dbmsName?.trim() || dbms?.dbmsSystemName?.trim() || 'СУБД не указана'}</Badge><Badge color={dbms?.isAvailable ? 'green' : 'red'} variant="light">{dbms?.isAvailable ? 'Движок доступен' : 'Движок недоступен'}</Badge><Badge color={database.isReadOnly ? 'gray' : 'green'} variant="light">{database.isReadOnly ? 'Защищена от изменений' : 'Редактируется'}</Badge></Group>{dbms?.unavailableReason ? <Alert color="yellow">{dbms.unavailableReason}</Alert> : null}{schema?.capabilities.deleteTargetDbBlockReason ? <Alert color="yellow">{schema.capabilities.deleteTargetDbBlockReason}</Alert> : null}<Text size="sm">Идентификатор: {database.id}</Text><Text size="sm" c="dimmed">Создана: {formatAuditDateTime(database.createdAt)}</Text></Stack></AppCard>
+          <Stack gap="lg">
+            <Group justify="space-between" align="center" wrap="wrap">
+              <Group gap="sm">
+                <Button component={Link} to={`/teacher/databases/${targetDbId}/schema`} variant={view === 'schema' ? 'filled' : 'outline'}>Схема</Button>
+                <Button component={Link} to={`/teacher/databases/${targetDbId}/data`} variant={view === 'data' ? 'filled' : 'outline'}>Данные</Button>
+              </Group>
+              <Button color="red" disabled={!schema?.capabilities.canDeleteTargetDb} title={schema?.capabilities.deleteTargetDbBlockReason ?? undefined} variant="outline" onClick={deleteModal.open}>Удалить</Button>
+            </Group>
+            <Group gap="xs"><Badge color="blue" variant="light">{dbms?.dbmsName?.trim() || dbms?.dbmsSystemName?.trim() || 'СУБД не указана'}</Badge><Badge color={dbms?.isAvailable ? 'green' : 'red'} variant="light">{dbms?.isAvailable ? 'Движок доступен' : 'Движок недоступен'}</Badge><Badge color={database.isReadOnly ? 'gray' : 'green'} variant="light">{database.isReadOnly ? 'Защищена от изменений' : 'Редактируется'}</Badge></Group>
+            {dbms?.unavailableReason ? <Alert color="yellow">{dbms.unavailableReason}</Alert> : null}
+            {schema?.capabilities.deleteTargetDbBlockReason ? <Alert color="yellow">{schema.capabilities.deleteTargetDbBlockReason}</Alert> : null}
+            {view === 'schema' ? <TeacherSchemaEditor targetDbId={targetDbId} /> : <TeacherTableDataEditor targetDbId={targetDbId} />}
+          </Stack>
         ) : <AppCard><EmptyState title="База не найдена" description="Вернитесь к списку учебных баз." /></AppCard>}
       </Stack>
       <Modal opened={editOpened} onClose={editModal.close} title="Изменить учебную базу" centered><Stack gap="md">{error ? <Alert color="red">{error}</Alert> : null}<TextInput label="Название" withAsterisk value={dbName} onChange={(event) => setDbName(event.currentTarget.value)} /><Textarea label="Описание" value={description} onChange={(event) => setDescription(event.currentTarget.value)} /><Switch checked={isReadOnly} label="Защитить схему и данные от изменений" description="Не влияет на student sandbox: запросы студентов всегда выполняются только для чтения." onChange={(event) => setIsReadOnly(event.currentTarget.checked)} /><Group justify="flex-end"><Button variant="default" onClick={editModal.close}>Отмена</Button><Button loading={updateMutation.isPending} onClick={() => void handleUpdate()}>Сохранить</Button></Group></Stack></Modal>
