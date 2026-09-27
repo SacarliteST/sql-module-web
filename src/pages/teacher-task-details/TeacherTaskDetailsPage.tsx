@@ -427,7 +427,7 @@ export function TeacherTaskDetailsPage() {
           <Tabs defaultValue="overview" keepMounted={false}>
             <Tabs.List mb="lg">
               <Tabs.Tab value="overview">Задание и эталон</Tabs.Tab>
-              <Tabs.Tab value="validation">Проверка</Tabs.Tab>
+              <Tabs.Tab value="validation">Критерии решения</Tabs.Tab>
               <Tabs.Tab value="attempts">Попытки</Tabs.Tab>
             </Tabs.List>
 
