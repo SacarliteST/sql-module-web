@@ -8,9 +8,9 @@ import { clearActiveLaunchContext, clearActiveTokens, getActiveLaunchContext, re
 import { ConfirmModal } from '../../../shared/ui';
 import { mapStudentApiError, StudentErrorAlert, type StudentErrorView } from '../../student-errors';
 
-type Props = { taskId: string; progress: StudentTaskProgressResponse; passingScore: number; isPlatformSession: boolean; onFinalized: () => void };
+type Props = { taskId: string; progress: StudentTaskProgressResponse; passingScore: number; isPlatformSession: boolean; onFinalized: () => void; compact?: boolean };
 
-export function StudentTaskFinalization({ taskId, progress, passingScore, isPlatformSession, onFinalized }: Props) {
+export function StudentTaskFinalization({ taskId, progress, passingScore, isPlatformSession, onFinalized, compact = false }: Props) {
   const standalone = useFinalizeStudentTaskProgress();
   const platform = useFinalizeCurrentModuleSession();
   const pendingKey = useRef<string | null>(null);
@@ -39,20 +39,25 @@ export function StudentTaskFinalization({ taskId, progress, passingScore, isPlat
       pendingKey.current = null;
       setResult(response.data);
       onFinalized();
+      if (compact && isPlatformSession && response.data.canReturnToEducation) await returnToEducation(response.data);
     } catch {
       setError('Ответ сервера неизвестен. Повторите завершение: будет использован тот же ключ операции.');
     }
   };
 
   const requestFinalization = () => {
+    if (compact && !isFinal) {
+      setConfirmOpened(true);
+      return;
+    }
     if (!isFinal && progress.bestScore < passingScore && progress.canSubmit) setConfirmOpened(true);
     else void finalize();
   };
 
-  const returnToEducation = async () => {
-    if (!isPlatformSession || !result?.canReturnToEducation) return;
+  const returnToEducation = async (finalizationResult: ProgressFinalizationResponse | null = result) => {
+    if (!isPlatformSession || !finalizationResult?.canReturnToEducation) return;
     const context = getActiveLaunchContext();
-    if (!context || !result.returnUrl || result.returnUrl !== context.returnUrl) {
+    if (!context || !finalizationResult.returnUrl || finalizationResult.returnUrl !== context.returnUrl) {
       setError('Адрес возврата не совпадает с адресом исходной сессии. Не перенаправляем автоматически.');
       return;
     }
@@ -62,6 +67,29 @@ export function StudentTaskFinalization({ taskId, progress, passingScore, isPlat
     resetActiveTokenProvider();
     window.location.assign(context.returnUrl);
   };
+
+  const passed = progress.bestScore >= passingScore;
+  const confirmMessage = passed
+    ? `Лучший результат: ${progress.bestScore} из 100. Использовано попыток: ${progress.attemptsUsed}. Задание будет завершено, результат передан в Scoodle.`
+    : `Лучший результат: ${progress.bestScore} из 100. Проходной балл: ${passingScore}. Осталось попыток: ${progress.attemptsRemaining ?? 'без ограничения'}. После завершения отправлять решения будет нельзя.`;
+
+  if (compact) return <Stack align="flex-end" gap="xs">
+    {(progress.canFinalize || (isPlatformSession && isFinal)) ? <Button loading={busy} onClick={requestFinalization}>
+      {isFinal ? 'Получить итог и вернуться' : 'Завершить задание'}
+    </Button> : null}
+    {result && !result.canReturnToEducation ? <Text c="orange" size="xs">Задание завершено. Результат ожидает передачи платформе.</Text> : null}
+    {error ? typeof error === 'string' ? <Text c="red" size="xs">{error}</Text> : <StudentErrorAlert error={error} /> : null}
+    <ConfirmModal
+      opened={confirmOpened}
+      title={passed ? 'Завершить задание?' : 'Завершить задание досрочно?'}
+      message={confirmMessage}
+      confirmLabel={passed ? 'Завершить и вернуться' : `Завершить с результатом ${progress.bestScore}`}
+      confirmColor={passed ? 'blue' : 'orange'}
+      loading={busy}
+      onCancel={() => setConfirmOpened(false)}
+      onConfirm={() => void finalize()}
+    />
+  </Stack>;
 
   return <Stack gap="sm">
     {isFinal ? <Alert color={progress.status === 'CompletionFailed' ? 'red' : 'blue'}>Прохождение: {getProgressStatusLabel(progress.status)}. Итог: {progress.finalScore ?? progress.bestScore} из 100.</Alert> : null}
