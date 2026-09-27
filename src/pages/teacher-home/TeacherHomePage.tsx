@@ -1,6 +1,5 @@
 import { Button, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { TeacherContourTabs } from '../../features/teacher-contour';
 import { AppCard, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
 const sections = [
@@ -35,7 +34,6 @@ export function TeacherHomePage() {
           title="Рабочая область преподавателя"
           description="Подготовка учебных баз, SQL-заданий и контроль результатов студентов."
         />
-        <TeacherContourTabs />
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
           {sections.map((section) => (
             <AppCard key={section.to}>

@@ -1,6 +1,6 @@
 import { Loader } from '@mantine/core';
 import { lazy, Suspense } from 'react';
-import { Outlet, Route, Routes } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import {
   LaunchPage,
   LoginPage,
@@ -24,7 +24,6 @@ import {
   TeacherDatabaseSchemaPage,
   TeacherDatabasesPage,
   TeacherDbmsPage,
-  TeacherHomePage,
   TeacherTaskDetailsPage,
   TeacherTopicDetailsPage,
   TeacherTopicsPage,
@@ -112,7 +111,7 @@ export function AppRouter() {
           element={
             <RequireAuth>
               <RequireRole allowedRoles={['Teacher', 'Admin']}>
-                <TeacherHomePage />
+                <Navigate replace to="/teacher/topics" />
               </RequireRole>
             </RequireAuth>
           }

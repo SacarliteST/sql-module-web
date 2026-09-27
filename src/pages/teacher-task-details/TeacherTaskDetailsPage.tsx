@@ -42,7 +42,6 @@ import {
 import { SqlQueryValidationPreview, SqlTaskFormModal } from '../../features/sql-tasks';
 import { TaskValidationScoreEditor } from '../../features/sql-tasks/ui/TaskValidationScoreEditor';
 import { TargetDbSchemaPreview } from '../../features/sql-tasks/ui/TargetDbSchemaPreview';
-import { TeacherContourTabs } from '../../features/teacher-contour';
 import { formatAuditActor, formatAuditDateTime } from '../../shared/lib/teacher-audit';
 import {
   AppCard,
@@ -379,7 +378,6 @@ export function TeacherTaskDetailsPage() {
             </>
           }
         />
-        <TeacherContourTabs />
       </Stack>
 
       {publishError ? (

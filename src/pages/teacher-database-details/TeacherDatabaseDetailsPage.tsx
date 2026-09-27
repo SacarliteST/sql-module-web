@@ -6,7 +6,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useGetDbmsDictionaryById } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type { HttpValidationProblemDetails, ProblemDetails } from '../../api/sqlmodule/model';
 import { getGetAllTargetDbsQueryKey, useDeleteTargetDb, useGetTargetDbById, useGetTargetDbSchema, useUpdateTargetDb } from '../../api/sqlmodule/schema/schema';
-import { TeacherContourTabs } from '../../features/teacher-contour';
 import { formatAuditDateTime } from '../../shared/lib/teacher-audit';
 import { AppCard, ConfirmModal, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
@@ -70,7 +69,6 @@ export function TeacherDatabaseDetailsPage() {
       <Stack gap="lg">
         <PageBreadcrumbs items={[{ label: 'Главная', to: '/' }, { label: 'Преподаватель', to: '/teacher' }, { label: 'Учебные базы', to: '/teacher/databases' }, { label: database?.dbName?.trim() || 'Детали' }]} />
         <PageHeader title={database?.dbName?.trim() || 'Учебная база'} description={database?.description?.trim() || 'Описание не заполнено'} actions={<Group gap="sm"><Button disabled={!database} variant="light" onClick={editModal.open}>Изменить</Button><Button component={Link} to={`/teacher/databases/${targetDbId}/schema`} variant="outline">Схема</Button><Button component={Link} to={`/teacher/databases/${targetDbId}/data`} variant="outline">Данные</Button><Button color="red" disabled={!schema?.capabilities.canDeleteTargetDb} title={schema?.capabilities.deleteTargetDbBlockReason ?? undefined} variant="outline" onClick={deleteModal.open}>Удалить</Button></Group>} />
-        <TeacherContourTabs />
         {error ? <Alert color="red">{error}</Alert> : null}
         {query.isPending ? <AppCard><Text c="dimmed">Загрузка базы...</Text></AppCard> : database ? (
           <AppCard><Stack gap="sm"><Group gap="xs"><Badge color="blue" variant="light">{dbms?.dbmsName?.trim() || dbms?.dbmsSystemName?.trim() || 'СУБД не указана'}</Badge><Badge color={dbms?.isAvailable ? 'green' : 'red'} variant="light">{dbms?.isAvailable ? 'Движок доступен' : 'Движок недоступен'}</Badge><Badge color={database.isReadOnly ? 'gray' : 'green'} variant="light">{database.isReadOnly ? 'Защищена от изменений' : 'Редактируется'}</Badge></Group>{dbms?.unavailableReason ? <Alert color="yellow">{dbms.unavailableReason}</Alert> : null}{schema?.capabilities.deleteTargetDbBlockReason ? <Alert color="yellow">{schema.capabilities.deleteTargetDbBlockReason}</Alert> : null}<Text size="sm">Идентификатор: {database.id}</Text><Text size="sm" c="dimmed">Создана: {formatAuditDateTime(database.createdAt)}</Text></Stack></AppCard>

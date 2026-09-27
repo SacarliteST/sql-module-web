@@ -19,7 +19,6 @@ import type {
   TargetDbResponse,
 } from '../../api/sqlmodule/model';
 import { useGetAllTargetDbs } from '../../api/sqlmodule/schema/schema';
-import { TeacherContourTabs } from '../../features/teacher-contour';
 import { formatAuditDateTime as formatDateTime } from '../../shared/lib/teacher-audit';
 import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
@@ -150,7 +149,6 @@ export function TeacherDatabasesPage() {
           description="Учебные базы используются как контекст для SQL-заданий и проверок."
           actions={<Button component={Link} to="/teacher/databases/new">Создать базу</Button>}
         />
-        <TeacherContourTabs />
       </Stack>
 
       <Stack gap="md">

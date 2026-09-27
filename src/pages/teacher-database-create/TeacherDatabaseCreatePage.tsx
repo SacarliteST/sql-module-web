@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useGetAllDbmsDictionaries } from '../../api/sqlmodule/dbms-catalog/dbms-catalog';
 import type { HttpValidationProblemDetails, ProblemDetails } from '../../api/sqlmodule/model';
 import { createTargetDbFromDdl, useCreateTargetDb, useValidateTargetDbDdl } from '../../api/sqlmodule/schema/schema';
-import { TeacherContourTabs } from '../../features/teacher-contour';
 import { AppCard, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
 function problemMessage(problem: ProblemDetails | HttpValidationProblemDetails | null, fallback: string) {
@@ -77,7 +76,6 @@ export function TeacherDatabaseCreatePage() {
       <Stack gap="lg">
         <PageBreadcrumbs items={[{ label: 'Главная', to: '/' }, { label: 'Преподаватель', to: '/teacher' }, { label: 'Учебные базы', to: '/teacher/databases' }, { label: 'Создание' }]} />
         <PageHeader title="Создание учебной базы" description="Создайте изолированную базу-песочницу для схемы, данных и SQL-заданий." />
-        <TeacherContourTabs />
         <AppCard maw={720}>
           <Stack gap="md">
             {error ? <Alert color="red">{error}</Alert> : null}
