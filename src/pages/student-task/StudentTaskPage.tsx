@@ -3,6 +3,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { SubmitAttemptResponse } from '../../api/sqlmodule/model';
+import { useGetCurrentModuleSession } from '../../api/sqlmodule/module-integration/module-integration';
 import { useGetStudentTaskById } from '../../api/sqlmodule/student/student';
 import { SqlCodeEditor } from '../../features/sql-tasks';
 import { RecentStudentAttempts, StudentAttemptResult, SubmitStudentAttempt } from '../../features/student-attempts';
@@ -13,6 +14,7 @@ import { StudentTaskSchema } from '../../features/student-schema';
 import { StudentTaskValidation } from '../../features/student-tasks/ui/StudentTaskValidation';
 import { StudentTaskFinalization } from '../../features/student-tasks/ui/StudentTaskFinalization';
 import { StudentPlatformExit } from '../../features/student-tasks/ui/StudentPlatformExit';
+import { PlatformSessionTimer } from '../../features/student-tasks/ui/PlatformSessionTimer';
 import { useSessionStore } from '../../session';
 import { formatStudentDifficulty } from '../../shared/lib/student-display';
 import { AppCard, ConfirmModal, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
@@ -63,6 +65,7 @@ export function StudentTaskPage() {
   const studentId = useSessionStore((state) => state.user?.id);
   const sessionMode = useSessionStore((state) => state.mode);
   const isPlatformSession = sessionMode === 'handoff';
+  const platformSessionQuery = useGetCurrentModuleSession({ query: { enabled: isPlatformSession, retry: false, staleTime: 60_000 } });
   const draft = useStudentSqlDraft({ studentId, taskId });
   const consumedLocationKey = useRef<string | null>(null);
   const [pendingTransfer, setPendingTransfer] = useState<SqlTransfer | null>(null);
@@ -126,6 +129,10 @@ export function StudentTaskPage() {
   const task = response.data;
   const limits = task.executionLimits;
   const validation = task.validation;
+  const platformSessionResponse = platformSessionQuery.data;
+  const platformExpiresAt = platformSessionResponse?.status === 200
+    ? platformSessionResponse.data.expiresAt
+    : validation?.progress?.expiresAt;
 
   return <Page><Stack gap="lg">
     {!isPlatformSession ? <PageBreadcrumbs items={[
@@ -137,7 +144,10 @@ export function StudentTaskPage() {
     <PageHeader
       title={task.taskName || 'SQL-задание'}
       description="Изучите условие, подготовьте read-only SQL-запрос и отправьте его на проверку."
-      actions={isPlatformSession ? <StudentPlatformExit /> : <Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button>}
+      actions={isPlatformSession ? <Group gap="sm">
+        <PlatformSessionTimer expiresAt={platformExpiresAt} onExpired={() => void query.refetch()} />
+        <StudentPlatformExit />
+      </Group> : <Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button>}
     />
     {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Отправляйте попытки на проверку и завершите прохождение, когда закончите. Если нужно отвлечься (например, пройти тест), вернитесь на платформу кнопкой в заголовке — прохождение останется открытым, продолжить можно там же кнопкой «Продолжить».</Alert> : <StudentContourTabs />}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'applied' ? <Alert color="blue" title="SQL загружен из истории">Текст выбранной попытки подставлен один раз. Reload не заменит более свежий черновик.</Alert> : null}
