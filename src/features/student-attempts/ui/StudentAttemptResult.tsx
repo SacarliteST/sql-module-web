@@ -1,4 +1,5 @@
 import { Alert, Badge, Group, Stack, Text } from '@mantine/core';
+import type { ReactNode } from 'react';
 import type { SubmitAttemptResponse } from '../../../api/sqlmodule/model';
 import { SubmitAttemptResponseReason, SubmitAttemptResponseStatus } from '../../../api/sqlmodule/model';
 import { formatStudentAttemptStatus } from '../../../shared/lib/student-display';
@@ -45,12 +46,13 @@ function statusColor(result: SubmitAttemptResponse) {
   return result.isCorrect ? 'green' : 'blue';
 }
 
-export function StudentAttemptResult({ result }: { result: SubmitAttemptResponse }) {
+export function StudentAttemptResult({ result, actions }: { result: SubmitAttemptResponse; actions?: ReactNode }) {
   const verdict = verdictFor(result);
   const hasScoring = result.score !== null && result.bestScore !== null && result.passingScore !== null;
 
   return <Stack gap="md">
     <Alert aria-live="polite" color={hasScoring ? result.isPassed ? 'green' : 'yellow' : verdict.color} role="status" title={hasScoring ? result.isPassed ? 'Проходной балл достигнут' : 'Попытка оценена' : verdict.title}>{hasScoring ? `Эта попытка: ${result.score} из 100. Лучший результат: ${result.bestScore} из 100. Проходной балл: ${result.passingScore}.` : verdict.description}</Alert>
+    {actions}
     <Group gap="xs">
       {hasScoring ? <Badge color={result.isPassed ? 'green' : 'yellow'} variant="light">{result.isPassed ? 'Задание пройдено' : 'Порог не достигнут'}</Badge> : typeof result.isCorrect === 'boolean'
         ? <Badge color={result.isCorrect ? 'green' : 'red'} variant="light">{result.isCorrect ? 'Верно' : 'Неверно'}</Badge>

@@ -37,13 +37,13 @@ export function StudentPlatformExit() {
   return (
     <>
       <Button variant="default" onClick={() => setOpened(true)}>
-        Вернуться на платформу
+        Вернуться без завершения
       </Button>
       <ConfirmModal
         opened={opened}
         title="Выйти на платформу без завершения?"
         message="Прохождение не будет завершено, а попытка не отправится на проверку. Задание останется открытым — продолжить можно на платформе кнопкой «Продолжить». SQL-черновик сохранён на этом устройстве."
-        confirmLabel="Вернуться на платформу"
+        confirmLabel="Вернуться без завершения"
         confirmColor="blue"
         onCancel={() => setOpened(false)}
         onConfirm={() => void leave()}
