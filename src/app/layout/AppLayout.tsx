@@ -15,10 +15,6 @@ import {
 } from '../../session';
 import './AppLayout.css';
 
-function canSeeTeacher(roles: string[]): boolean {
-  return roles.includes('Teacher') || roles.includes('Admin');
-}
-
 function canSeeStudent(roles: string[]): boolean {
   return roles.includes('Student');
 }
@@ -42,7 +38,6 @@ export function AppLayout() {
   const userRoles = user?.roles ?? [];
   const navigationItems = [
     { to: '/admin', label: 'Администратор', visible: canSeeAdmin(userRoles) },
-    { to: '/teacher', label: 'Преподаватель', visible: canSeeTeacher(userRoles) },
     { to: '/student', label: 'Студент', visible: canSeeStudent(userRoles) },
   ];
   const isLoginPage = location.pathname === '/login';
