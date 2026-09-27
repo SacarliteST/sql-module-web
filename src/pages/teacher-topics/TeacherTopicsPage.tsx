@@ -36,7 +36,6 @@ import {
   useGetAllTopics,
 } from '../../api/sqlmodule/training/training';
 import { SqlTaskFormModal } from '../../features/sql-tasks';
-import { TeacherContourTabs } from '../../features/teacher-contour';
 import { formatAuditDate as formatDate, formatAuditDateTime as formatDateTime } from '../../shared/lib/teacher-audit';
 import { AppCard, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
@@ -440,7 +439,6 @@ export function TeacherTopicsPage() {
             title="Темы"
             description="Создавайте темы курса и наполняйте их SQL-заданиями."
           />
-          <TeacherContourTabs />
         </Group>
       </Stack>
 

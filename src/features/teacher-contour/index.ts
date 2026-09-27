@@ -1,1 +1,1 @@
-export { TeacherBackendPlaceholder, TeacherContourTabs } from './ui';
+export { TeacherBackendPlaceholder, TeacherSidebar } from './ui';

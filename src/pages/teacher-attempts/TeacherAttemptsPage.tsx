@@ -25,7 +25,6 @@ import {
   useGetAttemptTaskFilterOptions,
   useGetAttemptTopicFilterOptions,
 } from '../../api/sqlmodule/training/training';
-import { TeacherContourTabs } from '../../features/teacher-contour';
 import { AttemptScoringDetails } from '../../entities/attempt/ui/AttemptScoringDetails';
 import { getFinalizationReasonLabel } from '../../entities/sql-task';
 import { formatAuditDateTime } from '../../shared/lib/teacher-audit';
@@ -212,7 +211,6 @@ export function TeacherAttemptsPage() {
       <Stack gap="lg">
         <PageBreadcrumbs items={[{ label: 'Главная', to: '/' }, { label: 'Преподаватель', to: '/teacher' }, { label: 'Попытки' }]} />
         <PageHeader title="Попытки студентов" description="Журнал решений с серверной пагинацией и поиском по понятным названиям." />
-        <TeacherContourTabs />
 
         <AppCard>
           <Stack gap="md">

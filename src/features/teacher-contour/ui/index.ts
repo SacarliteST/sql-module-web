@@ -1,2 +1,2 @@
-export { TeacherContourTabs } from './TeacherContourTabs';
 export { TeacherBackendPlaceholder } from './TeacherBackendPlaceholder';
+export { TeacherSidebar } from './TeacherSidebar';

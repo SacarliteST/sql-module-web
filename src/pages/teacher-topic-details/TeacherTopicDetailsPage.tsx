@@ -39,7 +39,6 @@ import {
   useUpdateTopic,
 } from '../../api/sqlmodule/training/training';
 import { SqlTaskFormModal } from '../../features/sql-tasks';
-import { TeacherContourTabs } from '../../features/teacher-contour';
 import { formatAuditDate as formatDate } from '../../shared/lib/teacher-audit';
 import { AppCard, ConfirmModal, EmptyState, Page, PageBreadcrumbs, PageHeader } from '../../shared/ui';
 
@@ -477,7 +476,6 @@ export function TeacherTopicDetailsPage() {
             </>
           }
         />
-        <TeacherContourTabs />
         {mutationError && !editOpened && !childOpened && !moveOpened ? (
           <Alert color="red" title="Операция с темой не выполнена">
             {mutationError}

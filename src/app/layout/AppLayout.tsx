@@ -1,6 +1,8 @@
 import { Badge, Button, Group, Text } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import sqlModuleLogoUrl from '../../assets/sqlmodule-logo.png';
+import { TeacherSidebar } from '../../features/teacher-contour';
 import {
   clearActiveLaunchContext,
   clearActiveTokens,
@@ -33,6 +35,8 @@ export function AppLayout() {
   const clearSession = useSessionStore((state) => state.clearSession);
   const mode = useSessionStore((state) => state.mode);
   const handoffKind = useSessionStore((state) => state.handoffKind);
+  const [teacherSidebarCollapsed, setTeacherSidebarCollapsed] = useState(false);
+  const [teacherSidebarMobileOpened, setTeacherSidebarMobileOpened] = useState(false);
   const isStudentHandoff = mode === 'handoff' && handoffKind === 'student';
   const platformReturnPath = mode === 'handoff' && handoffKind === 'teacher' ? readPlatformReturnPath() : null;
   const userRoles = user?.roles ?? [];
@@ -47,6 +51,10 @@ export function AppLayout() {
     { to: '/student', label: 'Студент', visible: canSeeStudent(userRoles) },
   ];
   const isLoginPage = location.pathname === '/login';
+  const isTeacherWorkspace = status === 'authenticated' && location.pathname.startsWith('/teacher') &&
+    location.pathname !== '/teacher/launch' && location.pathname !== '/teacher/session-expired';
+
+  useEffect(() => setTeacherSidebarMobileOpened(false), [location.pathname]);
 
   const handleLogout = async () => {
     await clearActiveTokens();
@@ -63,6 +71,16 @@ export function AppLayout() {
       <header className="app-shell__header">
         <div className="app-shell__header-inner">
           <Group gap="sm" wrap="nowrap">
+            {isTeacherWorkspace ? <Button
+              aria-label="Открыть разделы преподавателя"
+              className="app-shell__teacher-menu-button"
+              color="gray"
+              size="xs"
+              variant="outline"
+              onClick={() => setTeacherSidebarMobileOpened(true)}
+            >
+              Меню
+            </Button> : null}
             <img
               alt="SQLModule"
               className="app-shell__brand-logo"
@@ -122,9 +140,17 @@ export function AppLayout() {
           ) : null}
         </div> : <div className="app-shell__nav-row"><Text c="gray.4" size="sm">Платформенное задание · доступ ограничен текущей сессией</Text></div>}
       </header>
-      <main className="app-shell__main">
-        <RequireHandoffScope><Outlet /></RequireHandoffScope>
-      </main>
+      <div className="app-shell__body">
+        {isTeacherWorkspace ? <TeacherSidebar
+          collapsed={teacherSidebarCollapsed}
+          mobileOpened={teacherSidebarMobileOpened}
+          onCollapse={() => setTeacherSidebarCollapsed((value) => !value)}
+          onNavigate={() => setTeacherSidebarMobileOpened(false)}
+        /> : null}
+        <main className="app-shell__main">
+          <RequireHandoffScope><Outlet /></RequireHandoffScope>
+        </main>
+      </div>
     </div>
   );
 }
