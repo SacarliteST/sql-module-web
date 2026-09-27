@@ -1,5 +1,6 @@
 import { Badge, Button, Group, Text } from '@mantine/core';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import sqlModuleLogoUrl from '../../assets/sqlmodule-logo.png';
 import {
   clearActiveLaunchContext,
   clearActiveTokens,
@@ -62,15 +63,11 @@ export function AppLayout() {
       <header className="app-shell__header">
         <div className="app-shell__header-inner">
           <Group gap="sm" wrap="nowrap">
-            <div className="app-shell__logo-placeholder" aria-label="Место под логотип">
-              LOGO
-            </div>
-            <div>
-              <h1 className="app-shell__title">SQL Module</h1>
-              <Text c="gray.4" size="xs">
-                Учебный SQL-модуль
-              </Text>
-            </div>
+            <img
+              alt="SQLModule"
+              className="app-shell__brand-logo"
+              src={sqlModuleLogoUrl}
+            />
             {status === 'authenticated' && user ? (
               <Text className="app-shell__user-name" c="gray.4" size="sm">
                 {user.name ?? user.email ?? user.id}
