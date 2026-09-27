@@ -2,7 +2,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import './TeacherContourTabs.css';
 
 const teacherTabs = [
-  { value: 'overview', label: 'Обзор', to: '/teacher' },
   { value: 'topics', label: 'Темы', to: '/teacher/topics' },
   { value: 'databases', label: 'Учебные базы', to: '/teacher/databases' },
   { value: 'attempts', label: 'Попытки', to: '/teacher/attempts' },

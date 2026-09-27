@@ -2,7 +2,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import './AdminContourTabs.css';
 
 const adminTabs = [
-  { value: 'overview', label: 'Обзор', to: '/admin' },
   { value: 'users', label: 'Пользователи', to: '/admin/users' },
   { value: 'events', label: 'Аудит', to: '/admin/events' },
   { value: 'settings', label: 'Настройки', to: '/admin/settings' },
