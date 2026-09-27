@@ -41,11 +41,6 @@ export function AppLayout() {
   const platformReturnPath = mode === 'handoff' && handoffKind === 'teacher' ? readPlatformReturnPath() : null;
   const userRoles = user?.roles ?? [];
   const navigationItems = [
-    {
-      to: '/',
-      label: 'Главная',
-      visible: status === 'authenticated',
-    },
     { to: '/admin', label: 'Администратор', visible: canSeeAdmin(userRoles) },
     { to: '/teacher', label: 'Преподаватель', visible: canSeeTeacher(userRoles) },
     { to: '/student', label: 'Студент', visible: canSeeStudent(userRoles) },
