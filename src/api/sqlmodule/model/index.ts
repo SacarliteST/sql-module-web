@@ -151,6 +151,7 @@ export * from './sqlTaskResponsePageResponse';
 export * from './sqlTaskResponsePublicationStatus';
 export * from './standaloneLoginRequest';
 export * from './standaloneLoginResponse';
+export * from './standaloneRefreshRequest';
 export * from './startStudentTaskProgressHeaders';
 export * from './studentAttemptListItemResponse';
 export * from './studentAttemptListItemResponsePageResponse';

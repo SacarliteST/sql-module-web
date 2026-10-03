@@ -2,12 +2,14 @@ import { getRuntimeConfig } from '../../app/config/runtime-config-registry';
 import { getActiveAccessToken } from '../../session/providers';
 import { createAuthorizationHeader } from './auth-header';
 import { executeRuntimeFetch } from './create-runtime-fetch';
+import { ensureFreshAccessToken } from './refresh-session';
 
 export async function identityFetch<TResponse>(
   url: string,
   options?: RequestInit,
 ): Promise<TResponse> {
   const { identityApiUrl } = getRuntimeConfig();
+  await ensureFreshAccessToken();
   const accessToken = await getActiveAccessToken();
 
   if (!identityApiUrl) {

@@ -125,6 +125,7 @@ export function LoginPage() {
     resetActiveTokenProvider();
     setSession({
       accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
       user,
     });
     navigate(getDefaultSessionRoute(user), { replace: true });

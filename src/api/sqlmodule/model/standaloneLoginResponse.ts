@@ -10,6 +10,10 @@
  * Токен, уже обменянный на audience SqlModule — готов к использованию против его API.
  */
 export interface StandaloneLoginResponse {
+  /** Обменянный токен под audience SqlModule. */
   accessToken?: string;
+  /** Время жизни токена в секундах. */
   expiresIn?: number;
+  /** Refresh-токен IdentityService для `POST /auth/refresh`; одноразовый, ротируется при каждом обновлении. */
+  refreshToken?: string;
 }
