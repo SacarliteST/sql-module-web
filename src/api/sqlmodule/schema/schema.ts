@@ -352,7 +352,7 @@ export const getDeleteTargetDbUrl = (id: string,) => {
 }
 
 /**
- * Удаляет БД-песочницу по Id. Возвращает 204 No Content. 404 — запись с указанным id не найдена.
+ * Удаляет БД-песочницу по Id. Возвращает 204 No Content. 404 — запись с указанным id не найдена. 409 — на базу ссылаются эталонные запросы (TargetDb.InUse).
  * @summary Удалить целевую БД
  */
 export const deleteTargetDb = async (id: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<deleteTargetDbResponse> => {

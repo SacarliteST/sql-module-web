@@ -19,7 +19,8 @@ import type {
   HttpValidationProblemDetails,
   ProblemDetails,
   StandaloneLoginRequest,
-  StandaloneLoginResponse
+  StandaloneLoginResponse,
+  StandaloneRefreshRequest
 } from '../model';
 
 import { sqlmoduleFetch } from '../../../shared/http/sqlmodule-fetch';
@@ -29,7 +30,197 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
-export type standaloneLoginResponse200 = {
+export type standaloneRefreshResponse200 = {
+  data: StandaloneLoginResponse
+  status: 200
+}
+
+export type standaloneRefreshResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type standaloneRefreshResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type standaloneRefreshResponse503 = {
+  data: ProblemDetails
+  status: 503
+}
+
+export type standaloneRefreshResponseSuccess = (standaloneRefreshResponse200) & {
+  headers: Headers;
+};
+export type standaloneRefreshResponseError = (standaloneRefreshResponse401 | standaloneRefreshResponse422 | standaloneRefreshResponse503) & {
+  headers: Headers;
+};
+
+export type standaloneRefreshResponse = (standaloneRefreshResponseSuccess | standaloneRefreshResponseError)
+
+export const getStandaloneRefreshUrl = () => {
+
+
+
+
+  return `/api/v1/auth/refresh`
+}
+
+/**
+ * Тонкий прокси: ротирует refresh-токен в IdentityService и сразу обменивает новый access-токен на audience SqlModule. Refresh-токен одноразовый: в ответе приходит новый, старый больше не действует.
+ * @summary Standalone-обновление токена
+ */
+export const standaloneRefresh = async (standaloneRefreshRequest: StandaloneRefreshRequest, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<standaloneRefreshResponse> => {
+
+  return sqlmoduleFetch<standaloneRefreshResponse>(getStandaloneRefreshUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(standaloneRefreshRequest)
+  }
+);}
+
+
+
+
+
+export const getStandaloneRefreshMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof standaloneRefresh>>, TError,{data: StandaloneRefreshRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof standaloneRefresh>>, TError,{data: StandaloneRefreshRequest}, TContext> => {
+
+const mutationKey = ['standaloneRefresh'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof standaloneRefresh>>, {data: StandaloneRefreshRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  standaloneRefresh(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StandaloneRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof standaloneRefresh>>>
+    export type StandaloneRefreshMutationBody = StandaloneRefreshRequest
+    export type StandaloneRefreshMutationError = ProblemDetails | HttpValidationProblemDetails
+
+    /**
+ * @summary Standalone-обновление токена
+ */
+export const useStandaloneRefresh = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof standaloneRefresh>>, TError,{data: StandaloneRefreshRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof standaloneRefresh>>,
+        TError,
+        {data: StandaloneRefreshRequest},
+        TContext
+      > => {
+      return useMutation(getStandaloneRefreshMutationOptions(options), queryClient);
+    }
+    export type standaloneLogoutResponse204 = {
+  data: void
+  status: 204
+}
+
+export type standaloneLogoutResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type standaloneLogoutResponseSuccess = (standaloneLogoutResponse204) & {
+  headers: Headers;
+};
+export type standaloneLogoutResponseError = (standaloneLogoutResponse422) & {
+  headers: Headers;
+};
+
+export type standaloneLogoutResponse = (standaloneLogoutResponseSuccess | standaloneLogoutResponseError)
+
+export const getStandaloneLogoutUrl = () => {
+
+
+
+
+  return `/api/v1/auth/logout`
+}
+
+/**
+ * Отзывает refresh-токен в IdentityService. Идемпотентно: всегда 204.
+ * @summary Standalone-выход
+ */
+export const standaloneLogout = async (standaloneRefreshRequest: StandaloneRefreshRequest, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<standaloneLogoutResponse> => {
+
+  return sqlmoduleFetch<standaloneLogoutResponse>(getStandaloneLogoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(standaloneRefreshRequest)
+  }
+);}
+
+
+
+
+
+export const getStandaloneLogoutMutationOptions = <TError = HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof standaloneLogout>>, TError,{data: StandaloneRefreshRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof standaloneLogout>>, TError,{data: StandaloneRefreshRequest}, TContext> => {
+
+const mutationKey = ['standaloneLogout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof standaloneLogout>>, {data: StandaloneRefreshRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  standaloneLogout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StandaloneLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof standaloneLogout>>>
+    export type StandaloneLogoutMutationBody = StandaloneRefreshRequest
+    export type StandaloneLogoutMutationError = HttpValidationProblemDetails
+
+    /**
+ * @summary Standalone-выход
+ */
+export const useStandaloneLogout = <TError = HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof standaloneLogout>>, TError,{data: StandaloneRefreshRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof standaloneLogout>>,
+        TError,
+        {data: StandaloneRefreshRequest},
+        TContext
+      > => {
+      return useMutation(getStandaloneLogoutMutationOptions(options), queryClient);
+    }
+    export type standaloneLoginResponse200 = {
   data: StandaloneLoginResponse
   status: 200
 }
@@ -67,7 +258,7 @@ export const getStandaloneLoginUrl = () => {
 }
 
 /**
- * Тонкий прокси: логинит пользователя в IdentityService и сразу обменивает полученный токен на audience SqlModule, без session_id. Секрет клиента обмена остаётся на сервере — в браузер попадает только уже готовый обменянный токен.
+ * Тонкий прокси: логинит пользователя в IdentityService и сразу обменивает полученный токен на audience SqlModule, без session_id. Секрет клиента обмена остаётся на сервере — в браузер попадает только уже готовый обменянный токен и refresh-токен для POST /auth/refresh.
  * @summary Standalone-вход через SqlModule
  */
 export const standaloneLogin = async (standaloneLoginRequest: StandaloneLoginRequest, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<standaloneLoginResponse> => {

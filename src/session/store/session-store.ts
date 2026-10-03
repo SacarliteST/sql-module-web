@@ -7,6 +7,7 @@ import type { SessionStatus, SessionUser } from '../model';
 
 type SetSessionPayload = {
   accessToken: string;
+  refreshToken?: string | null;
   user: SessionUser;
 };
 
@@ -22,14 +23,16 @@ type SessionState = {
   handoffKind: 'student' | 'teacher' | null;
   standaloneAccessToken: string | null;
   standaloneUser: SessionUser | null;
+  standaloneRefreshToken: string | null;
   sessionIssue: 'handoff-expired' | null;
   setSession(payload: SetSessionPayload): void;
+  setStandaloneTokens(payload: { accessToken: string; refreshToken: string; user?: SessionUser }): void;
   setTransientSession(payload: SetTransientSessionPayload): void;
   setSessionIssue(issue: SessionState['sessionIssue']): void;
   clearSession(): void;
 };
 
-type PersistedSessionState = Pick<SessionState, 'accessToken' | 'user'>;
+type PersistedSessionState = Pick<SessionState, 'accessToken' | 'user'> & { refreshToken: string | null };
 
 const restoreSessionState = (
   persistedState: unknown,
@@ -60,9 +63,24 @@ const restoreSessionState = (
     return currentState;
   }
 
+  const refreshToken = persistedSession.refreshToken ?? null;
   const decodedUser = decodeSessionUser(persistedSession.accessToken);
 
   if (!decodedUser) {
+    // Access-токен истёк, но есть refresh — сессию не теряем: первый же запрос обновит токены.
+    if (refreshToken) {
+      return {
+        ...currentState,
+        accessToken: persistedSession.accessToken,
+        user: persistedSession.user,
+        status: 'authenticated',
+        mode: 'standalone',
+        handoffKind: null,
+        standaloneAccessToken: persistedSession.accessToken,
+        standaloneUser: persistedSession.user,
+        standaloneRefreshToken: refreshToken,
+      };
+    }
     return currentState;
   }
 
@@ -80,6 +98,7 @@ const restoreSessionState = (
     handoffKind: null,
     standaloneAccessToken: persistedSession.accessToken,
     standaloneUser: persistedSession.user,
+    standaloneRefreshToken: refreshToken,
   };
 };
 
@@ -93,8 +112,9 @@ export const useSessionStore = create<SessionState>()(
       handoffKind: null,
       standaloneAccessToken: null,
       standaloneUser: null,
+      standaloneRefreshToken: null,
       sessionIssue: null,
-      setSession: ({ accessToken, user }) =>
+      setSession: ({ accessToken, refreshToken, user }) =>
         set({
           accessToken,
           user,
@@ -103,8 +123,16 @@ export const useSessionStore = create<SessionState>()(
           handoffKind: null,
           standaloneAccessToken: accessToken,
           standaloneUser: user,
+          standaloneRefreshToken: refreshToken ?? null,
           sessionIssue: null,
         }),
+      setStandaloneTokens: ({ accessToken, refreshToken, user }) =>
+        set((state) => ({
+          standaloneAccessToken: accessToken,
+          standaloneRefreshToken: refreshToken,
+          standaloneUser: user ?? state.standaloneUser,
+          ...(state.mode === 'standalone' ? { accessToken, user: user ?? state.user } : {}),
+        })),
       setTransientSession: ({ accessToken, user, kind }) =>
         set({
           accessToken,
@@ -127,15 +155,17 @@ export const useSessionStore = create<SessionState>()(
             handoffKind: null,
             standaloneAccessToken: state.mode === 'standalone' ? null : state.standaloneAccessToken,
             standaloneUser: state.mode === 'standalone' ? null : state.standaloneUser,
+            standaloneRefreshToken: state.mode === 'standalone' ? null : state.standaloneRefreshToken,
           };
         }),
     }),
     {
       name: 'sql-module-session',
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ standaloneAccessToken, standaloneUser }) => ({
+      partialize: ({ standaloneAccessToken, standaloneUser, standaloneRefreshToken }) => ({
         accessToken: standaloneAccessToken,
         user: standaloneUser,
+        refreshToken: standaloneRefreshToken,
       }),
       merge: restoreSessionState,
     },

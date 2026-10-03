@@ -1,6 +1,7 @@
 import { Badge, Button, Group, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { standaloneLogout } from '../../api/sqlmodule/auth/auth';
 import sqlModuleLogoUrl from '../../assets/sqlmodule-logo.png';
 import { TeacherSidebar } from '../../features/teacher-contour';
 import {
@@ -47,11 +48,16 @@ export function AppLayout() {
   useEffect(() => setTeacherSidebarMobileOpened(false), [location.pathname]);
 
   const handleLogout = async () => {
+    const { mode, standaloneRefreshToken } = useSessionStore.getState();
     await clearActiveTokens();
     clearActiveLaunchContext();
     clearPlatformReturnPath();
     clearSession();
     resetActiveTokenProvider();
+    if (mode === 'standalone' && standaloneRefreshToken) {
+      // Отзываем refresh-токен на сервере; сбой сети выходу не мешает.
+      void standaloneLogout({ refreshToken: standaloneRefreshToken }).catch(() => undefined);
+    }
     const restoredUser = useSessionStore.getState().user;
     navigate(restoredUser ? getDefaultSessionRoute(restoredUser) : '/login');
   };
