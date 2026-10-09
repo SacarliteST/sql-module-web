@@ -1,8 +1,8 @@
-# Handoff для агентов: SQLModule Phase 2b
+# Handoff для агентов: SQLModule версионированная проверка
 
 ## 1. Назначение документа
 
-Это главная точка входа для агента, которому передаётся одна задача фазы 2b.
+Это главная точка входа для агента, которому передаётся одна задача составного scoring.
 Документ содержит минимально необходимый контекст, порядок чтения, правила
 параллельной работы и формат результата.
 
@@ -29,14 +29,14 @@ Backend/IdentityService   — аутентификация и handoff
 Frontend/platform-web     — UI платформы
 ```
 
-Для frontend-задач фазы 2b рабочий репозиторий — только
+Для frontend-задач составного scoring рабочий репозиторий — только
 `Frontend/sql-module-web`. Изменения в backend, Education, IdentityService и
 platform-web выполняются только по явно назначенной отдельной задаче.
 
 Текущая интеграционная ветка SQLModule frontend и backend:
 
 ```text
-Phase-2b
+validation
 ```
 
 Перед началом нельзя автоматически переключать ветку, делать reset, checkout
@@ -51,9 +51,9 @@ Phase-2b
 3. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\AGENTS.md`
 4. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\README.md`
 5. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\SECOND_ITERATION_TASK_VALIDATION_CONCEPT.md`
-6. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\PHASE_2B_TECHNICAL_REQUIREMENTS.md`
-7. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\backend-requirements\2026-09-14-phase-2b-frontend-contracts.md`
-8. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\PHASE_2B_FRONTEND_KANBAN.md`
+6. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\VALIDATION_TECHNICAL_REQUIREMENTS.md`
+7. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\backend-requirements\2026-09-14-validation-frontend-contracts.md`
+8. `C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\VALIDATION_FRONTEND_KANBAN.md`
 9. Запись или формулировку конкретной назначенной задачи.
 
 После этого агент сверяет требования с текущим `sqlModule.swagger.json` и
@@ -74,11 +74,11 @@ SQLModule имеет два основных пользовательских к
 - самостоятельно, с собственной авторизацией и standalone progress;
 - из Education через handoff и module session.
 
-Phase 2b заменяет бинарную проверку результата составной оценкой от 0 до 100.
+версионированная проверка заменяет бинарную проверку результата составной оценкой от 0 до 100.
 Преподаватель настраивает критерии, веса, проходной балл, лимит попыток и
 видимость подсказок. Каждая попытка проверяется по immutable validation version.
 
-## 5. Неизменяемые решения Phase 2b
+## 5. Неизменяемые решения версионированная проверка
 
 1. `MainDatasetResult` обязателен ровно один раз.
 2. Веса активных критериев — положительные целые числа, сумма равна 100.
@@ -183,7 +183,7 @@ npm.cmd run build
 ```
 
 Генерация может массово изменить файлы. Поэтому один агент должен быть
-единственным владельцем задачи `F2B-FE-002`; остальные не запускают Orval
+единственным владельцем задачи `VAL-FE-002`; остальные не запускают Orval
 параллельно и начинают работу только после доступности согласованного generated
 среза.
 
@@ -194,11 +194,11 @@ API base URL берётся из `public/runtime-config.json`. Хардкод а
 
 ### 9.1. Назначение задачи
 
-Каждый агент получает ровно один ID из `PHASE_2B_FRONTEND_KANBAN.md`. Перед
+Каждый агент получает ровно один ID из `VALIDATION_FRONTEND_KANBAN.md`. Перед
 работой он сообщает:
 
 ```text
-Задача: F2B-FE-XXX
+Задача: VAL-FE-XXX
 Файлы/зоны, которые планируется менять
 Зависимости, которые считаются готовыми
 ```
@@ -226,7 +226,7 @@ generated-клиент нестабилен.
 чистого коммита:
 
 ```text
-phase-2b/f2b-fe-XXX-short-name
+validation/fe-XXX-short-name
 ```
 
 Но worktree нельзя создавать из текущего грязного состояния. Сначала владелец
@@ -320,7 +320,7 @@ npm.cmd run build
 ## 14. Формат отчёта агента
 
 ```markdown
-Задача: F2B-FE-XXX
+Задача: VAL-FE-XXX
 Статус: Done | Blocked | Partially done
 
 Сделано:
@@ -343,7 +343,7 @@ npm.cmd run build
 - ...
 
 Предлагаемое изменение Kanban:
-- F2B-FE-XXX: In progress → Done
+- VAL-FE-XXX: In progress → Done
 
 Коммит:
 - hash и сообщение | коммит не создавался
@@ -352,14 +352,14 @@ npm.cmd run build
 ## 15. Готовый промт для выдачи задачи агенту
 
 ```text
-Работай над задачей F2B-FE-XXX в репозитории
+Работай над задачей VAL-FE-XXX в репозитории
 C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web.
 
 Сначала полностью прочитай:
-C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\PHASE_2B_AGENT_HANDOFF.md
+C:\Users\vladislav.bokovoi\SQLTren\Frontend\sql-module-web\docs\VALIDATION_AGENT_HANDOFF.md
 и все документы из указанного там обязательного порядка чтения.
 
-Реализуй только F2B-FE-XXX из PHASE_2B_FRONTEND_KANBAN.md. Перед изменениями
+Реализуй только VAL-FE-XXX из VALIDATION_FRONTEND_KANBAN.md. Перед изменениями
 проверь текущую ветку и грязное рабочее дерево. Не удаляй, не stash и не включай
 в коммит чужие изменения. Не редактируй generated Orval-файлы вручную. Не
 трогай backend и другие репозитории. Если фактический Swagger не позволяет
@@ -374,8 +374,8 @@ backend endpoint/DTO/error code.
 
 ## 16. Текущее предупреждение для следующего агента
 
-На момент создания handoff ветки frontend и backend `Phase-2b` имеют
+На момент создания handoff ветки frontend и backend `validation` имеют
 незакоммиченные изменения. В frontend уже появился большой generated-срез
-Phase 2b, а в backend после базового коммита продолжается реализация runtime и
+версионированная проверка, а в backend после базового коммита продолжается реализация runtime и
 финализации. Поэтому значения `git status` и Swagger нужно перепроверить перед
 каждой задачей; этот раздел не является заменой такой проверки.

@@ -1,4 +1,4 @@
-# F2B-FE-001 — аудит OpenAPI Phase 2b
+# VAL-FE-001 — аудит OpenAPI версионированная проверка
 
 Дата: 2026-09-16. Статус: повторно сверен с обновлённым backend-контрактом;
 generated frontend-срез ещё содержит незакоммиченные изменения.
@@ -8,8 +8,8 @@ generated frontend-срез ещё содержит незакоммиченны
 - Backend: `Backend/SqlModule/swagger.json`.
 - Frontend: `Frontend/sql-module-web/sqlModule.swagger.json`.
 - SHA-256 обоих файлов после backend-правок: `82A9B79C08ADB14482184E08A920400B1089F17CBCBED79BC7BD979387E0071E`.
-- Generated Orval-клиент содержит все 14 проверенных операций 2b. Он ещё не
-  зафиксирован в git; штатная генерация уже проверена в `F2B-FE-002`.
+- Generated Orval-клиент содержит все 14 проверенных операций составного scoring. Он ещё не
+  зафиксирован в git; штатная генерация уже проверена в `VAL-FE-002`.
 - `npm.cmd run typecheck` и production build проходят.
 
 ## Матрица операций
@@ -35,7 +35,7 @@ generated frontend-срез ещё содержит незакоммиченны
 
 Старые поля `isCorrect`, `reason` и result snapshot сохранены в Attempt DTO;
 новый `score`/`scoring` добавлен рядом. Во frontend нельзя трактовать
-`isCorrect` как итоговый проходной результат 2b: пользоваться `score`,
+`isCorrect` как итоговый проходной результат составного scoring: пользоваться `score`,
 `bestScore`, `passingScore` и `isPassed`.
 
 ## Student-safe граница
@@ -53,9 +53,9 @@ raw AST, setup SQL и connection data. `StudentTaskHintsResponse` содержи
 | ID | Наблюдение | Влияние | Требуемое действие |
 |---|---|---|---|
 | `API-01` | Исправлено: `finalizationReason` nullable в Swagger, generated alias включает `null`. | Блокер снят. | Нет. |
-| `API-02` | Исправлено: teacher list принимает `ProgressId`, `ValidationVersionId`, `ScoreFrom`, `ScoreTo`, `FinalizationReason`. | `F2B-FE-010` можно реализовать полностью. | Нет. |
+| `API-02` | Исправлено: teacher list принимает `ProgressId`, `ValidationVersionId`, `ScoreFrom`, `ScoreTo`, `FinalizationReason`. | `VAL-FE-010` можно реализовать полностью. | Нет. |
 | `API-03` | Исправлено: teacher list декларирует `401/403/500`. | Ошибки типизированы. | Нет. |
-| `API-04` | Исправлено для новых Phase 2b response DTO: обязательные поля отмечены `required`, nullable поля остаются nullable. | Orval генерирует строгие свойства. | При UI-интеграции учитывать nullable legacy-поля. |
+| `API-04` | Исправлено для новых версионированная проверка response DTO: обязательные поля отмечены `required`, nullable поля остаются nullable. | Orval генерирует строгие свойства. | При UI-интеграции учитывать nullable legacy-поля. |
 | `API-05` | Исправлено: student list item содержит `progressId` и `validationVersionId`. | Историю можно группировать без дополнительного detail-запроса. | Нет. |
 | `API-06` | Teacher task details не содержит validation-конфигурацию. | Нужен отдельный GET при открытии редактора. | Frontend использует `GET .../validation`; backend менять не требуется. |
 
@@ -78,6 +78,6 @@ raw AST, setup SQL и connection data. `StudentTaskHintsResponse` содержи
 
 ## Следующий шаг
 
-`F2B-FE-003`: использовать generated enum и capabilities конкретной СУБД как
+`VAL-FE-003`: использовать generated enum и capabilities конкретной СУБД как
 источник вариантов UI. Generated-срез и Swagger лежат в грязном рабочем дереве;
 не удалять и не перезаписывать их без проверки владельца изменений.
