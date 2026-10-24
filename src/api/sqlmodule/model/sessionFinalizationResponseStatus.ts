@@ -6,14 +6,13 @@
  * OpenAPI spec version: v1
  */
 
-export type StudentTaskProgressResponseStatus = typeof StudentTaskProgressResponseStatus[keyof typeof StudentTaskProgressResponseStatus];
+export type SessionFinalizationResponseStatus = typeof SessionFinalizationResponseStatus[keyof typeof SessionFinalizationResponseStatus];
 
 
-export const StudentTaskProgressResponseStatus = {
+export const SessionFinalizationResponseStatus = {
   Active: 'Active',
-  Finalizing: 'Finalizing',
   CompletionPending: 'CompletionPending',
-  CompletionFailed: 'CompletionFailed',
   Completed: 'Completed',
+  CompletionFailed: 'CompletionFailed',
   Expired: 'Expired',
 } as const;

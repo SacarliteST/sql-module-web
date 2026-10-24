@@ -37,11 +37,6 @@ export interface TaskValidationConfigurationResponse {
   hasUnpublishedChanges: boolean;
   /** Проходной балл (1–100). */
   passingScore: number;
-  /**
-     * Лимит попыток; `null` — без ограничения.
-     * @nullable
-     */
-  maxAttempts: number | null;
   /** Группы подсказок, видимые студенту. */
   visibleHintGroups: HintGroup[];
   /** Критерии оценки. */

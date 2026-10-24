@@ -40,4 +40,9 @@ export interface UpsertModuleSessionRequest {
      * @nullable
      */
   expiresAt?: string | null;
+  /**
+     * Необязательный лимит отправок внутри сессии.
+     * @nullable
+     */
+  maxAttempts?: number | null;
 }

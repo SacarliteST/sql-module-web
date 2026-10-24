@@ -31,7 +31,7 @@ import type {
   HttpValidationProblemDetails,
   ModuleTaskCatalogItemResponse,
   ProblemDetails,
-  ProgressFinalizationResponse,
+  SessionFinalizationResponse,
   UpsertModuleSessionHeaders,
   UpsertModuleSessionRequest
 } from '../model';
@@ -59,7 +59,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 export type finalizeCurrentModuleSessionResponse200 = {
-  data: ProgressFinalizationResponse
+  data: SessionFinalizationResponse
   status: 200
 }
 

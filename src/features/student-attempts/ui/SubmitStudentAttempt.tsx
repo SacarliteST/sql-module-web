@@ -11,7 +11,6 @@ type SubmitStudentAttemptProps = {
   onSubmissionStart?: () => void;
   onResult: (result: SubmitAttemptResponse) => void;
   onStateChanged?: () => void;
-  progressId?: string | null;
   sql: string;
   taskId: string;
 };
@@ -20,10 +19,9 @@ type PendingSubmission = {
   idempotencyKey: string;
   sql: string;
   taskId: string;
-  progressId?: string | null;
 };
 
-export function SubmitStudentAttempt({ disabled = false, maxSqlLength, onResult, onStateChanged, onSubmissionStart, progressId, sql, taskId }: SubmitStudentAttemptProps) {
+export function SubmitStudentAttempt({ disabled = false, maxSqlLength, onResult, onStateChanged, onSubmissionStart, sql, taskId }: SubmitStudentAttemptProps) {
   const queryClient = useQueryClient();
   const abortController = useMemo(() => new AbortController(), [taskId]);
   const mutation = useSubmitAttempt({ request: { signal: abortController.signal } });
@@ -40,7 +38,7 @@ export function SubmitStudentAttempt({ disabled = false, maxSqlLength, onResult,
     pendingSubmission.current = null;
     setHasUncertainSubmission(false);
     setMessage(null);
-  }, [sql, taskId, progressId]);
+  }, [sql, taskId]);
 
   const submit = async () => {
     if (submissionLock.current || disabled || !normalizedSql || tooLong) return;
@@ -51,10 +49,10 @@ export function SubmitStudentAttempt({ disabled = false, maxSqlLength, onResult,
     onSubmissionStart?.();
     try {
       const previous = pendingSubmission.current;
-      const idempotencyKey = previous?.sql === sql && previous.taskId === taskId && previous.progressId === progressId
+      const idempotencyKey = previous?.sql === sql && previous.taskId === taskId
         ? previous.idempotencyKey
         : crypto.randomUUID();
-      pendingSubmission.current = { idempotencyKey, sql, taskId, progressId };
+      pendingSubmission.current = { idempotencyKey, sql, taskId };
       const response = await mutation.mutateAsync({
         data: { taskId, submittedSql: sql },
         headers: { 'Idempotency-Key': idempotencyKey },

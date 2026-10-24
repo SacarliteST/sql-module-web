@@ -1,4 +1,4 @@
-import { Alert, Badge, Button, Checkbox, Group, NumberInput, SegmentedControl, Select, Stack, Table, Text, Title } from '@mantine/core';
+import { Alert, Badge, Button, Checkbox, Group, NumberInput, Select, Stack, Table, Text, Title } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useGetDbmsValidationCapabilities } from '../../../api/sqlmodule/dbms-catalog/dbms-catalog';
@@ -33,7 +33,6 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
     : null;
   const [checks, setChecks] = useState<DraftCheck[]>([]);
   const [passingScore, setPassingScore] = useState<number | string>(0);
-  const [maxAttempts, setMaxAttempts] = useState<number | string>('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [addKind, setAddKind] = useState<string | null>(null);
@@ -53,7 +52,6 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
       order: check.order,
     })));
     setPassingScore(configuration.passingScore);
-    setMaxAttempts(configuration.maxAttempts ?? '');
     setVisibleHintGroups(configuration.visibleHintGroups);
     setError('');
     setStaleVersion(false);
@@ -61,7 +59,6 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
 
   const weightSum = checks.reduce((total, check) => total + (Number(check.weight) || 0), 0);
   const resultCount = checks.filter((check) => check.kind === ValidationCheckKind.MainDatasetResult).length;
-  const parsedMaxAttempts = maxAttempts === '' ? null : Number(maxAttempts);
   const tableOptions = useMemo(() => schema?.tables.map((table) => ({ value: table.id, label: table.name })) ?? [], [schema]);
   const structuralChecks = checks.filter((check) => check.kind !== ValidationCheckKind.MainDatasetResult);
   const duplicateKeys = new Set<string>();
@@ -88,12 +85,12 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
   });
   const hasUnsupportedHint = visibleHintGroups.some((group) => !capabilities?.hintGroupOptions.some(({ value }) => value === group));
   const draftFingerprint = JSON.stringify({
-    passingScore: Number(passingScore), maxAttempts: parsedMaxAttempts,
+    passingScore: Number(passingScore),
     visibleHintGroups: [...visibleHintGroups].sort(),
     checks: checks.map((check, order) => ({ id: check.id, kind: check.kind, value: check.value || null, weight: check.weight, order })),
   });
   const savedFingerprint = configuration ? JSON.stringify({
-    passingScore: configuration.passingScore, maxAttempts: configuration.maxAttempts,
+    passingScore: configuration.passingScore,
     visibleHintGroups: [...configuration.visibleHintGroups].sort(),
     checks: configuration.checks.map((check, order) => ({ id: check.id, kind: check.kind, value: check.value || null, weight: check.weight, order })),
   }) : null;
@@ -106,7 +103,6 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
     resultCount === 1 &&
     weightSum === 100 &&
     isWhole(Number(passingScore)) && Number(passingScore) >= 0 && Number(passingScore) <= 100 &&
-    (parsedMaxAttempts === null || (isWhole(parsedMaxAttempts) && parsedMaxAttempts >= 1 && parsedMaxAttempts <= capabilities.maxAttemptsLimit)) &&
     checks.every((check) => isWhole(check.weight) && Number(check.weight) > 0 &&
       (check.kind === ValidationCheckKind.MainDatasetResult || Boolean(check.value?.trim())))
   );
@@ -130,7 +126,6 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
         taskId,
         data: {
           passingScore: Number(passingScore),
-          maxAttempts: parsedMaxAttempts,
           visibleHintGroups: visibleHintGroups as HintGroup[],
           checks: checks.map((check, order) => ({
             id: check.id, clientKey: check.clientId, kind: check.kind,
@@ -158,7 +153,6 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
         data: {
           version: configuration.version,
           passingScore: Number(passingScore),
-          maxAttempts: parsedMaxAttempts,
           visibleHintGroups: visibleHintGroups as HintGroup[],
           checks: checks.map(({ clientId: _clientId, ...check }, order) => ({ ...check, order })),
         },
@@ -212,7 +206,7 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
             : `Версия №${configuration.validationVersionNumber ?? '—'} действует`}
       </Badge>
       <Text size="sm">Опубликована: {formatAuditDateTime(configuration.publishedAt)}{configuration.validationVersionId ? ` · ID: ${configuration.validationVersionId}` : ''}</Text>
-      <Text size="sm">Текущая конфигурация: проходной балл {configuration.passingScore} из 100; попыток {configuration.maxAttempts ?? 'без лимита'}.</Text>
+      <Text size="sm">Текущая конфигурация: проходной балл {configuration.passingScore} из 100.</Text>
       <Text size="sm">Веса: {configuration.checks.map((check) => `${getValidationCheckKindLabel(check.kind)}${check.valueDisplayName ? ` (${check.valueDisplayName})` : ''} — ${check.weight}`).join('; ') || 'не заданы'}.</Text>
       {configuration.hasUnpublishedChanges ? <Alert color="yellow">Показанные баллы и веса относятся к черновику. Активная версия для новых прохождений может отличаться до публикации.</Alert> : null}
       {checks.length > 0 && savedFingerprint !== draftFingerprint ? <Alert color="blue">В форме есть несохранённые изменения. Они не применяются к студентам.</Alert> : null}
@@ -222,7 +216,7 @@ export function TaskValidationScoreEditor({ taskId, targetDbId }: { taskId: stri
     {configurationQuery.isError || capabilitiesQuery.isError || schemaQuery.isError || (configurationQuery.data && configurationQuery.data.status !== 200) || (capabilitiesQuery.data && capabilitiesQuery.data.status !== 200) || (schemaQuery.data && schemaQuery.data.status !== 200) ? <Alert color="red">Не удалось загрузить конфигурацию, возможности СУБД или схему базы.</Alert> : null}
     {capabilities && !capabilities.canConfigure ? <Alert color="red">СУБД вернула неподдерживаемые возможности проверки. Сохранение отключено.</Alert> : null}
     {configuration && capabilities && schema ? <>
-      <Group grow align="start"><NumberInput label="Проходной балл" min={0} max={100} value={passingScore} onChange={(value) => { setPassingScore(value); setSuccess(''); }} /><Stack gap={6}><Text fw={500} size="sm">Лимит попыток</Text><SegmentedControl data={[{ label: 'Без ограничения', value: 'unlimited' }, { label: 'Не более N', value: 'limited' }]} value={maxAttempts === '' ? 'unlimited' : 'limited'} onChange={(value) => { setMaxAttempts(value === 'unlimited' ? '' : 1); setSuccess(''); }} />{maxAttempts !== '' ? <NumberInput aria-label="Максимальное число попыток" min={1} max={capabilities.maxAttemptsLimit} value={maxAttempts} onChange={(value) => { setMaxAttempts(value); setSuccess(''); }} /> : null}<Text c="dimmed" size="xs">В платформенной сессии этот лимит задаёт число отправок SQL. Число запусков самой практики отдельно ограничивает Education.</Text></Stack></Group>
+      <NumberInput label="Проходной балл" min={1} max={100} value={passingScore} onChange={(value) => { setPassingScore(value); setSuccess(''); }} />
       <Table.ScrollContainer minWidth={650}><Table striped><Table.Thead><Table.Tr><Table.Th>Критерий</Table.Th><Table.Th>Значение</Table.Th><Table.Th>Вес</Table.Th><Table.Th /></Table.Tr></Table.Thead><Table.Tbody>{checks.map((check, index) => <Table.Tr key={check.clientId}><Table.Td>{getValidationCheckKindLabel(check.kind)}</Table.Td><Table.Td>{check.kind === ValidationCheckKind.MainDatasetResult ? <Text size="sm" c="dimmed">Основной набор данных</Text> : <Select aria-label={`Значение критерия ${index + 1}`} placeholder={check.kind === ValidationCheckKind.RequiredTable || check.kind === ValidationCheckKind.ForbiddenTable ? 'Выберите таблицу' : 'Выберите конструкцию'} data={check.kind === ValidationCheckKind.RequiredTable || check.kind === ValidationCheckKind.ForbiddenTable ? tableOptions : capabilities.constructOptions} value={check.value ?? null} onChange={(value) => setChecks((current) => current.map((item) => item.clientId === check.clientId ? { ...item, value: value ?? '' } : item))} searchable clearable />}</Table.Td><Table.Td><NumberInput aria-label={`Вес критерия ${index + 1}`} min={1} max={100} w={105} value={check.weight ?? ''} onChange={(value) => setChecks((current) => current.map((item) => item.clientId === check.clientId ? { ...item, weight: typeof value === 'number' ? value : null } : item))} /></Table.Td><Table.Td>{check.kind !== ValidationCheckKind.MainDatasetResult ? <Button size="xs" color="red" variant="subtle" onClick={() => setChecks((current) => current.filter((item) => item.clientId !== check.clientId))}>Удалить</Button> : null}</Table.Td></Table.Tr>)}</Table.Tbody></Table></Table.ScrollContainer>
       <Group><Select label="Добавить критерий" placeholder="Выберите тип" data={kindOptions} value={addKind} onChange={setAddKind} searchable clearable disabled={!capabilities.canConfigure} /><Button variant="light" disabled={!addKind || !capabilities.canConfigure} onClick={addCheck}>Добавить</Button></Group>
       <Stack gap="xs"><Text fw={600}>Подсказки студенту</Text><Text size="sm" c="dimmed">Критерии проверяются всегда; этот выбор влияет только на видимость правил и диагностики.</Text><Checkbox.Group value={visibleHintGroups} onChange={(value) => { setVisibleHintGroups(value); setSuccess(''); }}><Group>{capabilities.hintGroupOptions.map(({ value, label }) => <Checkbox key={value} value={value} label={label} />)}</Group></Checkbox.Group></Stack>

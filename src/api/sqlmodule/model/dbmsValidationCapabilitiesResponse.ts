@@ -17,6 +17,5 @@ export interface DbmsValidationCapabilitiesResponse {
   supportedCheckKinds: ValidationCheckKind[];
   supportedConstructs: SqlConstruct[];
   supportedHintGroups: HintGroup[];
-  maxAttemptsLimit: number;
   analyzerVersion: string;
 }

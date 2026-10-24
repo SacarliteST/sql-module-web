@@ -19,4 +19,11 @@ export interface CurrentModuleSessionResponse {
      * @nullable
      */
   expiresAt?: string | null;
+  /**
+     * Лимит отправок или null, если он не задан.
+     * @nullable
+     */
+  maxAttempts?: number | null;
+  /** Количество засчитанных отправок. */
+  attemptsUsed?: number;
 }

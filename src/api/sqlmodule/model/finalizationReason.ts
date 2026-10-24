@@ -15,5 +15,4 @@ export const FinalizationReason = {
   AttemptsExhausted: 'AttemptsExhausted',
   Expired: 'Expired',
   EducationClosed: 'EducationClosed',
-  Restarted: 'Restarted',
 } as const;

@@ -9,11 +9,10 @@ import type { AttemptCheckResultResponse } from './attemptCheckResultResponse';
 import type { AttemptHintResponse } from './attemptHintResponse';
 
 /**
- * Составная оценка попытки и актуальное состояние progress.
+ * Составная оценка попытки и актуальное состояние её сессии.
  */
 export interface AttemptScoringResponse {
   attemptId: string;
-  progressId: string;
   validationVersionId: string;
   attemptNumber: number;
   score: number;

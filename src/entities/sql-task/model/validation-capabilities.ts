@@ -1,7 +1,7 @@
 import {
   FinalizationReason,
   HintGroup,
-  ProgressStatus,
+  SessionStatus,
   SqlConstruct,
   ValidationCheckKind,
   ValidationCheckStatus,
@@ -47,13 +47,12 @@ const checkStatusLabels: Record<ValidationCheckStatus, string> = {
   [ValidationCheckStatus.NotEvaluated]: 'Не проверен',
 };
 
-const progressStatusLabels: Record<ProgressStatus, string> = {
-  [ProgressStatus.Active]: 'В процессе',
-  [ProgressStatus.Finalizing]: 'Завершается',
-  [ProgressStatus.CompletionPending]: 'Ожидает передачи результата',
-  [ProgressStatus.CompletionFailed]: 'Ошибка передачи результата',
-  [ProgressStatus.Completed]: 'Завершено',
-  [ProgressStatus.Expired]: 'Время истекло',
+const sessionStatusLabels: Record<SessionStatus, string> = {
+  [SessionStatus.Active]: 'В процессе',
+  [SessionStatus.CompletionPending]: 'Ожидает передачи результата',
+  [SessionStatus.CompletionFailed]: 'Ошибка передачи результата',
+  [SessionStatus.Completed]: 'Завершено',
+  [SessionStatus.Expired]: 'Время истекло',
 };
 
 const finalizationReasonLabels: Record<FinalizationReason, string> = {
@@ -62,7 +61,6 @@ const finalizationReasonLabels: Record<FinalizationReason, string> = {
   [FinalizationReason.AttemptsExhausted]: 'Попытки закончились',
   [FinalizationReason.Expired]: 'Истекло время',
   [FinalizationReason.EducationClosed]: 'Сессия закрыта платформой',
-  [FinalizationReason.Restarted]: 'Начато новое прохождение',
 };
 
 const configurationStateLabels: Record<ValidationConfigurationState, string> = {
@@ -87,8 +85,8 @@ export const getHintGroupLabel = (value: string | null | undefined) =>
 export const getValidationCheckStatusLabel = (value: string | null | undefined) =>
   labelFor(checkStatusLabels, value);
 
-export const getProgressStatusLabel = (value: string | null | undefined) =>
-  labelFor(progressStatusLabels, value);
+export const getSessionStatusLabel = (value: string | null | undefined) =>
+  labelFor(sessionStatusLabels, value);
 
 export const getFinalizationReasonLabel = (value: string | null | undefined) =>
   labelFor(finalizationReasonLabels, value);
@@ -120,7 +118,6 @@ const selectKnown = <T extends string>(
 export type ValidationCapabilitiesModel = {
   dbmsId: string;
   analyzerVersion: string;
-  maxAttemptsLimit: number;
   checkKindOptions: Option<ValidationCheckKind>[];
   constructOptions: Option<SqlConstruct>[];
   hintGroupOptions: Option<HintGroup>[];
@@ -139,15 +136,12 @@ export const toValidationCapabilitiesModel = (
   return {
     dbmsId: response.dbmsId,
     analyzerVersion: response.analyzerVersion,
-    maxAttemptsLimit: response.maxAttemptsLimit,
     checkKindOptions: kinds.options,
     constructOptions: constructs.options,
     hintGroupOptions: hints.options,
     unknownValues,
     canConfigure:
       unknownValues.length === 0 &&
-      kinds.options.some(({ value }) => value === ValidationCheckKind.MainDatasetResult) &&
-      Number.isInteger(response.maxAttemptsLimit) &&
-      response.maxAttemptsLimit > 0,
+      kinds.options.some(({ value }) => value === ValidationCheckKind.MainDatasetResult),
   };
 };

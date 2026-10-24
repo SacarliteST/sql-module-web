@@ -17,8 +17,6 @@ export interface TaskValidationConfigurationRequest {
   /** @nullable */
   passingScore?: number | null;
   /** @nullable */
-  maxAttempts?: number | null;
-  /** @nullable */
   visibleHintGroups?: HintGroup[] | null;
   /** @nullable */
   checks?: ValidationCheckRequest[] | null;

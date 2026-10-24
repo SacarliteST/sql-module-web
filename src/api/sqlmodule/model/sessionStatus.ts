@@ -6,14 +6,13 @@
  * OpenAPI spec version: v1
  */
 
-export type ProgressStatus = typeof ProgressStatus[keyof typeof ProgressStatus];
+export type SessionStatus = typeof SessionStatus[keyof typeof SessionStatus];
 
 
-export const ProgressStatus = {
+export const SessionStatus = {
   Active: 'Active',
-  Finalizing: 'Finalizing',
   CompletionPending: 'CompletionPending',
-  CompletionFailed: 'CompletionFailed',
   Completed: 'Completed',
+  CompletionFailed: 'CompletionFailed',
   Expired: 'Expired',
 } as const;

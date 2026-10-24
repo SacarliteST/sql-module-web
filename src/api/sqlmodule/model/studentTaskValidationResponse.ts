@@ -5,18 +5,16 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { StudentSessionStateResponse } from './studentSessionStateResponse';
 import type { StudentTaskHintsResponse } from './studentTaskHintsResponse';
-import type { StudentTaskProgressResponse } from './studentTaskProgressResponse';
 
 /**
  * Безопасная validation-часть student task details.
  */
 export interface StudentTaskValidationResponse {
   passingScore: number;
-  /** @nullable */
-  maxAttempts: number | null;
-  /** Текущее прохождение SQL-задания. */
-  progress: StudentTaskProgressResponse | null;
+  /** Состояние платформенной сессии; отсутствует в standalone-режиме. */
+  session: StudentSessionStateResponse | null;
   /** Разрешённые преподавателем подсказки по validation version. */
   hints: StudentTaskHintsResponse;
 }

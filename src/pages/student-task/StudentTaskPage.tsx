@@ -132,7 +132,7 @@ export function StudentTaskPage() {
   const platformSessionResponse = platformSessionQuery.data;
   const platformExpiresAt = platformSessionResponse?.status === 200
     ? platformSessionResponse.data.expiresAt
-    : validation?.progress?.expiresAt;
+    : validation?.session?.expiresAt;
 
   return <Page><Stack gap="lg">
     {!isPlatformSession ? <PageBreadcrumbs items={[
@@ -147,7 +147,7 @@ export function StudentTaskPage() {
       actions={isPlatformSession ? <Group gap="sm">
         <PlatformSessionTimer expiresAt={platformExpiresAt} onExpired={() => void query.refetch()} />
         <StudentPlatformExit />
-        {validation?.progress ? <StudentTaskFinalization compact taskId={taskId} progress={validation.progress} passingScore={validation.passingScore} isPlatformSession onFinalized={() => void query.refetch()} /> : null}
+        {validation?.session ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
       </Group> : <Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button>}
     />
     {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Отправляйте попытки на проверку и завершите прохождение, когда закончите. Если нужно отвлечься (например, пройти тест), вернитесь на платформу кнопкой в заголовке — прохождение останется открытым, продолжить можно там же кнопкой «Продолжить».</Alert> : <StudentContourTabs />}
@@ -178,8 +178,7 @@ export function StudentTaskPage() {
         {!limits ? <Text c="dimmed" size="sm">Дополнительные серверные лимиты не указаны.</Text> : null}
       </Stack></AppCard></Grid.Col>
     </Grid>
-    <StudentTaskValidation taskId={taskId} validation={validation} isPlatformSession={isPlatformSession} onStarted={() => void query.refetch()} />
-    {validation?.progress && !isPlatformSession ? <AppCard><StudentTaskFinalization key={validation.progress.id} taskId={taskId} progress={validation.progress} passingScore={validation.passingScore} isPlatformSession={false} onFinalized={() => void query.refetch()} /></AppCard> : null}
+    <StudentTaskValidation validation={validation} isPlatformSession={isPlatformSession} />
     <StudentTaskSchema taskId={taskId} />
     <Grid>
       <Grid.Col span={{ base: 12, md: 7 }}><AppCard h="100%"><Stack gap="md">
@@ -197,12 +196,11 @@ export function StudentTaskPage() {
         </Text>
         <Divider />
         <SubmitStudentAttempt
-          disabled={Boolean(validation && !validation.progress?.canSubmit)}
+          disabled={isPlatformSession && Boolean(!validation?.session?.canSubmit)}
           maxSqlLength={limits?.maxSqlLength}
           onSubmissionStart={() => setLastAttempt(null)}
           onResult={handleAttemptResult}
           onStateChanged={() => void query.refetch()}
-          progressId={validation?.progress?.id}
           sql={draft.value}
           taskId={taskId}
         />
@@ -210,7 +208,7 @@ export function StudentTaskPage() {
       <Grid.Col span={{ base: 12, md: 5 }}><AppCard h="100%">{lastAttempt
         ? <StudentAttemptResult
           result={lastAttempt}
-          actions={isPlatformSession && lastAttempt.isPassed && validation?.progress ? <StudentTaskFinalization compact taskId={taskId} progress={validation.progress} passingScore={validation.passingScore} isPlatformSession onFinalized={() => void query.refetch()} /> : null}
+          actions={isPlatformSession && lastAttempt.isPassed && validation?.session ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
         />
         : <EmptyState title="Результат проверки" description="Здесь появится безопасный вердикт и фактический результат после отправки решения." />}
       </AppCard></Grid.Col>

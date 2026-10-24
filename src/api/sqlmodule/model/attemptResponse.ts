@@ -61,6 +61,6 @@ export interface AttemptResponse {
   resultSnapshotCreatedAt: string | null;
   /** @nullable */
   resultSnapshotExpiresAt: string | null;
-  /** Составная оценка попытки и актуальное состояние progress. */
+  /** Составная оценка попытки и актуальное состояние её сессии. */
   scoring: AttemptScoringResponse | null;
 }

@@ -6,14 +6,16 @@
  * OpenAPI spec version: v1
  */
 
-export type ProgressFinalizationResponseReason = typeof ProgressFinalizationResponseReason[keyof typeof ProgressFinalizationResponseReason];
+/**
+ * @nullable
+ */
+export type StudentSessionStateResponseFinalizationReason = typeof StudentSessionStateResponseFinalizationReason[keyof typeof StudentSessionStateResponseFinalizationReason] | null;
 
 
-export const ProgressFinalizationResponseReason = {
+export const StudentSessionStateResponseFinalizationReason = {
   Manual: 'Manual',
   PerfectScore: 'PerfectScore',
   AttemptsExhausted: 'AttemptsExhausted',
   Expired: 'Expired',
   EducationClosed: 'EducationClosed',
-  Restarted: 'Restarted',
 } as const;
