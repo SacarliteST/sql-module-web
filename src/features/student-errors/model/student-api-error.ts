@@ -40,12 +40,12 @@ export function mapStudentApiError(status?: number, problem?: unknown): StudentE
   const traceId = safeTraceId(problem);
   const code = problemCode(problem);
   if (resolvedStatus === 409) {
-    if (code === 'Progress.AttemptsExhausted') return { canRetry: false, color: 'yellow', status: 409, title: 'Попытки закончились', message: 'Лимит исчерпан. Обновите состояние задания; в standalone-режиме можно начать новое прохождение.', traceId };
-    if (code === 'Progress.Closed' || code === 'ModuleSessionClosed') return { canRetry: false, color: 'yellow', status: 409, title: 'Прохождение завершено', message: 'Отправка больше недоступна. Обновите состояние задания и посмотрите итог.', traceId };
-    if (code === 'Progress.StillActive') return { canRetry: false, color: 'yellow', status: 409, title: 'Прохождение ещё активно', message: 'Продолжите текущее прохождение или завершите его перед перезапуском.', traceId };
-    if (code === 'Progress.ValidationVersionNotPublished' || code === 'TaskValidation.StaleVersion') return { canRetry: false, color: 'yellow', status: 409, title: 'Версия проверки изменилась', message: 'Обновите задание. Для нового прохождения нужна опубликованная версия проверки.', traceId };
-    if (code === 'Progress.PlatformFlowRequired' || code === 'ModuleSessionRequired' || code === 'SessionTaskMismatch') return { canRetry: false, color: 'yellow', status: 409, title: 'Платформенная сессия недоступна', message: 'Откройте это задание заново через платформу.', traceId };
-    if (code === 'IdempotencyRequestInProgress' || code === 'Progress.ConcurrentReservation') return { canRetry: true, color: 'yellow', status: 409, title: 'Предыдущая отправка выполняется', message: 'Дождитесь завершения и повторите неизменённый SQL с тем же ключом.', traceId };
+    if (code === 'ModuleSession.AttemptsExhausted') return { canRetry: false, color: 'yellow', status: 409, title: 'Попытки закончились', message: 'Лимит попыток для этой сессии исчерпан.', traceId };
+    if (code === 'ModuleSession.Expired') return { canRetry: false, color: 'yellow', status: 409, title: 'Срок выполнения вышел', message: 'Время выполнения задания закончилось. Новые решения отправить нельзя.', traceId };
+    if (code === 'ModuleSession.Closed') return { canRetry: false, color: 'yellow', status: 409, title: 'Сессия уже завершена', message: 'Итог сессии уже зафиксирован. Новые решения отправить нельзя.', traceId };
+    if (code === 'TaskValidation.StaleVersion') return { canRetry: false, color: 'yellow', status: 409, title: 'Версия проверки изменилась', message: 'Обновите задание: опубликована новая версия проверки.', traceId };
+    if (code === 'ModuleSessionRequired' || code === 'SessionTaskMismatch') return { canRetry: false, color: 'yellow', status: 409, title: 'Платформенная сессия недоступна', message: 'Откройте это задание заново через платформу.', traceId };
+    if (code === 'IdempotencyRequestInProgress') return { canRetry: true, color: 'yellow', status: 409, title: 'Предыдущая отправка выполняется', message: 'Дождитесь завершения и повторите неизменённый SQL с тем же ключом.', traceId };
   }
   if (resolvedStatus === 422 && code === 'Validation.AnalyzerNotSupported') return { canRetry: false, color: 'red', status: 422, title: 'Анализатор не поддерживает СУБД', message: 'Нужна другая конфигурация проверки или поддержка этой СУБД на сервере.', traceId };
   if (resolvedStatus === 503 && code === 'TaskValidation.InfrastructureUnavailable') return { canRetry: true, color: 'yellow', status: 503, title: 'Проверка временно недоступна', message: 'Анализатор или sandbox недоступен. Неизменённый запрос можно повторить позже.', traceId };

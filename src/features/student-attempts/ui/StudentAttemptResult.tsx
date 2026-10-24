@@ -68,7 +68,7 @@ export function StudentAttemptResult({ result, actions }: { result: SubmitAttemp
       {result.checks?.length ? <Stack gap={4}><Text fw={600} size="sm">Показанные критерии</Text>{result.checks.map((check, index) => <Group key={`${check.kind}-${index}`} gap="xs"><Badge color={check.status === 'Passed' ? 'green' : check.status === 'Failed' ? 'red' : 'gray'} variant="light">{getValidationCheckStatusLabel(check.status)}</Badge><Text size="sm">{getValidationCheckKindLabel(check.kind)}: {check.awardedScore} из {check.weight} баллов{check.message ? ` — ${check.message}` : ''}</Text></Group>)}</Stack> : <Text c="dimmed" size="sm">Детализация критериев скрыта преподавателем.</Text>}
       {result.hints?.length ? <Stack gap={4}><Text fw={600} size="sm">Подсказки</Text>{result.hints.map((hint, index) => <Text key={`${hint.group}-${index}`} size="sm">{getHintGroupLabel(hint.group)}: {hint.message}</Text>)}</Stack> : null}
       {result.publicError ? <Alert color="red">{result.publicError}</Alert> : null}
-      {result.canSubmit === false ? <Text c="dimmed" size="sm">Новые отправки в этом прохождении недоступны.</Text> : null}
+      {result.canSubmit === false ? <Text c="dimmed" size="sm">Новые отправки в этой сессии недоступны.</Text> : null}
     </Stack> : null}
 
     <StudentAttemptSnapshot

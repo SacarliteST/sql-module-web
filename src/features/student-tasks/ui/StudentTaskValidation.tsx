@@ -16,7 +16,7 @@ export function StudentTaskValidation({ validation, isPlatformSession }: Props) 
 
   return <AppCard><Stack gap="md">
     <Group justify="space-between">
-      <Title order={2} size="h4">Проверка и прохождение</Title>
+      <Title order={2} size="h4">Проверка задания</Title>
       {session ? <Badge color={session.canSubmit ? 'blue' : 'gray'} variant="light">{getSessionStatusLabel(session.status)}</Badge> : <Badge color="blue" variant="light">Без ограничений</Badge>}
     </Group>
     <Group gap="lg">

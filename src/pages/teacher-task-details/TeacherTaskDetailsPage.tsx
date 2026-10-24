@@ -635,7 +635,7 @@ export function TeacherTaskDetailsPage() {
       <ConfirmModal
         opened={archiveOpened}
         title="Архивировать задание"
-        message="Задание перестанет быть активным для новых прохождений. История попыток сохранится."
+        message="Задание перестанет быть доступным для новых сессий. История попыток сохранится."
         confirmLabel="Архивировать"
         loading={archiveMutation.isPending}
         onCancel={archiveModal.close}

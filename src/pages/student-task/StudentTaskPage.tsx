@@ -150,7 +150,7 @@ export function StudentTaskPage() {
         {validation?.session ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
       </Group> : <Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button>}
     />
-    {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Отправляйте попытки на проверку и завершите прохождение, когда закончите. Если нужно отвлечься (например, пройти тест), вернитесь на платформу кнопкой в заголовке — прохождение останется открытым, продолжить можно там же кнопкой «Продолжить».</Alert> : <StudentContourTabs />}
+    {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Отправляйте попытки на проверку и завершите сессию, когда закончите. Если нужно отвлечься (например, пройти тест), вернитесь на платформу кнопкой в заголовке — сессия останется открытой, продолжить можно там же кнопкой «Продолжить».</Alert> : <StudentContourTabs />}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'applied' ? <Alert color="blue" title="SQL загружен из истории">Текст выбранной попытки подставлен один раз. Reload не заменит более свежий черновик.</Alert> : null}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'cancelled' ? <Alert color="yellow" title="Перенос отменён">Текущий черновик оставлен без изменений.</Alert> : null}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'invalid' ? <Alert color="yellow" title="SQL не перенесён">Данные перехода из истории устарели или имеют неверный формат.</Alert> : null}
