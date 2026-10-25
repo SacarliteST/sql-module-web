@@ -46,8 +46,6 @@ export interface AttemptListItemResponse {
   /** @nullable */
   updatedByName: string | null;
   /** @nullable */
-  progressId: string | null;
-  /** @nullable */
   validationVersionId: string | null;
   /** @nullable */
   attemptNumber: number | null;

@@ -76,7 +76,6 @@ export function TeacherAttemptsPage() {
   const isCorrect = correctParam === 'true' ? true : correctParam === 'false' ? false : undefined;
   const dateFrom = searchParams.get('dateFrom') ?? '';
   const dateTo = searchParams.get('dateTo') ?? '';
-  const progressId = searchParams.get('progressId') ?? '';
   const versionId = searchParams.get('versionId') ?? '';
   const scoreFrom = searchParams.get('scoreFrom') ?? '';
   const scoreTo = searchParams.get('scoreTo') ?? '';
@@ -106,7 +105,6 @@ export function TeacherAttemptsPage() {
     IsCorrect: isCorrect,
     DateFrom: dateFrom ? new Date(`${dateFrom}T00:00:00`).toISOString() : undefined,
     DateTo: dateTo ? new Date(`${dateTo}T23:59:59.999`).toISOString() : undefined,
-    ProgressId: progressId || undefined,
     ValidationVersionId: versionId || undefined,
     ScoreFrom: scoreFrom === '' ? undefined : Number(scoreFrom),
     ScoreTo: scoreTo === '' ? undefined : Number(scoreTo),
@@ -204,7 +202,7 @@ export function TeacherAttemptsPage() {
   const pageCount = Math.max(1, Math.ceil((data?.count ?? 0) / PAGE_SIZE));
   const filterOptionsFailed = [studentOptionsQuery, selectedStudentQuery, topicOptionsQuery, selectedTopicQuery, taskOptionsQuery, selectedTaskQuery]
     .some((item) => item.isError || (item.data && item.data.status !== 200));
-  const hasFilters = Boolean(taskId || userId || topicId || status || correctParam || dateFrom || dateTo || progressId || versionId || scoreFrom || scoreTo || reason);
+  const hasFilters = Boolean(taskId || userId || topicId || status || correctParam || dateFrom || dateTo || versionId || scoreFrom || scoreTo || reason);
 
   return (
     <Page>
@@ -225,7 +223,6 @@ export function TeacherAttemptsPage() {
                 <TextInput type="date" label="С даты" value={dateFrom} onChange={(event) => setFilters({ dateFrom: event.currentTarget.value || null })} />
                 <TextInput type="date" label="По дату" value={dateTo} onChange={(event) => setFilters({ dateTo: event.currentTarget.value || null })} />
               </Group>
-              <TextInput label="ID прохождения" value={progressId} onChange={(event) => setFilters({ progressId: event.currentTarget.value || null })} />
               <TextInput label="ID версии проверки" value={versionId} onChange={(event) => setFilters({ versionId: event.currentTarget.value || null })} />
               <Group grow align="flex-end"><TextInput label="Балл от" type="number" min={0} max={100} value={scoreFrom} onChange={(event) => setFilters({ scoreFrom: event.currentTarget.value || null })} /><TextInput label="Балл до" type="number" min={0} max={100} value={scoreTo} onChange={(event) => setFilters({ scoreTo: event.currentTarget.value || null })} /></Group>
               <Select clearable label="Причина завершения" value={reason ?? null} data={Object.values(GetAllAttemptsFinalizationReason).map((value) => ({ value, label: getFinalizationReasonLabel(value) }))} onChange={(value) => setFilters({ reason: value })} />

@@ -1077,7 +1077,7 @@ export const getDeleteSqlTaskUrl = (id: string,) => {
 }
 
 /**
- * Удаляет задание, которым никто не пользовался: статус Draft или Archived, нет попыток и прохождений студентов (включая платформенные). Одной транзакцией удаляются задание, версии оценки, конфигурация оценки и эталонный запрос. Те же правила видны в teacher-details (canDelete, deleteBlockReasons). Возвращает 204 No Content.
+ * Удаляет задание, которым никто не пользовался: статус Draft или Archived, нет попыток и платформенных сессий. Одной транзакцией удаляются задание, версии оценки, конфигурация оценки и эталонный запрос. Те же правила видны в teacher-details (canDelete, deleteBlockReasons). Возвращает 204 No Content.
  * @summary Удалить SQL-задание
  */
 export const deleteSqlTask = async (id: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<deleteSqlTaskResponse> => {
@@ -2614,7 +2614,7 @@ export const getGetAllAttemptsUrl = (params?: GetAllAttemptsParams,) => {
 }
 
 /**
- * Возвращает 200 OK со страницей попыток, отсортированных по убыванию даты начала. offset — количество пропускаемых записей (>= 0, по умолчанию 0). limit — размер страницы (1–100, по умолчанию 20). taskId — необязательный фильтр по заданию. userId — необязательный фильтр по студенту. progressId и validationVersionId — фильтры версионированной проверки. scoreFrom/scoreTo — включительный диапазон баллов 0–100. finalizationReason — причина финализации прохождения. 422 — некорректные параметры фильтрации или пагинации.
+ * Возвращает 200 OK со страницей попыток, отсортированных по убыванию даты начала. offset — количество пропускаемых записей (>= 0, по умолчанию 0). limit — размер страницы (1–100, по умолчанию 20). taskId — необязательный фильтр по заданию. userId — необязательный фильтр по студенту. validationVersionId — фильтр по версии проверки. scoreFrom/scoreTo — включительный диапазон баллов 0–100. finalizationReason — причина финализации платформенной сессии. 422 — некорректные параметры фильтрации или пагинации.
  * @summary Список попыток с пагинацией
  */
 export const getAllAttempts = async (params?: GetAllAttemptsParams, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getAllAttemptsResponse> => {

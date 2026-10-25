@@ -34,7 +34,5 @@ export interface StudentAttemptListItemResponse {
   /** @nullable */
   score: number | null;
   /** @nullable */
-  progressId: string | null;
-  /** @nullable */
   validationVersionId: string | null;
 }

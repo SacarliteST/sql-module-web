@@ -46,10 +46,6 @@ DateFrom?: string;
  */
 DateTo?: string;
 /**
- * Необязательный фильтр по прохождению.
- */
-ProgressId?: string;
-/**
  * Необязательный фильтр по версии проверки.
  */
 ValidationVersionId?: string;
@@ -62,7 +58,7 @@ ScoreFrom?: number;
  */
 ScoreTo?: number;
 /**
- * Причина финализации связанного прохождения.
+ * Причина финализации связанной платформенной сессии.
  */
 FinalizationReason?: GetAllAttemptsFinalizationReason;
 };

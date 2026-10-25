@@ -10,7 +10,7 @@
  * Причина, по которой задание нельзя удалить.
  */
 export interface DeleteBlockerResponse {
-  /** Стабильный machine-код, например `SqlTask.HasStudentProgress`. */
+  /** Стабильный machine-код, например `SqlTask.HasModuleSessions`. */
   code: string;
   /** Понятное преподавателю описание. */
   message: string;

@@ -107,7 +107,7 @@ export const getFinalizeCurrentModuleSessionUrl = () => {
 
 /**
  * Фиксирует фактический BestScore и атомарно ставит один итог в outbox Education.
- * @summary Завершить текущее платформенное прохождение
+ * @summary Завершить текущую платформенную сессию
  */
 export const finalizeCurrentModuleSession = async (headers: FinalizeCurrentModuleSessionHeaders, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<finalizeCurrentModuleSessionResponse> => {
 
@@ -156,7 +156,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type FinalizeCurrentModuleSessionMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
- * @summary Завершить текущее платформенное прохождение
+ * @summary Завершить текущую платформенную сессию
  */
 export const useFinalizeCurrentModuleSession = <TError = ProblemDetails | HttpValidationProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, TError,{headers: FinalizeCurrentModuleSessionHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}

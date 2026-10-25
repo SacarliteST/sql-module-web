@@ -72,7 +72,7 @@ export interface TeacherTaskDetailsResponse {
   canArchive?: boolean;
   /**
      * Можно ли удалить задание сейчас: true только при пустом `deleteBlockReasons` —
-     * статус Draft или Archived, нет попыток и прохождений студентов.
+     * статус Draft или Archived, нет попыток и платформенных сессий.
      */
   canDelete?: boolean;
   /**
