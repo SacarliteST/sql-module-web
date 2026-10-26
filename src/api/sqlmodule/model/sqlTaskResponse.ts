@@ -6,6 +6,7 @@
  * OpenAPI spec version: v1
  */
 import type { SqlTaskResponsePublicationStatus } from './sqlTaskResponsePublicationStatus';
+import type { SqlTaskResponseVisibility } from './sqlTaskResponseVisibility';
 
 /**
  * Данные SQL-задания.
@@ -65,4 +66,16 @@ export interface SqlTaskResponse {
      * @nullable
      */
   updatedByName?: string | null;
+  /** Назначение задания: контроль или открытый банк. */
+  visibility?: SqlTaskResponseVisibility;
+  /**
+     * Постоянный номер в банке; null до первого открытия.
+     * @nullable
+     */
+  bankNumber?: number | null;
+  /**
+     * Дата первого открытия в банке.
+     * @nullable
+     */
+  bankPublishedAt?: string | null;
 }

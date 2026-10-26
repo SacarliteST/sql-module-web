@@ -6,6 +6,7 @@
  * OpenAPI spec version: v1
  */
 import type { GetAllAttemptsFinalizationReason } from './getAllAttemptsFinalizationReason';
+import type { GetAllAttemptsOrigin } from './getAllAttemptsOrigin';
 import type { GetAllAttemptsStatus } from './getAllAttemptsStatus';
 
 export type GetAllAttemptsParams = {
@@ -61,4 +62,8 @@ ScoreTo?: number;
  * Причина финализации связанной платформенной сессии.
  */
 FinalizationReason?: GetAllAttemptsFinalizationReason;
+/**
+ * Источник попытки: тренировка или платформенная сессия.
+ */
+Origin?: GetAllAttemptsOrigin;
 };

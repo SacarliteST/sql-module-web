@@ -13,7 +13,8 @@ import {
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { BankTaskSort, BankTaskStatus } from '../../../api/sqlmodule/model';
 import { useGetStudentTasks } from '../../../api/sqlmodule/student/student';
 import { formatStudentDifficulty } from '../../../shared/lib/student-display';
 import { mapStudentApiError, StudentErrorAlert } from '../../student-errors';
@@ -39,28 +40,34 @@ function readDifficulty(value: string | null) {
 
 export function StudentTaskCatalog({ topicId, topicName }: StudentTaskCatalogProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlName = searchParams.get('name')?.trim() ?? '';
+  const navigate = useNavigate();
+  const urlSearch = searchParams.get('search')?.trim() ?? '';
   const page = readPage(searchParams.get('page'));
   const difficulty = readDifficulty(searchParams.get('difficulty'));
-  const [searchValue, setSearchValue] = useState(urlName);
+  const solved = searchParams.get('status') === 'solved' ? true : searchParams.get('status') === 'unsolved' ? false : undefined;
+  const sortBy = searchParams.get('sort') === 'difficulty' ? BankTaskSort.Difficulty : searchParams.get('sort') === 'published' ? BankTaskSort.PublishedAt : BankTaskSort.BankNumber;
+  const [searchValue, setSearchValue] = useState(urlSearch);
   const [debouncedSearch] = useDebouncedValue(searchValue.trim(), SEARCH_DELAY_MS);
 
-  useEffect(() => setSearchValue(urlName), [urlName]);
+  useEffect(() => setSearchValue(urlSearch), [urlSearch]);
   useEffect(() => {
-    if (debouncedSearch === urlName) return;
+    if (debouncedSearch === urlSearch) return;
     const next = new URLSearchParams(searchParams);
-    if (debouncedSearch) next.set('name', debouncedSearch); else next.delete('name');
+    if (debouncedSearch) next.set('search', debouncedSearch); else next.delete('search');
     next.delete('page');
     setSearchParams(next, { replace: true });
-  }, [debouncedSearch, searchParams, setSearchParams, urlName]);
+  }, [debouncedSearch, searchParams, setSearchParams, urlSearch]);
 
   const queryParams = useMemo(() => ({
     TopicId: topicId,
-    Name: urlName || undefined,
+    Search: /^\d+$/.test(urlSearch) ? undefined : urlSearch || undefined,
+    BankNumber: /^\d+$/.test(urlSearch) ? Number(urlSearch) : undefined,
     DifficultyLevel: difficulty,
+    Solved: solved,
+    SortBy: sortBy,
     Offset: (page - 1) * PAGE_SIZE,
     Limit: PAGE_SIZE,
-  }), [difficulty, page, topicId, urlName]);
+  }), [difficulty, page, solved, sortBy, topicId, urlSearch]);
   const tasksQuery = useGetStudentTasks(queryParams);
   const response = tasksQuery.data;
   const pageData = response?.status === 200 ? response.data : null;
@@ -77,7 +84,7 @@ export function StudentTaskCatalog({ topicId, topicName }: StudentTaskCatalogPro
     setSearchParams(next, { replace: true });
   }, [page, pageCount, pageData, searchParams, setSearchParams]);
 
-  const setFilter = (key: 'difficulty' | 'page', value: string | null) => {
+  const setFilter = (key: 'difficulty' | 'status' | 'sort' | 'page', value: string | null) => {
     const next = new URLSearchParams(searchParams);
     if (value) next.set(key, value); else next.delete(key);
     if (key !== 'page') next.delete('page');
@@ -85,26 +92,33 @@ export function StudentTaskCatalog({ topicId, topicName }: StudentTaskCatalogPro
   };
   const resetFilters = () => {
     const next = new URLSearchParams(searchParams);
-    next.delete('name');
+    next.delete('search');
     next.delete('difficulty');
+    next.delete('status');
+    next.delete('sort');
     next.delete('page');
     setSearchValue('');
     setSearchParams(next, { replace: true });
   };
-  const hasFilters = Boolean(urlName || difficulty);
+  const hasFilters = Boolean(urlSearch || difficulty || solved !== undefined || sortBy !== BankTaskSort.BankNumber);
 
   return <Stack gap="md">
     <Stack gap={4}>
       <Title order={2} size="h4">{topicName || 'Все опубликованные задания'}</Title>
-      <Text c="dimmed" size="sm">Задания загружаются постранично из защищённого student API.</Text>
+      <Text c="dimmed" size="sm">Решайте задания без лимита попыток. Прогресс сохраняется в личной истории.</Text>
     </Stack>
     <Group align="flex-end" grow wrap="wrap">
       <TextInput
-        label="Поиск по названию"
-        placeholder="Например, выборка сотрудников"
+        label="Поиск по номеру или тексту"
+        placeholder="Например, 42 или выборка сотрудников"
         value={searchValue}
         onChange={(event) => setSearchValue(event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && /^\d+$/.test(searchValue.trim())) void navigate(`/student/bank/tasks/${Number(searchValue.trim())}`);
+        }}
       />
+      <Select clearable label="Статус" placeholder="Любой" data={[{ value: 'solved', label: 'Решено' }, { value: 'unsolved', label: 'Не решено' }]} value={searchParams.get('status')} onChange={(value) => setFilter('status', value)} />
+      <Select label="Сортировка" data={[{ value: 'number', label: 'По номеру' }, { value: 'difficulty', label: 'По сложности' }, { value: 'published', label: 'Сначала новые' }]} value={searchParams.get('sort') ?? 'number'} onChange={(value) => setFilter('sort', value === 'number' ? null : value)} />
       <Select
         clearable
         label="Сложность"
@@ -124,9 +138,16 @@ export function StudentTaskCatalog({ topicId, topicName }: StudentTaskCatalogPro
         {pageData.items.map((task, index) => <AppCard key={task.id ?? `${page}-${index}`} h="100%">
           <Stack gap="sm" h="100%">
             <Group gap="xs">
+              {task.bankNumber ? <Badge color="blue" variant="filled">№ {task.bankNumber}</Badge> : null}
               {task.topicName ? <Badge variant="light">{task.topicName}</Badge> : null}
               {task.difficultyLevel ? <Badge color="orange" variant="light">{formatStudentDifficulty(task.difficultyLevel)}</Badge> : null}
               {task.dbmsName ? <Badge color="gray" variant="outline">{task.dbmsName}</Badge> : null}
+            </Group>
+            <Group gap="xs">
+              <Badge color={task.status === BankTaskStatus.Solved ? 'green' : task.status === BankTaskStatus.InProgress ? 'yellow' : 'gray'} variant="light">
+                {task.status === BankTaskStatus.Solved ? 'Решено' : task.status === BankTaskStatus.InProgress ? 'В процессе' : 'Не начато'}
+              </Badge>
+              <Text c="dimmed" size="xs">Попыток: {task.attemptsCount ?? 0}{task.bestScore != null ? ` · лучший балл ${task.bestScore}` : ''}</Text>
             </Group>
             <Title order={3} size="h4">{task.taskName || 'Задание без названия'}</Title>
             <Text c="dimmed" lineClamp={4} size="sm">{task.taskTextPreview || 'Краткое условие не указано.'}</Text>

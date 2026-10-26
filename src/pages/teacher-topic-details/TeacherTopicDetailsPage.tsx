@@ -4,6 +4,7 @@ import {
   Badge,
   Box,
   Button,
+  Checkbox,
   Group,
   Modal,
   Pagination,
@@ -27,7 +28,7 @@ import type {
   SqlTaskResponse,
   TopicResponse,
 } from '../../api/sqlmodule/model';
-import { PublicationStatus } from '../../api/sqlmodule/model';
+import { PublicationStatus, SqlTaskResponseVisibility } from '../../api/sqlmodule/model';
 import { useGetAllTargetDbs } from '../../api/sqlmodule/schema/schema';
 import {
   useGetAllSqlTasks,
@@ -37,6 +38,7 @@ import {
   useDeleteTopic,
   useMoveTopic,
   useUpdateTopic,
+  useUpdateTaskBankBatch,
 } from '../../api/sqlmodule/training/training';
 import { SqlTaskFormModal } from '../../features/sql-tasks';
 import { formatAuditDate as formatDate } from '../../shared/lib/teacher-audit';
@@ -59,6 +61,8 @@ type TopicTaskView = {
   difficultyLevel: number | null;
   attempts: string;
   updatedAt: string;
+  visibility?: string;
+  bankNumber?: number | null;
 };
 
 function normalizeTopic(topic: TopicResponse): TopicView | null {
@@ -107,6 +111,8 @@ function normalizeTask(
     difficultyLevel: task.difficultyLevel ?? null,
     attempts: String(task.attemptsCount ?? 0),
     updatedAt: formatDate(task.updatedAt ?? task.createdAt),
+    visibility: task.visibility,
+    bankNumber: task.bankNumber,
   };
 }
 
@@ -195,10 +201,13 @@ export function TeacherTopicDetailsPage() {
   const [taskDbFilter, setTaskDbFilter] = useState<string | null>(null);
   const [taskDifficultyFilter, setTaskDifficultyFilter] = useState<string | null>(null);
   const [taskStatusFilter, setTaskStatusFilter] = useState<string | null>(null);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [batchMessage, setBatchMessage] = useState('');
   const updateTopicMutation = useUpdateTopic();
   const createTopicMutation = useCreateTopic();
   const moveTopicMutation = useMoveTopic();
   const deleteTopicMutation = useDeleteTopic();
+  const bankBatchMutation = useUpdateTaskBankBatch();
 
   const topicQuery = useGetTopicById(topicId, {
     query: {
@@ -361,6 +370,16 @@ export function TeacherTopicDetailsPage() {
 
   const refreshTopics = async () => {
     await Promise.all([topicQuery.refetch(), topicsQuery.refetch()]);
+  };
+
+  const updateBankBatch = async (open: boolean) => {
+    if (!selectedTaskIds.length) return;
+    const response = await bankBatchMutation.mutateAsync({ data: { taskIds: selectedTaskIds, open } });
+    if (response.status !== 200) { setBatchMessage(getProblemMessage(response.data, 'Пакетная операция не выполнена.')); return; }
+    const skipped = response.data.items?.filter((item) => !item.updated).length ?? 0;
+    setBatchMessage(`${open ? 'Открыто' : 'Закрыто'}: ${response.data.updatedCount ?? 0}. Пропущено: ${skipped}.`);
+    setSelectedTaskIds([]);
+    await sqlTasksQuery.refetch();
   };
 
   const openEdit = () => {
@@ -578,6 +597,11 @@ export function TeacherTopicDetailsPage() {
                 </Title>
                 <Group gap="xs"><TextInput size="xs" placeholder="Название" value={taskNameFilter} onChange={(event) => { setTaskNameFilter(event.currentTarget.value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="База" data={(targetDbsPage?.items ?? []).filter((item) => item.id).map((item) => ({ value: item.id as string, label: item.dbName?.trim() || 'База' }))} value={taskDbFilter} onChange={(value) => { setTaskDbFilter(value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="Сложность" data={['1','2','3','4','5']} value={taskDifficultyFilter} onChange={(value) => { setTaskDifficultyFilter(value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="Статус" data={[{ value: PublicationStatus.Draft, label: 'Черновик' }, { value: PublicationStatus.Published, label: 'Опубликовано' }, { value: PublicationStatus.Archived, label: 'В архиве' }]} value={taskStatusFilter} onChange={(value) => { setTaskStatusFilter(value); setTaskPage(1); }} /></Group>
               </Group>
+              <Group>
+                <Button disabled={!selectedTaskIds.length} loading={bankBatchMutation.isPending} size="xs" onClick={() => void updateBankBatch(true)}>Открыть выбранные в банке</Button>
+                <Button color="red" disabled={!selectedTaskIds.length} loading={bankBatchMutation.isPending} size="xs" variant="outline" onClick={() => void updateBankBatch(false)}>Закрыть выбранные</Button>
+                {batchMessage ? <Text size="sm">{batchMessage}</Text> : null}
+              </Group>
 
               <AppCard p={0}>
                 {topicTasks.length > 0 ? (
@@ -586,6 +610,7 @@ export function TeacherTopicDetailsPage() {
                     <Table highlightOnHover withColumnBorders={false}>
                       <Table.Thead bg="gray.1">
                         <Table.Tr>
+                          <Table.Th><Checkbox aria-label="Выбрать все задания страницы" checked={topicTasks.length > 0 && topicTasks.every((task) => selectedTaskIds.includes(task.id))} onChange={(event) => setSelectedTaskIds(event.currentTarget.checked ? topicTasks.map((task) => task.id) : [])} /></Table.Th>
                           <Table.Th>Название</Table.Th>
                           <Table.Th>База / СУБД</Table.Th>
                           <Table.Th>Сложность</Table.Th>
@@ -595,6 +620,7 @@ export function TeacherTopicDetailsPage() {
                       <Table.Tbody>
                         {topicTasks.map((task) => (
                           <Table.Tr key={task.id}>
+                            <Table.Td><Checkbox aria-label={`Выбрать ${task.title}`} checked={selectedTaskIds.includes(task.id)} onChange={(event) => setSelectedTaskIds((current) => event.currentTarget.checked ? [...new Set([...current, task.id])] : current.filter((id) => id !== task.id))} /></Table.Td>
                             <Table.Td>
                               <Anchor component={Link} to={`/teacher/topics/${topic.id}/tasks/${task.id}`}>
                                 {task.title}
@@ -602,6 +628,7 @@ export function TeacherTopicDetailsPage() {
                               <Text c="dimmed" size="xs">
                                 Попыток: {task.attempts}
                               </Text>
+                              <Badge color={task.visibility === SqlTaskResponseVisibility.Open ? 'green' : 'gray'} size="xs" variant="light">{task.visibility === SqlTaskResponseVisibility.Open ? `В банке · № ${task.bankNumber ?? '—'}` : 'Контроль'}</Badge>
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm">{task.database}</Text>

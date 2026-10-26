@@ -21,6 +21,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  BankHintResponse,
+  BankSolutionResponse,
   GetStudentAttemptsParams,
   GetStudentTaskTableRowsParams,
   GetStudentTasksParams,
@@ -430,6 +432,403 @@ export function useGetStudentTaskById<TData = Awaited<ReturnType<typeof getStude
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetStudentTaskByIdQueryOptions(taskId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getStudentTaskByBankNumberResponse200 = {
+  data: StudentTaskDetailsResponse
+  status: 200
+}
+
+export type getStudentTaskByBankNumberResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getStudentTaskByBankNumberResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getStudentTaskByBankNumberResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getStudentTaskByBankNumberResponseSuccess = (getStudentTaskByBankNumberResponse200) & {
+  headers: Headers;
+};
+export type getStudentTaskByBankNumberResponseError = (getStudentTaskByBankNumberResponse401 | getStudentTaskByBankNumberResponse403 | getStudentTaskByBankNumberResponse404) & {
+  headers: Headers;
+};
+
+export type getStudentTaskByBankNumberResponse = (getStudentTaskByBankNumberResponseSuccess | getStudentTaskByBankNumberResponseError)
+
+export const getGetStudentTaskByBankNumberUrl = (bankNumber: number,) => {
+
+
+
+
+  return `/api/v1/student/tasks/by-number/${bankNumber}`
+}
+
+/**
+ * @summary Получить задание открытого банка по номеру
+ */
+export const getStudentTaskByBankNumber = async (bankNumber: number, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getStudentTaskByBankNumberResponse> => {
+
+  return sqlmoduleFetch<getStudentTaskByBankNumberResponse>(getGetStudentTaskByBankNumberUrl(bankNumber),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStudentTaskByBankNumberQueryKey = (bankNumber: number,) => {
+    return [
+    `/api/v1/student/tasks/by-number/${bankNumber}`
+    ] as const;
+    }
+
+
+export const getGetStudentTaskByBankNumberQueryOptions = <TData = Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError = ProblemDetails>(bankNumber: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStudentTaskByBankNumberQueryKey(bankNumber);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStudentTaskByBankNumber>>> = ({ signal }) => getStudentTaskByBankNumber(bankNumber, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: bankNumber !== null && bankNumber !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetStudentTaskByBankNumberQueryResult = NonNullable<Awaited<ReturnType<typeof getStudentTaskByBankNumber>>>
+export type GetStudentTaskByBankNumberQueryError = ProblemDetails
+
+
+export function useGetStudentTaskByBankNumber<TData = Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError = ProblemDetails>(
+ bankNumber: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStudentTaskByBankNumber>>,
+          TError,
+          Awaited<ReturnType<typeof getStudentTaskByBankNumber>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStudentTaskByBankNumber<TData = Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError = ProblemDetails>(
+ bankNumber: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStudentTaskByBankNumber>>,
+          TError,
+          Awaited<ReturnType<typeof getStudentTaskByBankNumber>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetStudentTaskByBankNumber<TData = Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError = ProblemDetails>(
+ bankNumber: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить задание открытого банка по номеру
+ */
+
+export function useGetStudentTaskByBankNumber<TData = Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError = ProblemDetails>(
+ bankNumber: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getStudentTaskByBankNumber>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetStudentTaskByBankNumberQueryOptions(bankNumber,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getBankHintResponse200 = {
+  data: BankHintResponse
+  status: 200
+}
+
+export type getBankHintResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getBankHintResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getBankHintResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getBankHintResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type getBankHintResponseSuccess = (getBankHintResponse200) & {
+  headers: Headers;
+};
+export type getBankHintResponseError = (getBankHintResponse401 | getBankHintResponse403 | getBankHintResponse404 | getBankHintResponse409) & {
+  headers: Headers;
+};
+
+export type getBankHintResponse = (getBankHintResponseSuccess | getBankHintResponseError)
+
+export const getGetBankHintUrl = (taskId: string,) => {
+
+
+
+
+  return `/api/v1/student/tasks/${taskId}/hint`
+}
+
+/**
+ * @summary Получить подсказку к заданию открытого банка
+ */
+export const getBankHint = async (taskId: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getBankHintResponse> => {
+
+  return sqlmoduleFetch<getBankHintResponse>(getGetBankHintUrl(taskId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBankHintQueryKey = (taskId: string,) => {
+    return [
+    `/api/v1/student/tasks/${taskId}/hint`
+    ] as const;
+    }
+
+
+export const getGetBankHintQueryOptions = <TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBankHintQueryKey(taskId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBankHint>>> = ({ signal }) => getBankHint(taskId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: taskId !== null && taskId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBankHintQueryResult = NonNullable<Awaited<ReturnType<typeof getBankHint>>>
+export type GetBankHintQueryError = ProblemDetails
+
+
+export function useGetBankHint<TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(
+ taskId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBankHint>>,
+          TError,
+          Awaited<ReturnType<typeof getBankHint>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBankHint<TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBankHint>>,
+          TError,
+          Awaited<ReturnType<typeof getBankHint>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBankHint<TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить подсказку к заданию открытого банка
+ */
+
+export function useGetBankHint<TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBankHintQueryOptions(taskId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type getBankSolutionResponse200 = {
+  data: BankSolutionResponse
+  status: 200
+}
+
+export type getBankSolutionResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getBankSolutionResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getBankSolutionResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getBankSolutionResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type getBankSolutionResponseSuccess = (getBankSolutionResponse200) & {
+  headers: Headers;
+};
+export type getBankSolutionResponseError = (getBankSolutionResponse401 | getBankSolutionResponse403 | getBankSolutionResponse404 | getBankSolutionResponse409) & {
+  headers: Headers;
+};
+
+export type getBankSolutionResponse = (getBankSolutionResponseSuccess | getBankSolutionResponseError)
+
+export const getGetBankSolutionUrl = (taskId: string,) => {
+
+
+
+
+  return `/api/v1/student/tasks/${taskId}/solution`
+}
+
+/**
+ * @summary Получить разбор решения задания открытого банка
+ */
+export const getBankSolution = async (taskId: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getBankSolutionResponse> => {
+
+  return sqlmoduleFetch<getBankSolutionResponse>(getGetBankSolutionUrl(taskId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBankSolutionQueryKey = (taskId: string,) => {
+    return [
+    `/api/v1/student/tasks/${taskId}/solution`
+    ] as const;
+    }
+
+
+export const getGetBankSolutionQueryOptions = <TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBankSolutionQueryKey(taskId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBankSolution>>> = ({ signal }) => getBankSolution(taskId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: taskId !== null && taskId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBankSolutionQueryResult = NonNullable<Awaited<ReturnType<typeof getBankSolution>>>
+export type GetBankSolutionQueryError = ProblemDetails
+
+
+export function useGetBankSolution<TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(
+ taskId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBankSolution>>,
+          TError,
+          Awaited<ReturnType<typeof getBankSolution>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBankSolution<TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBankSolution>>,
+          TError,
+          Awaited<ReturnType<typeof getBankSolution>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBankSolution<TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить разбор решения задания открытого банка
+ */
+
+export function useGetBankSolution<TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(
+ taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBankSolutionQueryOptions(taskId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

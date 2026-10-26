@@ -10,7 +10,7 @@
  * Причина, по которой задание нельзя опубликовать или запустить.
  */
 export interface PublishBlockerResponse {
-  /** Стабильный machine-код, например `SqlTask.ValidationVersionNotPublished`. */
+  /** Стабильный machine-код. */
   code: string;
   /** Понятное преподавателю описание. */
   message: string;

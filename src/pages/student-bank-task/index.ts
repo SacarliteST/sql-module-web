@@ -1,0 +1,1 @@
+export { StudentBankTaskPage } from './StudentBankTaskPage';

@@ -30,10 +30,16 @@ export function SubmitStudentAttempt({ disabled = false, maxSqlLength, onResult,
   const [hasUncertainSubmission, setHasUncertainSubmission] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentErrorView | null>(null);
+  const [retryAfter, setRetryAfter] = useState(0);
   const normalizedSql = sql.trim();
   const tooLong = typeof maxSqlLength === 'number' && sql.length > maxSqlLength;
 
   useEffect(() => () => abortController.abort(), [abortController]);
+  useEffect(() => {
+    if (retryAfter <= 0) return;
+    const timer = window.setInterval(() => setRetryAfter((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, [retryAfter]);
   useEffect(() => {
     pendingSubmission.current = null;
     setHasUncertainSubmission(false);
@@ -59,6 +65,13 @@ export function SubmitStudentAttempt({ disabled = false, maxSqlLength, onResult,
       });
       if (response.status !== 201) {
         const code = problemCode(response.data);
+        if (response.status === 429) {
+          const seconds = Number(response.headers.get('Retry-After'));
+          setRetryAfter(Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : 3);
+          pendingSubmission.current = null;
+          setMessage(mapStudentApiError(response.status, response.data));
+          return;
+        }
         if (response.status === 409 && code === 'IdempotencyRequestInProgress') {
           setHasUncertainSubmission(true);
           setMessage(mapStudentApiError(response.status, response.data));
@@ -100,9 +113,9 @@ export function SubmitStudentAttempt({ disabled = false, maxSqlLength, onResult,
     {tooLong ? <Text c="red" size="sm">Сократите запрос до {maxSqlLength} символов.</Text> : null}
     {message ? <StudentErrorAlert error={message} /> : null}
     <Button
-      disabled={disabled || !normalizedSql || tooLong}
+      disabled={disabled || !normalizedSql || tooLong || retryAfter > 0}
       loading={submitting}
       onClick={() => void submit()}
-    >{submitting ? 'Запрос выполняется' : hasUncertainSubmission ? 'Повторить отправку безопасно' : 'Отправить решение'}</Button>
+    >{submitting ? 'Запрос выполняется' : retryAfter > 0 ? `Повторить через ${retryAfter} с` : hasUncertainSubmission ? 'Повторить отправку безопасно' : 'Отправить решение'}</Button>
   </Stack>;
 }

@@ -31,6 +31,7 @@ import { AppLayout } from '../layout/AppLayout';
 const StudentHomePage = lazy(() => import('../../pages/student-home').then((module) => ({ default: module.StudentHomePage })));
 const StudentTasksPage = lazy(() => import('../../pages/student-tasks').then((module) => ({ default: module.StudentTasksPage })));
 const StudentTaskPage = lazy(() => import('../../pages/student-task').then((module) => ({ default: module.StudentTaskPage })));
+const StudentBankTaskPage = lazy(() => import('../../pages/student-bank-task').then((module) => ({ default: module.StudentBankTaskPage })));
 const StudentAttemptsPage = lazy(() => import('../../pages/student-attempts').then((module) => ({ default: module.StudentAttemptsPage })));
 
 function StudentRouteLayout() {
@@ -164,6 +165,7 @@ export function AppRouter() {
           <Route index element={<StudentHomePage />} />
           <Route path="tasks" element={<StudentTasksPage />} />
           <Route path="tasks/:taskId" element={<StudentTaskPage />} />
+          <Route path="bank/tasks/:bankNumber" element={<StudentBankTaskPage />} />
           <Route path="attempts" element={<StudentAttemptsPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />

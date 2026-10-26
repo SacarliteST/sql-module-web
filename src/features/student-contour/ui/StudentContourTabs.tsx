@@ -2,7 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import styles from './StudentContourTabs.module.css';
 
 const tabs = [
-  { label: 'Задания', to: '/student/tasks', exact: false },
+  { label: 'Банк заданий', to: '/student/tasks', exact: false },
   { label: 'Мои попытки', to: '/student/attempts', exact: false },
 ] as const;
 

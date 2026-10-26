@@ -50,11 +50,17 @@ import type {
   SubmitAttemptHeaders,
   SubmitAttemptRequest,
   SubmitAttemptResponse,
+  TaskBankBatchResponse,
+  TaskBankContentResponse,
+  TaskBankReadinessResponse,
+  TaskBankStateResponse,
   TeacherTaskDetailsResponse,
   TopicResponse,
   TopicResponsePageResponse,
   UpdateSqlQueryRequest,
   UpdateSqlTaskRequest,
+  UpdateTaskBankBatchRequest,
+  UpdateTaskBankContentRequest,
   UpdateTaskReferenceQueryRequest,
   UpdateTaskReferenceQueryResponse,
   UpdateTopicRequest,
@@ -1576,6 +1582,548 @@ export const useUpdateTaskReferenceQuery = <TError = ProblemDetails | HttpValida
       > => {
       return useMutation(getUpdateTaskReferenceQueryMutationOptions(options), queryClient);
     }
+    export type getTaskBankReadinessResponse200 = {
+  data: TaskBankReadinessResponse
+  status: 200
+}
+
+export type getTaskBankReadinessResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type getTaskBankReadinessResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type getTaskBankReadinessResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getTaskBankReadinessResponseSuccess = (getTaskBankReadinessResponse200) & {
+  headers: Headers;
+};
+export type getTaskBankReadinessResponseError = (getTaskBankReadinessResponse401 | getTaskBankReadinessResponse403 | getTaskBankReadinessResponse404) & {
+  headers: Headers;
+};
+
+export type getTaskBankReadinessResponse = (getTaskBankReadinessResponseSuccess | getTaskBankReadinessResponseError)
+
+export const getGetTaskBankReadinessUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/sql-tasks/${id}/bank/readiness`
+}
+
+/**
+ * @summary Проверить готовность задания к открытому банку
+ */
+export const getTaskBankReadiness = async (id: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<getTaskBankReadinessResponse> => {
+
+  return sqlmoduleFetch<getTaskBankReadinessResponse>(getGetTaskBankReadinessUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTaskBankReadinessQueryKey = (id: string,) => {
+    return [
+    `/api/v1/sql-tasks/${id}/bank/readiness`
+    ] as const;
+    }
+
+
+export const getGetTaskBankReadinessQueryOptions = <TData = Awaited<ReturnType<typeof getTaskBankReadiness>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaskBankReadiness>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTaskBankReadinessQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTaskBankReadiness>>> = ({ signal }) => getTaskBankReadiness(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTaskBankReadiness>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTaskBankReadinessQueryResult = NonNullable<Awaited<ReturnType<typeof getTaskBankReadiness>>>
+export type GetTaskBankReadinessQueryError = ProblemDetails
+
+
+export function useGetTaskBankReadiness<TData = Awaited<ReturnType<typeof getTaskBankReadiness>>, TError = ProblemDetails>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaskBankReadiness>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTaskBankReadiness>>,
+          TError,
+          Awaited<ReturnType<typeof getTaskBankReadiness>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTaskBankReadiness<TData = Awaited<ReturnType<typeof getTaskBankReadiness>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaskBankReadiness>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTaskBankReadiness>>,
+          TError,
+          Awaited<ReturnType<typeof getTaskBankReadiness>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTaskBankReadiness<TData = Awaited<ReturnType<typeof getTaskBankReadiness>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaskBankReadiness>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Проверить готовность задания к открытому банку
+ */
+
+export function useGetTaskBankReadiness<TData = Awaited<ReturnType<typeof getTaskBankReadiness>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTaskBankReadiness>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTaskBankReadinessQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type openTaskInBankResponse200 = {
+  data: TaskBankStateResponse
+  status: 200
+}
+
+export type openTaskInBankResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type openTaskInBankResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type openTaskInBankResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type openTaskInBankResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type openTaskInBankResponseSuccess = (openTaskInBankResponse200) & {
+  headers: Headers;
+};
+export type openTaskInBankResponseError = (openTaskInBankResponse401 | openTaskInBankResponse403 | openTaskInBankResponse404 | openTaskInBankResponse409) & {
+  headers: Headers;
+};
+
+export type openTaskInBankResponse = (openTaskInBankResponseSuccess | openTaskInBankResponseError)
+
+export const getOpenTaskInBankUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/sql-tasks/${id}/bank/open`
+}
+
+/**
+ * Атомарно повторяет проверку готовности, при первом открытии назначает постоянный номер и дату. 409 содержит все причины отказа в errors. UsedInControl сообщает об известных контрольных запусках.
+ * @summary Открыть задание в банке
+ */
+export const openTaskInBank = async (id: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<openTaskInBankResponse> => {
+
+  return sqlmoduleFetch<openTaskInBankResponse>(getOpenTaskInBankUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getOpenTaskInBankMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openTaskInBank>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof openTaskInBank>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['openTaskInBank'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof openTaskInBank>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  openTaskInBank(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OpenTaskInBankMutationResult = NonNullable<Awaited<ReturnType<typeof openTaskInBank>>>
+
+    export type OpenTaskInBankMutationError = ProblemDetails
+
+    /**
+ * @summary Открыть задание в банке
+ */
+export const useOpenTaskInBank = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof openTaskInBank>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof openTaskInBank>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getOpenTaskInBankMutationOptions(options), queryClient);
+    }
+    export type closeTaskInBankResponse200 = {
+  data: TaskBankStateResponse
+  status: 200
+}
+
+export type closeTaskInBankResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type closeTaskInBankResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type closeTaskInBankResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type closeTaskInBankResponseSuccess = (closeTaskInBankResponse200) & {
+  headers: Headers;
+};
+export type closeTaskInBankResponseError = (closeTaskInBankResponse401 | closeTaskInBankResponse403 | closeTaskInBankResponse404) & {
+  headers: Headers;
+};
+
+export type closeTaskInBankResponse = (closeTaskInBankResponseSuccess | closeTaskInBankResponseError)
+
+export const getCloseTaskInBankUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/sql-tasks/${id}/bank/close`
+}
+
+/**
+ * @summary Закрыть задание в банке
+ */
+export const closeTaskInBank = async (id: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<closeTaskInBankResponse> => {
+
+  return sqlmoduleFetch<closeTaskInBankResponse>(getCloseTaskInBankUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCloseTaskInBankMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeTaskInBank>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof closeTaskInBank>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['closeTaskInBank'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof closeTaskInBank>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  closeTaskInBank(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CloseTaskInBankMutationResult = NonNullable<Awaited<ReturnType<typeof closeTaskInBank>>>
+
+    export type CloseTaskInBankMutationError = ProblemDetails
+
+    /**
+ * @summary Закрыть задание в банке
+ */
+export const useCloseTaskInBank = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeTaskInBank>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof closeTaskInBank>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCloseTaskInBankMutationOptions(options), queryClient);
+    }
+    export type updateTaskBankContentResponse200 = {
+  data: TaskBankContentResponse
+  status: 200
+}
+
+export type updateTaskBankContentResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type updateTaskBankContentResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type updateTaskBankContentResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type updateTaskBankContentResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
+export type updateTaskBankContentResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type updateTaskBankContentResponseSuccess = (updateTaskBankContentResponse200) & {
+  headers: Headers;
+};
+export type updateTaskBankContentResponseError = (updateTaskBankContentResponse401 | updateTaskBankContentResponse403 | updateTaskBankContentResponse404 | updateTaskBankContentResponse409 | updateTaskBankContentResponse422) & {
+  headers: Headers;
+};
+
+export type updateTaskBankContentResponse = (updateTaskBankContentResponseSuccess | updateTaskBankContentResponseError)
+
+export const getUpdateTaskBankContentUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/sql-tasks/${id}/bank/content`
+}
+
+/**
+ * @summary Обновить подсказку и пояснение задания банка
+ */
+export const updateTaskBankContent = async (id: string,
+    updateTaskBankContentRequest: UpdateTaskBankContentRequest, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<updateTaskBankContentResponse> => {
+
+  return sqlmoduleFetch<updateTaskBankContentResponse>(getUpdateTaskBankContentUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateTaskBankContentRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateTaskBankContentMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTaskBankContent>>, TError,{id: string;data: UpdateTaskBankContentRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTaskBankContent>>, TError,{id: string;data: UpdateTaskBankContentRequest}, TContext> => {
+
+const mutationKey = ['updateTaskBankContent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTaskBankContent>>, {id: string;data: UpdateTaskBankContentRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTaskBankContent(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTaskBankContentMutationResult = NonNullable<Awaited<ReturnType<typeof updateTaskBankContent>>>
+    export type UpdateTaskBankContentMutationBody = UpdateTaskBankContentRequest
+    export type UpdateTaskBankContentMutationError = ProblemDetails | HttpValidationProblemDetails
+
+    /**
+ * @summary Обновить подсказку и пояснение задания банка
+ */
+export const useUpdateTaskBankContent = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTaskBankContent>>, TError,{id: string;data: UpdateTaskBankContentRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateTaskBankContent>>,
+        TError,
+        {id: string;data: UpdateTaskBankContentRequest},
+        TContext
+      > => {
+      return useMutation(getUpdateTaskBankContentMutationOptions(options), queryClient);
+    }
+    export type updateTaskBankBatchResponse200 = {
+  data: TaskBankBatchResponse
+  status: 200
+}
+
+export type updateTaskBankBatchResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type updateTaskBankBatchResponse403 = {
+  data: ProblemDetails
+  status: 403
+}
+
+export type updateTaskBankBatchResponse422 = {
+  data: HttpValidationProblemDetails
+  status: 422
+}
+
+export type updateTaskBankBatchResponseSuccess = (updateTaskBankBatchResponse200) & {
+  headers: Headers;
+};
+export type updateTaskBankBatchResponseError = (updateTaskBankBatchResponse401 | updateTaskBankBatchResponse403 | updateTaskBankBatchResponse422) & {
+  headers: Headers;
+};
+
+export type updateTaskBankBatchResponse = (updateTaskBankBatchResponseSuccess | updateTaskBankBatchResponseError)
+
+export const getUpdateTaskBankBatchUrl = () => {
+
+
+
+
+  return `/api/v1/sql-tasks/bank/batch`
+}
+
+/**
+ * @summary Пакетно открыть или закрыть задания банка
+ */
+export const updateTaskBankBatch = async (updateTaskBankBatchRequest: UpdateTaskBankBatchRequest, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<updateTaskBankBatchResponse> => {
+
+  return sqlmoduleFetch<updateTaskBankBatchResponse>(getUpdateTaskBankBatchUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateTaskBankBatchRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateTaskBankBatchMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTaskBankBatch>>, TError,{data: UpdateTaskBankBatchRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTaskBankBatch>>, TError,{data: UpdateTaskBankBatchRequest}, TContext> => {
+
+const mutationKey = ['updateTaskBankBatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTaskBankBatch>>, {data: UpdateTaskBankBatchRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateTaskBankBatch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTaskBankBatchMutationResult = NonNullable<Awaited<ReturnType<typeof updateTaskBankBatch>>>
+    export type UpdateTaskBankBatchMutationBody = UpdateTaskBankBatchRequest
+    export type UpdateTaskBankBatchMutationError = ProblemDetails | HttpValidationProblemDetails
+
+    /**
+ * @summary Пакетно открыть или закрыть задания банка
+ */
+export const useUpdateTaskBankBatch = <TError = ProblemDetails | HttpValidationProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTaskBankBatch>>, TError,{data: UpdateTaskBankBatchRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateTaskBankBatch>>,
+        TError,
+        {data: UpdateTaskBankBatchRequest},
+        TContext
+      > => {
+      return useMutation(getUpdateTaskBankBatchMutationOptions(options), queryClient);
+    }
     export type getTeacherTaskDetailsResponse200 = {
   data: TeacherTaskDetailsResponse
   status: 200
@@ -2741,6 +3289,11 @@ export type submitAttemptResponse422 = {
   status: 422
 }
 
+export type submitAttemptResponse429 = {
+  data: ProblemDetails
+  status: 429
+}
+
 export type submitAttemptResponse500 = {
   data: ProblemDetails
   status: 500
@@ -2754,7 +3307,7 @@ export type submitAttemptResponse503 = {
 export type submitAttemptResponseSuccess = (submitAttemptResponse201) & {
   headers: Headers;
 };
-export type submitAttemptResponseError = (submitAttemptResponse400 | submitAttemptResponse401 | submitAttemptResponse403 | submitAttemptResponse404 | submitAttemptResponse409 | submitAttemptResponse422 | submitAttemptResponse500 | submitAttemptResponse503) & {
+export type submitAttemptResponseError = (submitAttemptResponse400 | submitAttemptResponse401 | submitAttemptResponse403 | submitAttemptResponse404 | submitAttemptResponse409 | submitAttemptResponse422 | submitAttemptResponse429 | submitAttemptResponse500 | submitAttemptResponse503) & {
   headers: Headers;
 };
 

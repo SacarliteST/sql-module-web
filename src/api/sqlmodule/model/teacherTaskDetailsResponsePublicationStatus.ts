@@ -6,9 +6,6 @@
  * OpenAPI spec version: v1
  */
 
-/**
- * Статус публикации.
- */
 export type TeacherTaskDetailsResponsePublicationStatus = typeof TeacherTaskDetailsResponsePublicationStatus[keyof typeof TeacherTaskDetailsResponsePublicationStatus];
 
 

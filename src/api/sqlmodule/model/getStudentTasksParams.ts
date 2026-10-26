@@ -5,11 +5,43 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { GetStudentTasksSortBy } from './getStudentTasksSortBy';
 
 export type GetStudentTasksParams = {
+/**
+ * Тема с включением всех дочерних тем.
+ */
 TopicId?: string;
-Name?: string;
+/**
+ * Уровень сложности.
+ */
 DifficultyLevel?: number;
+/**
+ * Фильтр по личному признаку решения.
+ */
+Solved?: boolean;
+/**
+ * Точный номер задания в банке.
+ */
+BankNumber?: number;
+/**
+ * Поиск по названию и условию.
+ */
+Search?: string;
+/**
+ * Поле сортировки.
+ */
+SortBy?: GetStudentTasksSortBy;
+/**
+ * Обратный порядок сортировки.
+ */
+Descending?: boolean;
+/**
+ * Смещение.
+ */
 Offset?: number;
+/**
+ * Размер страницы, не более 50.
+ */
 Limit?: number;
 };

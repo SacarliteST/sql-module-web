@@ -19,7 +19,11 @@ function TopicBranch({ nodes, selectedId, onSelect, depth = 0 }: Omit<Props, 'fl
     >
       <span className={styles.row}>
         <span className={styles.label}>{node.topic.topicName || 'Тема без названия'}</span>
-        <Badge size="sm" variant="light">{node.topic.publishedTasksCount ?? 0}</Badge>
+        <Badge
+          color={(node.topic.openTasksCount ?? 0) === (node.topic.solvedTasksCount ?? 0) ? 'green' : (node.topic.attemptedTasksCount ?? 0) > 0 ? 'yellow' : 'gray'}
+          size="sm"
+          variant="light"
+        >{node.topic.solvedTasksCount ?? 0} / {node.topic.openTasksCount ?? 0}</Badge>
       </span>
     </UnstyledButton>
     {node.children.length ? <TopicBranch nodes={node.children} selectedId={selectedId} onSelect={onSelect} depth={depth + 1} /> : null}
@@ -27,14 +31,14 @@ function TopicBranch({ nodes, selectedId, onSelect, depth = 0 }: Omit<Props, 'fl
 }
 
 export function StudentTopicTree({ flatTopics, nodes, selectedId, onSelect }: Props) {
-  const total = flatTopics.reduce((sum, topic) => sum + (topic.publishedTasksCount ?? 0), 0);
+  const total = nodes.reduce((sum, node) => sum + (node.topic.openTasksCount ?? 0), 0);
   return <>
     <Box hiddenFrom="sm">
       <Select
         aria-label="Выберите тему"
         data={[
           { value: '__all__', label: `Все темы (${total})` },
-          ...flatTopics.map((topic) => ({ value: topic.id, label: `${'— '.repeat(topic.depth)}${topic.topicName || 'Тема без названия'} (${topic.publishedTasksCount ?? 0})` })),
+          ...flatTopics.map((topic) => ({ value: topic.id, label: `${'— '.repeat(topic.depth)}${topic.topicName || 'Тема без названия'} (${topic.solvedTasksCount ?? 0}/${topic.openTasksCount ?? 0})` })),
         ]}
         onChange={(value) => onSelect(value === '__all__' ? null : value)}
         searchable

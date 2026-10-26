@@ -5,6 +5,7 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { AttemptListItemResponseOrigin } from './attemptListItemResponseOrigin';
 import type { AttemptListItemResponseReason } from './attemptListItemResponseReason';
 import type { AttemptListItemResponseStatus } from './attemptListItemResponseStatus';
 
@@ -51,4 +52,6 @@ export interface AttemptListItemResponse {
   attemptNumber: number | null;
   /** @nullable */
   score: number | null;
+  /** Источник попытки в журнале преподавателя. */
+  origin: AttemptListItemResponseOrigin;
 }

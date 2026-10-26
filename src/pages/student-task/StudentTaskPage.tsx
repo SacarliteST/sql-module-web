@@ -12,6 +12,7 @@ import { useStudentSqlDraft } from '../../features/student-drafts';
 import { mapStudentApiError, StudentErrorAlert, type StudentErrorView } from '../../features/student-errors';
 import { StudentTaskSchema } from '../../features/student-schema';
 import { StudentTaskValidation } from '../../features/student-tasks/ui/StudentTaskValidation';
+import { StudentBankHelp } from '../../features/student-tasks/ui/StudentBankHelp';
 import { StudentTaskFinalization } from '../../features/student-tasks/ui/StudentTaskFinalization';
 import { StudentPlatformExit } from '../../features/student-tasks/ui/StudentPlatformExit';
 import { PlatformSessionTimer } from '../../features/student-tasks/ui/PlatformSessionTimer';
@@ -214,6 +215,7 @@ export function StudentTaskPage() {
       </AppCard></Grid.Col>
     </Grid>
     {!isPlatformSession ? <AppCard><RecentStudentAttempts currentSql={draft.value} onUseSql={draft.setValue} taskId={taskId} /></AppCard> : null}
+    {!isPlatformSession ? <StudentBankHelp taskId={taskId} /> : null}
     <ConfirmModal
       confirmColor="blue"
       confirmLabel="Подставить"

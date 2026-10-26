@@ -6,12 +6,30 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Узел дерева тем открытого банка с личной статистикой.
+ */
 export interface StudentTopicResponse {
+  /** Идентификатор темы. */
   id?: string;
+  /** Название темы. */
   topicName?: string;
-  /** @nullable */
+  /**
+     * Идентификатор родительской темы.
+     * @nullable
+     */
   parentTopicId?: string | null;
-  /** @nullable */
+  /**
+     * Описание темы.
+     * @nullable
+     */
   description?: string | null;
+  /** Число открытых заданий в теме и её потомках. */
+  openTasksCount?: number;
+  /** Число заданий с тренировочными попытками. */
+  attemptedTasksCount?: number;
+  /** Число решённых заданий. */
+  solvedTasksCount?: number;
+  /** Число опубликованных заданий, сохранённое для совместимости существующего каталога. */
   publishedTasksCount?: number;
 }

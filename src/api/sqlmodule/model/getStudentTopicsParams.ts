@@ -7,6 +7,12 @@
  */
 
 export type GetStudentTopicsParams = {
+/**
+ * Смещение.
+ */
 Offset?: number;
+/**
+ * Размер страницы.
+ */
 Limit?: number;
 };

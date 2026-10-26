@@ -16,5 +16,5 @@ export interface StudentTaskValidationResponse {
   /** Состояние платформенной сессии; отсутствует в standalone-режиме. */
   session: StudentSessionStateResponse | null;
   /** Разрешённые преподавателем подсказки по validation version. */
-  hints: StudentTaskHintsResponse;
+  hints: StudentTaskHintsResponse | null;
 }

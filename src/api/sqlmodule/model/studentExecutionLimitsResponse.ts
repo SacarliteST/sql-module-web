@@ -6,6 +6,9 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Публичные ограничения выполнения SQL.
+ */
 export interface StudentExecutionLimitsResponse {
   timeoutSeconds: number;
   maxRows: number;

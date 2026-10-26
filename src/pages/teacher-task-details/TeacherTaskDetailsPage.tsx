@@ -42,6 +42,7 @@ import {
 import { SqlQueryValidationPreview, SqlTaskFormModal } from '../../features/sql-tasks';
 import { TaskValidationScoreEditor } from '../../features/sql-tasks/ui/TaskValidationScoreEditor';
 import { TargetDbSchemaPreview } from '../../features/sql-tasks/ui/TargetDbSchemaPreview';
+import { TaskBankPanel } from '../../features/task-bank';
 import { formatAuditActor, formatAuditDateTime } from '../../shared/lib/teacher-audit';
 import {
   AppCard,
@@ -423,6 +424,7 @@ export function TeacherTaskDetailsPage() {
             loading={publishMutation.isPending}
             onPublish={openPublishModal}
           />
+          <TaskBankPanel task={task} onChanged={() => detailsQuery.refetch()} />
 
           <Tabs defaultValue="overview" keepMounted={false}>
             <Tabs.List mb="lg">

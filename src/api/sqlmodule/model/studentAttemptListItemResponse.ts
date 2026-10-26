@@ -8,6 +8,9 @@
 import type { StudentAttemptListItemResponseReason } from './studentAttemptListItemResponseReason';
 import type { StudentAttemptListItemResponseStatus } from './studentAttemptListItemResponseStatus';
 
+/**
+ * Элемент личной истории попыток.
+ */
 export interface StudentAttemptListItemResponse {
   id: string;
   taskId: string;

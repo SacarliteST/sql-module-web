@@ -12,7 +12,7 @@ export function StudentTaskValidation({ validation, isPlatformSession }: Props) 
   if (!validation) return null;
 
   const { hints, session } = validation;
-  const groups = new Set(hints.groups);
+  const groups = new Set(hints?.groups ?? []);
 
   return <AppCard><Stack gap="md">
     <Group justify="space-between">
@@ -30,10 +30,10 @@ export function StudentTaskValidation({ validation, isPlatformSession }: Props) 
     {session && !session.canSubmit ? <Alert color="yellow">Отправка SQL сейчас недоступна для этой сессии.</Alert> : null}
     {groups.size > 0 ? <Stack gap="xs"><Text fw={600}>Подсказки преподавателя</Text><List spacing="xs" size="sm">
       {groups.has(HintGroup.Result) ? <List.Item>Результат сравнивается с эталоном на основной учебной базе.</List.Item> : null}
-      {groups.has(HintGroup.RequiredConstructs) && hints.requiredConstructs.length ? <List.Item>Используйте: {hints.requiredConstructs.map(getSqlConstructLabel).join(', ')}.</List.Item> : null}
-      {groups.has(HintGroup.ForbiddenConstructs) && hints.forbiddenConstructs.length ? <List.Item>Не используйте: {hints.forbiddenConstructs.map(getSqlConstructLabel).join(', ')}.</List.Item> : null}
-      {groups.has(HintGroup.RequiredTables) && hints.requiredTables.length ? <List.Item>Нужные таблицы: {hints.requiredTables.map((table) => table.name).join(', ')}.</List.Item> : null}
-      {groups.has(HintGroup.ForbiddenTables) && hints.forbiddenTables.length ? <List.Item>Не используйте таблицы: {hints.forbiddenTables.map((table) => table.name).join(', ')}.</List.Item> : null}
+      {hints && groups.has(HintGroup.RequiredConstructs) && hints.requiredConstructs.length ? <List.Item>Используйте: {hints.requiredConstructs.map(getSqlConstructLabel).join(', ')}.</List.Item> : null}
+      {hints && groups.has(HintGroup.ForbiddenConstructs) && hints.forbiddenConstructs.length ? <List.Item>Не используйте: {hints.forbiddenConstructs.map(getSqlConstructLabel).join(', ')}.</List.Item> : null}
+      {hints && groups.has(HintGroup.RequiredTables) && hints.requiredTables.length ? <List.Item>Нужные таблицы: {hints.requiredTables.map((table) => table.name).join(', ')}.</List.Item> : null}
+      {hints && groups.has(HintGroup.ForbiddenTables) && hints.forbiddenTables.length ? <List.Item>Не используйте таблицы: {hints.forbiddenTables.map((table) => table.name).join(', ')}.</List.Item> : null}
     </List></Stack> : <Text size="sm" c="dimmed">Подсказки к способу решения скрыты преподавателем.</Text>}
   </Stack></AppCard>;
 }

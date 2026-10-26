@@ -7,8 +7,10 @@
  */
 import type { DeleteBlockerResponse } from './deleteBlockerResponse';
 import type { PublishBlockerResponse } from './publishBlockerResponse';
+import type { TaskBankReadinessResponse } from './taskBankReadinessResponse';
 import type { TeacherTaskAttemptResponse } from './teacherTaskAttemptResponse';
 import type { TeacherTaskDetailsResponsePublicationStatus } from './teacherTaskDetailsResponsePublicationStatus';
+import type { TeacherTaskDetailsResponseVisibility } from './teacherTaskDetailsResponseVisibility';
 import type { TeacherTaskSqlQueryResponse } from './teacherTaskSqlQueryResponse';
 import type { TeacherTaskTargetDbResponse } from './teacherTaskTargetDbResponse';
 
@@ -16,73 +18,46 @@ import type { TeacherTaskTargetDbResponse } from './teacherTaskTargetDbResponse'
  * Агрегированная read-модель деталей задания для преподавателя.
  */
 export interface TeacherTaskDetailsResponse {
-  /** Идентификатор задания. */
   taskId?: string;
-  /** Идентификатор темы. */
   topicId?: string;
-  /** Название темы. */
   topicName?: string;
-  /** Название задания. */
   taskName?: string;
-  /** Условие задания. */
   description?: string;
-  /** Уровень сложности. */
   difficultyLevel?: number;
-  /** Статус публикации. */
   publicationStatus?: TeacherTaskDetailsResponsePublicationStatus;
-  /** Дата создания. */
   createdAt?: string;
-  /** Дата последнего изменения. */
   updatedAt?: string;
-  /** Идентификатор автора. */
   createdById?: string;
-  /** Текущее эталонное решение. */
+  /** Эталонный запрос в деталях задания. */
   sqlQuery?: TeacherTaskSqlQueryResponse;
-  /** Учебная база эталонного решения. */
+  /** Учебная база в деталях задания. */
   targetDb?: TeacherTaskTargetDbResponse;
-  /**
-     * Можно ли изменять основные поля задания: название, условие и сложность.
-     * Флаг не распространяется на тему, статус публикации и эталонное решение — для них действуют отдельные правила.
-     */
   canEditTask?: boolean;
-  /** Можно ли сейчас изменить эталонное решение отдельной операцией. */
   canEditReferenceQuery?: boolean;
-  /**
-     * Понятная пользователю причина запрета изменения эталона; null, если изменение разрешено.
-     * @nullable
-     */
+  /** @nullable */
   referenceQueryEditRestriction?: string | null;
-  /** Общее количество попыток. */
   attemptsCount?: number;
-  /** Последние попытки выполнения. */
   lastAttempts?: TeacherTaskAttemptResponse[];
-  /**
-     * Все причины, мешающие публикации (или запуску уже опубликованного задания), в стабильном порядке.
-     * Пустой список означает готовность. Поля каждого элемента обязательны.
-     */
   publishBlockers: PublishBlockerResponse[];
-  /**
-     * Все причины, мешающие удалению задания, в стабильном порядке; пустой список — удалять можно.
-     * Форма совпадает с `publishBlockers`. Поля каждого элемента обязательны.
-     */
   deleteBlockReasons: DeleteBlockerResponse[];
-  /** Можно ли опубликовать задание сейчас: true только для черновика и при пустом `publishBlockers`. */
   canPublish?: boolean;
-  /** Можно ли архивировать задание сейчас. */
   canArchive?: boolean;
-  /**
-     * Можно ли удалить задание сейчас: true только при пустом `deleteBlockReasons` —
-     * статус Draft или Archived, нет попыток и платформенных сессий.
-     */
   canDelete?: boolean;
-  /**
-     * Причина запрета lifecycle-операции, если она общая.
-     * @nullable
-     */
+  /** @nullable */
   lifecycleRestriction?: string | null;
-  /**
-     * Отображаемое имя автора на момент создания задания.
-     * @nullable
-     */
+  /** @nullable */
   createdByName?: string | null;
+  /** Определяет назначение опубликованного задания. */
+  visibility?: TeacherTaskDetailsResponseVisibility;
+  /** @nullable */
+  bankNumber?: number | null;
+  /** @nullable */
+  bankPublishedAt?: string | null;
+  /** @nullable */
+  bankHint?: string | null;
+  showSolution?: boolean;
+  /** @nullable */
+  solutionExplanation?: string | null;
+  /** Готовность задания к открытию в банке. */
+  bankReadiness?: TaskBankReadinessResponse | null;
 }

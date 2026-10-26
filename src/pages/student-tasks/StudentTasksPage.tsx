@@ -24,8 +24,8 @@ export function StudentTasksPage() {
   };
 
   return <Page><Stack gap="lg">
-    <PageBreadcrumbs items={[{ label: 'Главная', to: '/' }, { label: 'Студент', to: '/student' }, { label: 'Задания' }]} />
-    <PageHeader title="Доступные задания" description="Выберите тему, найдите задание и перейдите к решению." />
+    <PageBreadcrumbs items={[{ label: 'Главная', to: '/' }, { label: 'Студент', to: '/student' }, { label: 'Банк заданий' }]} />
+    <PageHeader title="Открытый банк заданий" description="Выберите тему, найдите задание по номеру или тексту и решайте без лимита попыток." />
     <StudentContourTabs />
     {topicsQuery.isPending ? <Grid><Grid.Col span={{ base: 12, sm: 4, md: 3 }}><Skeleton height={280} radius="sm" /></Grid.Col><Grid.Col span={{ base: 12, sm: 8, md: 9 }}><Skeleton height={280} radius="sm" /></Grid.Col></Grid> : null}
     {topicsQuery.isError ? <StudentErrorAlert error={mapStudentApiError(undefined, topicsQuery.error)} onRetry={() => void topicsQuery.refetch()} /> : null}

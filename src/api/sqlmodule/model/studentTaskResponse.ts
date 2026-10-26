@@ -5,13 +5,42 @@
  * API SQL-тренажёра (модуль Scoodle).
  * OpenAPI spec version: v1
  */
+import type { StudentTaskResponseStatus } from './studentTaskResponseStatus';
 
+/**
+ * Карточка задания в каталоге открытого банка.
+ */
 export interface StudentTaskResponse {
+  /** Идентификатор задания. */
   id?: string;
+  /** Постоянный номер задания в банке. */
+  bankNumber?: number;
+  /** Идентификатор темы. */
   topicId?: string;
+  /** Название темы. */
   topicName?: string;
+  /** Название задания. */
   taskName?: string;
+  /** Краткий фрагмент условия. */
   taskTextPreview?: string;
+  /** Уровень сложности. */
   difficultyLevel?: number;
+  /** Название СУБД. */
   dbmsName?: string;
+  /** Личный статус решения. */
+  status?: StudentTaskResponseStatus;
+  /** Число тренировочных попыток после открытия в банке. */
+  attemptsCount?: number;
+  /**
+     * Лучший балл.
+     * @nullable
+     */
+  bestScore?: number | null;
+  /**
+     * Дата последней тренировочной попытки.
+     * @nullable
+     */
+  lastAttemptAt?: string | null;
+  /** Дата первого открытия в банке. */
+  bankPublishedAt?: string;
 }

@@ -8,6 +8,9 @@
 import type { StudentExecutionLimitsResponse } from './studentExecutionLimitsResponse';
 import type { StudentTaskValidationResponse } from './studentTaskValidationResponse';
 
+/**
+ * Безопасные данные задания для студента.
+ */
 export interface StudentTaskDetailsResponse {
   id: string;
   topicId: string;
@@ -16,7 +19,10 @@ export interface StudentTaskDetailsResponse {
   taskText: string;
   difficultyLevel: number;
   dbmsName: string;
+  /** Публичные ограничения выполнения SQL. */
   executionLimits: StudentExecutionLimitsResponse;
   /** Безопасная validation-часть student task details. */
   validation: StudentTaskValidationResponse | null;
+  /** @nullable */
+  bankNumber: number | null;
 }

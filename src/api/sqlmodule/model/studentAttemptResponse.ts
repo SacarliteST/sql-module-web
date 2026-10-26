@@ -10,6 +10,9 @@ import type { StudentAttemptResponseReason } from './studentAttemptResponseReaso
 import type { StudentAttemptResponseResultSnapshotState } from './studentAttemptResponseResultSnapshotState';
 import type { StudentAttemptResponseStatus } from './studentAttemptResponseStatus';
 
+/**
+ * Безопасные подробности личной попытки.
+ */
 export interface StudentAttemptResponse {
   id: string;
   taskId: string;

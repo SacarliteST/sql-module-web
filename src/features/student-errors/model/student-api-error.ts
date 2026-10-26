@@ -48,6 +48,7 @@ export function mapStudentApiError(status?: number, problem?: unknown): StudentE
     if (code === 'IdempotencyRequestInProgress') return { canRetry: true, color: 'yellow', status: 409, title: 'Предыдущая отправка выполняется', message: 'Дождитесь завершения и повторите неизменённый SQL с тем же ключом.', traceId };
   }
   if (resolvedStatus === 422 && code === 'Validation.AnalyzerNotSupported') return { canRetry: false, color: 'red', status: 422, title: 'Анализатор не поддерживает СУБД', message: 'Нужна другая конфигурация проверки или поддержка этой СУБД на сервере.', traceId };
+  if (resolvedStatus === 429) return { canRetry: true, color: 'yellow', status: 429, title: 'Слишком частая отправка', message: 'Подождите несколько секунд перед следующей проверкой решения.', traceId };
   if (resolvedStatus === 503 && code === 'TaskValidation.InfrastructureUnavailable') return { canRetry: true, color: 'yellow', status: 503, title: 'Проверка временно недоступна', message: 'Анализатор или sandbox недоступен. Неизменённый запрос можно повторить позже.', traceId };
   switch (resolvedStatus) {
     case 400: return { canRetry: false, color: 'red', status: 400, title: 'Неверный запрос', message: 'Проверьте данные запроса и повторите действие.', traceId };
