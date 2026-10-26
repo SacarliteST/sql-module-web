@@ -34,6 +34,6 @@ export function StudentTaskValidation({ validation, isPlatformSession }: Props) 
       {hints && groups.has(HintGroup.ForbiddenConstructs) && hints.forbiddenConstructs.length ? <List.Item>Не используйте: {hints.forbiddenConstructs.map(getSqlConstructLabel).join(', ')}.</List.Item> : null}
       {hints && groups.has(HintGroup.RequiredTables) && hints.requiredTables.length ? <List.Item>Нужные таблицы: {hints.requiredTables.map((table) => table.name).join(', ')}.</List.Item> : null}
       {hints && groups.has(HintGroup.ForbiddenTables) && hints.forbiddenTables.length ? <List.Item>Не используйте таблицы: {hints.forbiddenTables.map((table) => table.name).join(', ')}.</List.Item> : null}
-    </List></Stack> : <Text size="sm" c="dimmed">Подсказки к способу решения скрыты преподавателем.</Text>}
+    </List></Stack> : <Text size="sm" c="dimmed">{isPlatformSession ? 'Подсказки к способу решения скрыты преподавателем.' : 'Подсказка открывается отдельно после неуспешной попытки.'}</Text>}
   </Stack></AppCard>;
 }

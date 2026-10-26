@@ -2897,10 +2897,15 @@ export type deleteAttemptResponse404 = {
   status: 404
 }
 
+export type deleteAttemptResponse409 = {
+  data: ProblemDetails
+  status: 409
+}
+
 export type deleteAttemptResponseSuccess = (deleteAttemptResponse204) & {
   headers: Headers;
 };
-export type deleteAttemptResponseError = (deleteAttemptResponse401 | deleteAttemptResponse403 | deleteAttemptResponse404) & {
+export type deleteAttemptResponseError = (deleteAttemptResponse401 | deleteAttemptResponse403 | deleteAttemptResponse404 | deleteAttemptResponse409) & {
   headers: Headers;
 };
 
@@ -2915,7 +2920,7 @@ export const getDeleteAttemptUrl = (id: string,) => {
 }
 
 /**
- * Удаляет запись попытки по Id. Возвращает 204 No Content. 404 — попытка не найдена.
+ * Удаляет запись попытки по Id. Тренировочные попытки открытого банка не удаляются. Возвращает 204 No Content, 409 для тренировочной попытки, 404 если попытка не найдена.
  * @summary Удалить попытку
  */
 export const deleteAttempt = async (id: string, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<deleteAttemptResponse> => {

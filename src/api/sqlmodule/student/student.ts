@@ -6,16 +6,20 @@
  * OpenAPI spec version: v1
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
@@ -622,7 +626,7 @@ export const getBankHint = async (taskId: string, options?: Parameters<typeof sq
   return sqlmoduleFetch<getBankHintResponse>(getGetBankHintUrl(taskId),
   {
     ...options,
-    method: 'GET'
+    method: 'POST'
 
 
   }
@@ -632,81 +636,51 @@ export const getBankHint = async (taskId: string, options?: Parameters<typeof sq
 
 
 
-export const getGetBankHintQueryKey = (taskId: string,) => {
-    return [
-    `/api/v1/student/tasks/${taskId}/hint`
-    ] as const;
-    }
+export const getGetBankHintMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getBankHint>>, TError,{taskId: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof getBankHint>>, TError,{taskId: string}, TContext> => {
 
-
-export const getGetBankHintQueryOptions = <TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetBankHintQueryKey(taskId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBankHint>>> = ({ signal }) => getBankHint(taskId, { signal, ...requestOptions });
+const mutationKey = ['getBankHint'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof getBankHint>>, {taskId: string}> = (props) => {
+          const {taskId} = props ?? {};
 
-   return  { queryKey, queryFn, enabled: taskId !== null && taskId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetBankHintQueryResult = NonNullable<Awaited<ReturnType<typeof getBankHint>>>
-export type GetBankHintQueryError = ProblemDetails
+          return  getBankHint(taskId,requestOptions)
+        }
 
 
-export function useGetBankHint<TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(
- taskId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getBankHint>>,
-          TError,
-          Awaited<ReturnType<typeof getBankHint>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof sqlmoduleFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBankHint<TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(
- taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getBankHint>>,
-          TError,
-          Awaited<ReturnType<typeof getBankHint>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof sqlmoduleFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBankHint<TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(
- taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GetBankHintMutationResult = NonNullable<Awaited<ReturnType<typeof getBankHint>>>
+
+    export type GetBankHintMutationError = ProblemDetails
+
+    /**
  * @summary Получить подсказку к заданию открытого банка
  */
-
-export function useGetBankHint<TData = Awaited<ReturnType<typeof getBankHint>>, TError = ProblemDetails>(
- taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankHint>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetBankHintQueryOptions(taskId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type getBankSolutionResponse200 = {
+export const useGetBankHint = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getBankHint>>, TError,{taskId: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof getBankHint>>,
+        TError,
+        {taskId: string},
+        TContext
+      > => {
+      return useMutation(getGetBankHintMutationOptions(options), queryClient);
+    }
+    export type getBankSolutionResponse200 = {
   data: BankSolutionResponse
   status: 200
 }
@@ -756,7 +730,7 @@ export const getBankSolution = async (taskId: string, options?: Parameters<typeo
   return sqlmoduleFetch<getBankSolutionResponse>(getGetBankSolutionUrl(taskId),
   {
     ...options,
-    method: 'GET'
+    method: 'POST'
 
 
   }
@@ -766,81 +740,51 @@ export const getBankSolution = async (taskId: string, options?: Parameters<typeo
 
 
 
-export const getGetBankSolutionQueryKey = (taskId: string,) => {
-    return [
-    `/api/v1/student/tasks/${taskId}/solution`
-    ] as const;
-    }
+export const getGetBankSolutionMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getBankSolution>>, TError,{taskId: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof getBankSolution>>, TError,{taskId: string}, TContext> => {
 
-
-export const getGetBankSolutionQueryOptions = <TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetBankSolutionQueryKey(taskId);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBankSolution>>> = ({ signal }) => getBankSolution(taskId, { signal, ...requestOptions });
+const mutationKey = ['getBankSolution'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof getBankSolution>>, {taskId: string}> = (props) => {
+          const {taskId} = props ?? {};
 
-   return  { queryKey, queryFn, enabled: taskId !== null && taskId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetBankSolutionQueryResult = NonNullable<Awaited<ReturnType<typeof getBankSolution>>>
-export type GetBankSolutionQueryError = ProblemDetails
+          return  getBankSolution(taskId,requestOptions)
+        }
 
 
-export function useGetBankSolution<TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(
- taskId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getBankSolution>>,
-          TError,
-          Awaited<ReturnType<typeof getBankSolution>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof sqlmoduleFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBankSolution<TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(
- taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getBankSolution>>,
-          TError,
-          Awaited<ReturnType<typeof getBankSolution>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof sqlmoduleFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBankSolution<TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(
- taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GetBankSolutionMutationResult = NonNullable<Awaited<ReturnType<typeof getBankSolution>>>
+
+    export type GetBankSolutionMutationError = ProblemDetails
+
+    /**
  * @summary Получить разбор решения задания открытого банка
  */
-
-export function useGetBankSolution<TData = Awaited<ReturnType<typeof getBankSolution>>, TError = ProblemDetails>(
- taskId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBankSolution>>, TError, TData>>, request?: SecondParameter<typeof sqlmoduleFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetBankSolutionQueryOptions(taskId,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type getStudentTaskSchemaResponse200 = {
+export const useGetBankSolution = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getBankSolution>>, TError,{taskId: string}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof getBankSolution>>,
+        TError,
+        {taskId: string},
+        TContext
+      > => {
+      return useMutation(getGetBankSolutionMutationOptions(options), queryClient);
+    }
+    export type getStudentTaskSchemaResponse200 = {
   data: StudentTaskSchemaResponse
   status: 200
 }

@@ -26,6 +26,7 @@ import type {
   HttpValidationProblemDetails,
   ProblemDetails,
   SqlTaskResponse,
+  TaskBankBatchItemResponse,
   TopicResponse,
 } from '../../api/sqlmodule/model';
 import { PublicationStatus, SqlTaskResponseVisibility } from '../../api/sqlmodule/model';
@@ -203,6 +204,8 @@ export function TeacherTopicDetailsPage() {
   const [taskStatusFilter, setTaskStatusFilter] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [batchMessage, setBatchMessage] = useState('');
+  const [batchAction, setBatchAction] = useState<'open' | 'close' | null>(null);
+  const [batchResults, setBatchResults] = useState<TaskBankBatchItemResponse[]>([]);
   const updateTopicMutation = useUpdateTopic();
   const createTopicMutation = useCreateTopic();
   const moveTopicMutation = useMoveTopic();
@@ -374,10 +377,14 @@ export function TeacherTopicDetailsPage() {
 
   const updateBankBatch = async (open: boolean) => {
     if (!selectedTaskIds.length) return;
+    setBatchMessage('');
+    setBatchResults([]);
     const response = await bankBatchMutation.mutateAsync({ data: { taskIds: selectedTaskIds, open } });
     if (response.status !== 200) { setBatchMessage(getProblemMessage(response.data, 'Пакетная операция не выполнена.')); return; }
     const skipped = response.data.items?.filter((item) => !item.updated).length ?? 0;
     setBatchMessage(`${open ? 'Открыто' : 'Закрыто'}: ${response.data.updatedCount ?? 0}. Пропущено: ${skipped}.`);
+    setBatchResults(response.data.items ?? []);
+    setBatchAction(null);
     setSelectedTaskIds([]);
     await sqlTasksQuery.refetch();
   };
@@ -598,10 +605,15 @@ export function TeacherTopicDetailsPage() {
                 <Group gap="xs"><TextInput size="xs" placeholder="Название" value={taskNameFilter} onChange={(event) => { setTaskNameFilter(event.currentTarget.value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="База" data={(targetDbsPage?.items ?? []).filter((item) => item.id).map((item) => ({ value: item.id as string, label: item.dbName?.trim() || 'База' }))} value={taskDbFilter} onChange={(value) => { setTaskDbFilter(value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="Сложность" data={['1','2','3','4','5']} value={taskDifficultyFilter} onChange={(value) => { setTaskDifficultyFilter(value); setTaskPage(1); }} /><Select size="xs" clearable placeholder="Статус" data={[{ value: PublicationStatus.Draft, label: 'Черновик' }, { value: PublicationStatus.Published, label: 'Опубликовано' }, { value: PublicationStatus.Archived, label: 'В архиве' }]} value={taskStatusFilter} onChange={(value) => { setTaskStatusFilter(value); setTaskPage(1); }} /></Group>
               </Group>
               <Group>
-                <Button disabled={!selectedTaskIds.length} loading={bankBatchMutation.isPending} size="xs" onClick={() => void updateBankBatch(true)}>Открыть выбранные в банке</Button>
-                <Button color="red" disabled={!selectedTaskIds.length} loading={bankBatchMutation.isPending} size="xs" variant="outline" onClick={() => void updateBankBatch(false)}>Закрыть выбранные</Button>
+                <Button disabled={!selectedTaskIds.length} loading={bankBatchMutation.isPending} size="xs" onClick={() => setBatchAction('open')}>Открыть выбранные в банке</Button>
+                <Button color="red" disabled={!selectedTaskIds.length} loading={bankBatchMutation.isPending} size="xs" variant="outline" onClick={() => setBatchAction('close')}>Закрыть выбранные</Button>
                 {batchMessage ? <Text size="sm">{batchMessage}</Text> : null}
               </Group>
+              {batchResults.some((item) => !item.updated) ? <Alert color="yellow" title="Некоторые задания пропущены"><Stack gap="xs">{batchResults.filter((item) => !item.updated).map((item) => {
+                const task = topicTasks.find((value) => value.id === item.taskId);
+                const reasons = item.blockers?.map((blocker) => blocker.message).filter(Boolean) ?? [];
+                return <Text key={item.taskId} size="sm"><strong>{task?.title ?? item.taskId ?? 'Задание'}:</strong> {reasons.join(' ') || 'Состояние задания не позволяет выполнить операцию.'}</Text>;
+              })}</Stack></Alert> : null}
 
               <AppCard p={0}>
                 {topicTasks.length > 0 ? (
@@ -722,6 +734,18 @@ export function TeacherTopicDetailsPage() {
         </Stack>
       </Modal>
       <ConfirmModal opened={deleteOpened} title="Удалить тему" message="Тему можно удалить только без подтем и заданий. Backend проверит связанные данные." confirmLabel="Удалить" confirmColor="red" loading={deleteTopicMutation.isPending} onCancel={deleteModal.close} onConfirm={() => void handleDeleteTopic()} />
+      <ConfirmModal
+        opened={batchAction !== null}
+        title={batchAction === 'open' ? 'Открыть выбранные задания в банке?' : 'Закрыть выбранные задания в банке?'}
+        message={batchAction === 'open'
+          ? `Выбрано заданий: ${selectedTaskIds.length}. Они станут доступны всем студентам для свободной тренировки без лимита попыток и могут раскрыть задания, используемые в контрольных практиках.`
+          : `Выбрано заданий: ${selectedTaskIds.length}. После закрытия они исчезнут из открытого банка, но история попыток сохранится.`}
+        confirmLabel={batchAction === 'open' ? 'Открыть в банке' : 'Закрыть в банке'}
+        confirmColor={batchAction === 'open' ? 'blue' : 'red'}
+        loading={bankBatchMutation.isPending}
+        onCancel={() => setBatchAction(null)}
+        onConfirm={() => void updateBankBatch(batchAction === 'open')}
+      />
     </Page>
   );
 }
