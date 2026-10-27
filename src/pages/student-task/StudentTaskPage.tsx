@@ -65,7 +65,9 @@ export function StudentTaskPage() {
   const transferState = parseSqlTransfer(location.state, taskId);
   const studentId = useSessionStore((state) => state.user?.id);
   const sessionMode = useSessionStore((state) => state.mode);
-  const isPlatformSession = sessionMode === 'handoff';
+  const handoffKind = useSessionStore((state) => state.handoffKind);
+  // Платформенная сессия — только вход по практике (kind=student); вход в банк с платформы тренировкой остаётся.
+  const isPlatformSession = sessionMode === 'handoff' && handoffKind === 'student';
   const platformSessionQuery = useGetCurrentModuleSession({ query: { enabled: isPlatformSession, retry: false, staleTime: 60_000 } });
   const draft = useStudentSqlDraft({ studentId, taskId });
   const consumedLocationKey = useRef<string | null>(null);

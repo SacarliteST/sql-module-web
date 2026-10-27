@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getCurrentModuleSession } from '../../api/sqlmodule/module-integration/module-integration';
 import {
   clearActiveLaunchContext,
+  clearTrainingLaunch,
   consumeLaunchToken,
   setActiveLaunchContext,
 } from '../launch';
@@ -33,6 +34,8 @@ export function LaunchPage() {
       const user = accessToken ? decodeSessionUser(accessToken) : null;
 
       clearActiveLaunchContext();
+      // Вход в платформенное задание отменяет прежний вход в банк заданий в этой вкладке.
+      clearTrainingLaunch();
 
       if (!requestedSessionId || !accessToken || !user || !user.roles.includes('Student')) {
         await handoffProvider.clear?.();

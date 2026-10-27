@@ -8,6 +8,7 @@ import {
   RequireRole,
   TeacherLaunchPage,
   TeacherSessionExpiredPage,
+  TrainingLaunchPage,
 } from '../../session';
 import {
   AdminEventsPage,
@@ -31,6 +32,7 @@ import { AppLayout } from '../layout/AppLayout';
 const StudentHomePage = lazy(() => import('../../pages/student-home').then((module) => ({ default: module.StudentHomePage })));
 const StudentTasksPage = lazy(() => import('../../pages/student-tasks').then((module) => ({ default: module.StudentTasksPage })));
 const StudentTaskPage = lazy(() => import('../../pages/student-task').then((module) => ({ default: module.StudentTaskPage })));
+const StudentAccessExpiredPage = lazy(() => import('../../pages/student-access-expired').then((module) => ({ default: module.StudentAccessExpiredPage })));
 const StudentBankTaskPage = lazy(() => import('../../pages/student-bank-task').then((module) => ({ default: module.StudentBankTaskPage })));
 const StudentAttemptsPage = lazy(() => import('../../pages/student-attempts').then((module) => ({ default: module.StudentAttemptsPage })));
 
@@ -53,6 +55,11 @@ export function AppRouter() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="launch" element={<LaunchPage />} />
+        <Route path="student/launch" element={<TrainingLaunchPage />} />
+        <Route
+          path="student/access-expired"
+          element={<Suspense fallback={<Loader aria-label="Загрузка страницы" />}><StudentAccessExpiredPage /></Suspense>}
+        />
         <Route path="teacher/launch" element={<TeacherLaunchPage />} />
         <Route path="teacher/session-expired" element={<TeacherSessionExpiredPage />} />
         <Route

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { decodeSessionUser } from '../lib/decode-session-user';
 import { getActiveLaunchContext } from '../launch/launch-context';
+import { isTrainingLaunch } from '../launch/training-launch';
 import { HANDOFF_ACCESS_TOKEN_STORAGE_KEY } from '../providers/handoff-token-provider';
 import type { SessionStatus, SessionUser } from '../model';
 
@@ -11,8 +12,10 @@ type SetSessionPayload = {
   user: SessionUser;
 };
 
+type HandoffKind = 'student' | 'student-training' | 'teacher';
+
 type SetTransientSessionPayload = SetSessionPayload & {
-  kind: 'student' | 'teacher';
+  kind: HandoffKind;
 };
 
 type SessionState = {
@@ -20,7 +23,7 @@ type SessionState = {
   user: SessionUser | null;
   status: SessionStatus;
   mode: 'standalone' | 'handoff' | null;
-  handoffKind: 'student' | 'teacher' | null;
+  handoffKind: HandoffKind | null;
   standaloneAccessToken: string | null;
   standaloneUser: SessionUser | null;
   standaloneRefreshToken: string | null;
@@ -44,16 +47,19 @@ const restoreSessionState = (
   const handoffUser = handoffToken ? decodeSessionUser(handoffToken) : null;
   const handoffContext = typeof sessionStorage !== 'undefined' ? getActiveLaunchContext() : null;
   const isStudentHandoff = handoffUser?.roles.includes('Student') && Boolean(handoffContext);
+  // Вход из платформы в банк заданий: токен студента без платформенной сессии и с меткой входа.
+  const isTrainingHandoff = Boolean(handoffUser?.roles.includes('Student')) && !handoffContext &&
+    typeof sessionStorage !== 'undefined' && isTrainingLaunch();
   const isTeacherHandoff = handoffUser?.roles.some((role) => role === 'Teacher' || role === 'Admin') ?? false;
 
-  if (handoffToken && handoffUser && (isStudentHandoff || isTeacherHandoff)) {
+  if (handoffToken && handoffUser && (isStudentHandoff || isTrainingHandoff || isTeacherHandoff)) {
     return {
       ...currentState,
       accessToken: handoffToken,
       user: handoffUser,
       status: 'authenticated',
       mode: 'handoff',
-      handoffKind: isStudentHandoff ? 'student' : 'teacher',
+      handoffKind: isStudentHandoff ? 'student' : isTrainingHandoff ? 'student-training' : 'teacher',
     };
   }
 

@@ -1,5 +1,6 @@
 import type { TokenProvider } from '../model';
 import { getActiveLaunchContext } from '../launch/launch-context';
+import { isTrainingLaunch } from '../launch/training-launch';
 import { decodeSessionUser } from '../lib/decode-session-user';
 import { createHandoffTokenProvider, HANDOFF_ACCESS_TOKEN_STORAGE_KEY } from './handoff-token-provider';
 import { createStandaloneTokenProvider } from './standalone-token-provider';
@@ -11,8 +12,10 @@ const storedHandoffToken = typeof sessionStorage !== 'undefined'
   : null;
 const storedHandoffUser = storedHandoffToken ? decodeSessionUser(storedHandoffToken) : null;
 const canRestoreStudentHandoff = storedHandoffUser?.roles.includes('Student') && Boolean(getActiveLaunchContext());
+const canRestoreTrainingHandoff = Boolean(storedHandoffUser?.roles.includes('Student')) && isTrainingLaunch();
 const canRestoreTeacherHandoff = storedHandoffUser?.roles.some((role) => role === 'Teacher' || role === 'Admin') ?? false;
-let activeTokenProvider: TokenProvider = storedHandoffToken && (canRestoreStudentHandoff || canRestoreTeacherHandoff)
+let activeTokenProvider: TokenProvider = storedHandoffToken &&
+  (canRestoreStudentHandoff || canRestoreTrainingHandoff || canRestoreTeacherHandoff)
   ? handoffTokenProvider
   : standaloneTokenProvider;
 

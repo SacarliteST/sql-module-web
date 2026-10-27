@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { isTrainingLaunch } from '../launch';
 import { useSessionStore } from '../store';
 
 export function RequireAuth({ children }: PropsWithChildren) {
@@ -9,6 +10,11 @@ export function RequireAuth({ children }: PropsWithChildren) {
 
   if (sessionIssue === 'handoff-expired' && location.pathname.startsWith('/teacher')) {
     return <Navigate to="/teacher/session-expired" replace />;
+  }
+
+  // Просрочен токен входа в банк заданий: показываем «Доступ истёк» с возвратом на платформу вместо логина модуля.
+  if (sessionIssue === 'handoff-expired' && location.pathname.startsWith('/student') && isTrainingLaunch()) {
+    return <Navigate to="/student/access-expired" replace />;
   }
 
   if (status !== 'authenticated') {

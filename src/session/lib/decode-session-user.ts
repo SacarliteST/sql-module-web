@@ -64,3 +64,13 @@ export function decodeSessionUser(accessToken: string): SessionUser | null {
     return null;
   }
 }
+
+/** Токен платформенной сессии несёт claim `session_id`; токен входа в банк заданий — нет. */
+export function hasPlatformSessionClaim(accessToken: string): boolean {
+  try {
+    const payload = jwtDecode<{ session_id?: unknown }>(accessToken);
+    return typeof payload.session_id === 'string' && payload.session_id.length > 0;
+  } catch {
+    return false;
+  }
+}

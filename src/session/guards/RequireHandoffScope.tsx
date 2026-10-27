@@ -8,6 +8,13 @@ export function RequireHandoffScope({ children }: PropsWithChildren) {
   const mode = useSessionStore((state) => state.mode);
   const handoffKind = useSessionStore((state) => state.handoffKind);
 
+  // Банк заданий открыт из платформы: студенту доступен только его контур, без преподавательского и админского.
+  if (mode === 'handoff' && handoffKind === 'student-training') {
+    return location.pathname === '/student' || location.pathname.startsWith('/student/')
+      ? children
+      : <Navigate to="/student/tasks" replace />;
+  }
+
   if (mode !== 'handoff' || handoffKind !== 'student' || location.pathname === '/launch') return children;
 
   const context = getActiveLaunchContext();

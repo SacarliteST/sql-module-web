@@ -13,11 +13,15 @@ export {
 export {
   ACTIVE_LAUNCH_CONTEXT_STORAGE_KEY,
   buildStudentPlatformLeaveUrl,
+  buildTrainingReturnUrl,
   clearActiveLaunchContext,
   clearPlatformReturnPath,
+  clearTrainingLaunch,
   consumeLaunchToken,
   getActiveLaunchContext,
+  isTrainingLaunch,
   readPlatformReturnPath,
+  resolveModuleSlug,
   setActiveLaunchContext,
 } from './launch';
 export type { ActiveLaunchContext } from './launch';
@@ -34,4 +38,4 @@ export {
 } from './providers';
 export { AccessDeniedPage, RequireAuth, RequireHandoffScope, RequireRole } from './guards';
 export { useSessionStore } from './store';
-export { LaunchPage, LoginPage, TeacherLaunchPage, TeacherSessionExpiredPage } from './ui';
+export { LaunchPage, LoginPage, TeacherLaunchPage, TeacherSessionExpiredPage, TrainingLaunchPage } from './ui';

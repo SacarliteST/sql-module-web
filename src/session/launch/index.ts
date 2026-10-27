@@ -14,3 +14,10 @@ export {
   readPlatformReturnPath,
   savePlatformReturnPath,
 } from './platform-return';
+export {
+  buildTrainingReturnUrl,
+  clearTrainingLaunch,
+  isTrainingLaunch,
+  markTrainingLaunch,
+  resolveModuleSlug,
+} from './training-launch';
