@@ -143,14 +143,16 @@ export function AppLayout() {
                   Вернуться на платформу
                 </Button>
               ) : null}
-              <Button
-                color="gray"
-                size="xs"
-                variant="outline"
-                onClick={() => void handleLogout()}
-              >
-                Выйти
-              </Button>
+              {!platformReturnPath ? (
+                <Button
+                  color="gray"
+                  size="xs"
+                  variant="outline"
+                  onClick={() => void handleLogout()}
+                >
+                  Выйти
+                </Button>
+              ) : null}
             </Group>
           ) : !isLoginPage ? (
             <Button color="blue" size="xs" variant="filled" onClick={() => navigate('/login')}>
