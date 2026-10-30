@@ -159,24 +159,111 @@ function MetricCard({
   );
 }
 
-function PublishReadiness({ blockers, canPublish, loading, onPublish }: {
+function PublishReadinessStep({
+  index,
+  label,
+  issues,
+  isLast,
+  onClick,
+}: {
+  index: number;
+  label: string;
+  issues: PublishBlockerResponse[];
+  isLast: boolean;
+  onClick?: () => void;
+}) {
+  const done = issues.length === 0;
+
+  return (
+    <>
+      <Stack
+        align="center"
+        gap={6}
+        onClick={onClick}
+        style={{ cursor: onClick ? 'pointer' : 'default' }}
+        w={170}
+      >
+        <Box
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            fontWeight: 700,
+            border: `2px solid ${done ? 'var(--mantine-color-green-6)' : 'var(--mantine-color-yellow-6)'}`,
+            backgroundColor: done ? 'var(--mantine-color-green-1)' : 'var(--mantine-color-yellow-1)',
+            color: done ? 'var(--mantine-color-green-7)' : 'var(--mantine-color-yellow-7)',
+            transition: 'transform 120ms ease',
+            transform: 'scale(1)',
+          }}
+          onMouseEnter={(e) => {
+            if (onClick) e.currentTarget.style.transform = 'scale(1.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          {done ? '✓' : index}
+        </Box>
+        <Text fw={600} size="sm" ta="center">
+          {label}
+        </Text>
+        <Badge color={done ? 'green' : 'yellow'} variant="light">
+          {done ? 'Выполнено' : 'Не выполнено'}
+        </Badge>
+        {issues.map((issue) => (
+          <Text c="dimmed" key={issue.code} size="xs" ta="center">
+            {issue.message}
+          </Text>
+        ))}
+      </Stack>
+      {!isLast ? (
+        <Box
+          style={{
+            flex: 1,
+            height: 6,
+            marginTop: 19,
+            borderRadius: 3,
+            backgroundColor: done ? 'var(--mantine-color-green-4)' : 'var(--mantine-color-gray-3)',
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function PublishReadiness({ blockers, canPublish, loading, onPublish, onSelectStep }: {
   blockers: PublishBlockerResponse[];
   canPublish: boolean;
   loading: boolean;
   onPublish: () => void;
+  onSelectStep: (step: number) => void;
 }) {
   const validationBlockers = blockers.filter(({ code }) => code === 'SqlTask.ValidationVersionNotPublished');
   const taskBlockers = blockers.filter(({ code }) => code !== 'SqlTask.ValidationVersionNotPublished');
-  const step = (label: string, issues: PublishBlockerResponse[]) => <Group justify="space-between" align="flex-start" wrap="nowrap">
-    <Stack gap={2}><Text fw={600}>{label}</Text>{issues.map((issue) => <Text c="dimmed" key={issue.code} size="sm">{issue.message}</Text>)}</Stack>
-    <Badge color={issues.length ? 'yellow' : 'green'} variant="light">{issues.length ? 'Не выполнено' : 'Выполнено'}</Badge>
-  </Group>;
+  const steps: { label: string; issues: PublishBlockerResponse[] }[] = [
+    { label: 'Условие, база и эталон', issues: taskBlockers },
+    { label: 'Оценка решения', issues: validationBlockers },
+    { label: 'Публикация', issues: blockers },
+  ];
 
   return <AppCard><Stack gap="md">
     <Title order={2} size="h5">Готовность к публикации</Title>
-    {step('1. Условие, база и эталон', taskBlockers)}
-    {step('2. Оценка решения', validationBlockers)}
-    {step('3. Публикация', blockers)}
+    <Group align="flex-start" gap={8} justify="center" wrap="nowrap">
+      {steps.map((s, i) => (
+        <PublishReadinessStep
+          key={s.label}
+          index={i + 1}
+          isLast={i === steps.length - 1}
+          issues={s.issues}
+          label={s.label}
+          onClick={() => onSelectStep(i)}
+        />
+      ))}
+    </Group>
     <Group justify="space-between" align="flex-end">
       <Text c="dimmed" size="sm">Публикация оценки и публикация самого задания — два разных действия.</Text>
       <Button disabled={!canPublish} loading={loading} onClick={onPublish}>Опубликовать задание</Button>
@@ -261,6 +348,18 @@ export function TeacherTaskDetailsPage() {
   const openPublishModal = () => {
     setPublishError('');
     publishModal.open();
+  };
+
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const handleReadinessStep = (step: number) => {
+    if (step === 0) {
+      setActiveTab('overview');
+    } else if (step === 1) {
+      setActiveTab('validation');
+    } else if (canPublish) {
+      openPublishModal();
+    }
   };
 
   const handlePublish = async () => {
@@ -423,10 +522,11 @@ export function TeacherTaskDetailsPage() {
             canPublish={canPublish}
             loading={publishMutation.isPending}
             onPublish={openPublishModal}
+            onSelectStep={handleReadinessStep}
           />
           <TaskBankPanel task={task} onChanged={() => detailsQuery.refetch()} />
 
-          <Tabs defaultValue="overview" keepMounted={false}>
+          <Tabs value={activeTab} onChange={(value) => value && setActiveTab(value)} keepMounted={false}>
             <Tabs.List mb="lg">
               <Tabs.Tab value="overview">Задание и эталон</Tabs.Tab>
               <Tabs.Tab value="validation">Критерии решения</Tabs.Tab>
