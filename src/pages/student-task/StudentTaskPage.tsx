@@ -164,26 +164,21 @@ export function StudentTaskPage() {
       {task.difficultyLevel ? <Badge color="orange" variant="light">{formatStudentDifficulty(task.difficultyLevel)}</Badge> : null}
       {task.dbmsName ? <Badge color="gray" variant="outline">{task.dbmsName}</Badge> : null}
     </Group>
+    <StudentTaskSchema taskId={taskId} />
     <Grid align="stretch">
-      <Grid.Col span={{ base: 12, md: 8 }}><AppCard h="100%"><Stack gap="md">
+      <Grid.Col span={{ base: 12, md: 5 }}><AppCard h="100%"><Stack gap="md">
         <Title order={2} size="h4">Условие</Title><Divider />
         <Text style={{ whiteSpace: 'pre-wrap' }}>{task.taskText || 'Условие задания не указано.'}</Text>
-      </Stack></AppCard></Grid.Col>
-      <Grid.Col span={{ base: 12, md: 4 }}><AppCard h="100%"><Stack gap="md">
-        <Title order={2} size="h4">Правила выполнения</Title>
+        <Divider />
+        <Title order={3} size="h5">Правила выполнения</Title>
         <List spacing="xs" size="sm">
           <List.Item>Используйте один read-only SQL-запрос.</List.Item>
           <List.Item>Изменение схемы и учебных данных недоступно.</List.Item>
           {limits?.timeoutSeconds ? <List.Item>Лимит времени: {limits.timeoutSeconds} сек.</List.Item> : null}
-          {limits?.maxRows ? <List.Item>В результате проверяется до {limits.maxRows} строк.</List.Item> : null}
-          {limits?.maxSqlLength ? <List.Item>Максимальная длина SQL: {limits.maxSqlLength} символов.</List.Item> : null}
+          {limits?.maxRows ? <List.Item>Проверяется до {limits.maxRows} строк.</List.Item> : null}
+          {limits?.maxSqlLength ? <List.Item>До {limits.maxSqlLength} символов SQL.</List.Item> : null}
         </List>
-        {!limits ? <Text c="dimmed" size="sm">Дополнительные серверные лимиты не указаны.</Text> : null}
       </Stack></AppCard></Grid.Col>
-    </Grid>
-    <StudentTaskValidation validation={validation} isPlatformSession={isPlatformSession} />
-    <StudentTaskSchema taskId={taskId} />
-    <Grid>
       <Grid.Col span={{ base: 12, md: 7 }}><AppCard h="100%"><Stack gap="md">
         <SqlCodeEditor
           ariaLabel="SQL-решение задания"
@@ -208,15 +203,16 @@ export function StudentTaskPage() {
           taskId={taskId}
         />
       </Stack></AppCard></Grid.Col>
-      <Grid.Col span={{ base: 12, md: 5 }}><AppCard h="100%">{lastAttempt
-        ? <StudentAttemptResult
-          result={lastAttempt}
-          actions={isPlatformSession && lastAttempt.isPassed && validation?.session ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
-        />
-        : <EmptyState title="Результат проверки" description="Здесь появится безопасный вердикт и фактический результат после отправки решения." />}
-      </AppCard></Grid.Col>
     </Grid>
+    <AppCard>{lastAttempt
+      ? <StudentAttemptResult
+        result={lastAttempt}
+        actions={isPlatformSession && lastAttempt.isPassed && validation?.session ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
+      />
+      : <EmptyState title="Результат проверки" description="Здесь появится безопасный вердикт и фактический результат после отправки решения." />}
+    </AppCard>
     {!isPlatformSession ? <AppCard><RecentStudentAttempts currentSql={draft.value} onUseSql={draft.setValue} taskId={taskId} /></AppCard> : null}
+    <StudentTaskValidation validation={validation} isPlatformSession={isPlatformSession} />
     {!isPlatformSession ? <StudentBankHelp taskId={taskId} /> : null}
     <ConfirmModal
       confirmColor="blue"

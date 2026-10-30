@@ -88,27 +88,26 @@ export function StudentTaskSchema({ taskId }: { taskId: string }) {
   const schema = response.data;
   if (!schema.tables?.length) return <AppCard><EmptyState title="Схема пока пуста" description="В учебной базе не опубликованы таблицы для этого задания." /></AppCard>;
 
-  return <AppCard><Stack gap="md">
-    <div>
-      <Title order={2} size="h4">Схема учебной базы</Title>
-      <Text c="dimmed" mt={4} size="sm">Таблицы, колонки и внешние ключи доступны только для просмотра.</Text>
-    </div>
-    <Group gap="xs">
-      {schema.databaseName ? <Badge variant="light">{schema.databaseName}</Badge> : null}
-      {schema.dbms ? <Badge color="gray" variant="outline">{schema.dbms}</Badge> : null}
-      <Badge color="gray" variant="light">Таблиц: {schema.tables.length}</Badge>
-    </Group>
-    <Alert color="blue" title="Навигация по диаграмме">Используйте масштабирование и перемещение области просмотра. Структура всех таблиц также доступна текстом ниже.</Alert>
-    <Suspense fallback={<Skeleton height={420} radius="sm" />}><StudentSchemaDiagram schema={schema} /></Suspense>
-    <Accordion variant="contained">
-      <Accordion.Item value="table-data">
-        <Accordion.Control>Посмотреть данные таблиц</Accordion.Control>
-        <Accordion.Panel><StudentTableData schema={schema} taskId={taskId} /></Accordion.Panel>
-      </Accordion.Item>
-      <Accordion.Item value="text-schema">
-        <Accordion.Control>Текстовая структура схемы</Accordion.Control>
-        <Accordion.Panel><TextSchema schema={schema} /></Accordion.Panel>
-      </Accordion.Item>
-    </Accordion>
-  </Stack></AppCard>;
+  return <Stack gap="lg">
+    <AppCard><Stack gap="md">
+      <div>
+        <Title order={2} size="h4">Схема учебной базы</Title>
+        <Text c="dimmed" mt={4} size="sm">Таблицы, колонки и внешние ключи доступны только для просмотра.</Text>
+      </div>
+      <Group gap="xs">
+        {schema.databaseName ? <Badge variant="light">{schema.databaseName}</Badge> : null}
+        {schema.dbms ? <Badge color="gray" variant="outline">{schema.dbms}</Badge> : null}
+        <Badge color="gray" variant="light">Таблиц: {schema.tables.length}</Badge>
+      </Group>
+      <Alert color="blue" title="Навигация по диаграмме">Используйте масштабирование и перемещение области просмотра. Структура всех таблиц также доступна текстом ниже.</Alert>
+      <Suspense fallback={<Skeleton height={420} radius="sm" />}><StudentSchemaDiagram schema={schema} /></Suspense>
+      <Accordion variant="contained">
+        <Accordion.Item value="text-schema">
+          <Accordion.Control>Текстовая структура схемы</Accordion.Control>
+          <Accordion.Panel><TextSchema schema={schema} /></Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
+    </Stack></AppCard>
+    <AppCard><StudentTableData schema={schema} taskId={taskId} /></AppCard>
+  </Stack>;
 }
