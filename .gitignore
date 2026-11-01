@@ -12,7 +12,9 @@ tmp/
 /docs/
 /prompts/
 .codex/
-.agents/
+.agents/*
+!.agents/skills/
+!.agents/skills/**
 .claude/
 .cursor/
 .aider*
