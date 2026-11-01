@@ -174,7 +174,7 @@ export function StudentTaskPage() {
         <List spacing="xs" size="sm">
           <List.Item>Используйте один read-only SQL-запрос.</List.Item>
           <List.Item>Изменение схемы и учебных данных недоступно.</List.Item>
-          {limits?.timeoutSeconds ? <List.Item>Лимит времени: {limits.timeoutSeconds} сек.</List.Item> : null}
+          {limits?.timeoutSeconds ? <List.Item>Лимит времени выполнения одного запроса: {limits.timeoutSeconds} сек.</List.Item> : null}
           {limits?.maxRows ? <List.Item>Проверяется до {limits.maxRows} строк.</List.Item> : null}
           {limits?.maxSqlLength ? <List.Item>До {limits.maxSqlLength} символов SQL.</List.Item> : null}
         </List>
