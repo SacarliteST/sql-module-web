@@ -9,6 +9,7 @@ import { SqlCodeEditor } from '../../features/sql-tasks';
 import { RecentStudentAttempts, StudentAttemptResult, SubmitStudentAttempt } from '../../features/student-attempts';
 import { StudentContourTabs } from '../../features/student-contour';
 import { useStudentSqlDraft } from '../../features/student-drafts';
+import { useStudentEpisode } from '../../features/student-episodes';
 import { mapStudentApiError, StudentErrorAlert, type StudentErrorView } from '../../features/student-errors';
 import { StudentTaskSchema } from '../../features/student-schema';
 import { StudentTaskValidation } from '../../features/student-tasks/ui/StudentTaskValidation';
@@ -77,6 +78,11 @@ export function StudentTaskPage() {
   const [lastAttempt, setLastAttempt] = useState<SubmitAttemptResponse | null>(null);
   const query = useGetStudentTaskById(taskId, { query: { enabled: Boolean(taskId), retry: false } });
   const response = query.data;
+  const episode = useStudentEpisode({
+    enabled: response?.status === 200,
+    mode: isPlatformSession ? 'platform' : 'standalone',
+    taskId,
+  });
   const taskError = query.isError
     ? mapStudentApiError(undefined, query.error)
     : response && response.status !== 200 ? mapStudentApiError(response.status, response.data) : !response && !query.isPending ? mapStudentApiError() : null;
@@ -150,7 +156,7 @@ export function StudentTaskPage() {
       actions={isPlatformSession ? <Group gap="sm">
         <PlatformSessionTimer expiresAt={platformExpiresAt} onExpired={() => void query.refetch()} />
         <StudentPlatformExit />
-        {validation?.session ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
+        {validation?.session && episode.isReadyForSubmission ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
       </Group> : <Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button>}
     />
     {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Отправляйте попытки на проверку и завершите сессию, когда закончите. Если нужно отвлечься (например, пройти тест), вернитесь на платформу кнопкой в заголовке — сессия останется открытой, продолжить можно там же кнопкой «Продолжить».</Alert> : <StudentContourTabs />}
@@ -159,6 +165,8 @@ export function StudentTaskPage() {
     {transferStatus?.taskId === taskId && transferStatus.kind === 'invalid' ? <Alert color="yellow" title="SQL не перенесён">Данные перехода из истории устарели или имеют неверный формат.</Alert> : null}
     {draft.restored ? <Alert color="blue" title="Черновик восстановлен">Локальный SQL-черновик этого задания восстановлен для текущего студента.</Alert> : null}
     {draft.storageError ? <Alert color="yellow" title="Черновик не сохраняется">{draft.storageError}</Alert> : null}
+    {episode.phase === 'idle' || episode.phase === 'starting' ? <Alert color="blue" title="Подготавливаем выполнение задания">Создаём или восстанавливаем учебный эпизод. Условие и черновик уже доступны, отправка решения включится после подготовки.</Alert> : null}
+    {episode.error ? <StudentErrorAlert error={episode.error} onRetry={episode.error.canRetry ? () => void episode.retryStart() : undefined} /> : null}
     <Group gap="xs">
       {task.topicName ? <Badge variant="light">{task.topicName}</Badge> : null}
       {task.difficultyLevel ? <Badge color="orange" variant="light">{formatStudentDifficulty(task.difficultyLevel)}</Badge> : null}
@@ -194,7 +202,7 @@ export function StudentTaskPage() {
         </Text>
         <Divider />
         <SubmitStudentAttempt
-          disabled={isPlatformSession && Boolean(!validation?.session?.canSubmit)}
+          disabled={!episode.isReadyForSubmission || (isPlatformSession && Boolean(!validation?.session?.canSubmit))}
           maxSqlLength={limits?.maxSqlLength}
           onSubmissionStart={() => setLastAttempt(null)}
           onResult={handleAttemptResult}
@@ -207,7 +215,7 @@ export function StudentTaskPage() {
     <AppCard>{lastAttempt
       ? <StudentAttemptResult
         result={lastAttempt}
-        actions={isPlatformSession && lastAttempt.isPassed && validation?.session ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
+        actions={isPlatformSession && lastAttempt.isPassed && validation?.session && episode.isReadyForSubmission ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
       />
       : <EmptyState title="Результат проверки" description="Здесь появится безопасный вердикт и фактический результат после отправки решения." />}
     </AppCard>

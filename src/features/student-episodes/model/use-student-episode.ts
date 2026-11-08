@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
 import {
   LearningEpisodeFinalizationMode,
   LearningEpisodeStatusResponse,
   type LearningEpisodeResponse,
 } from '../../../api/sqlmodule/model';
-import type { StudentErrorView } from '../../student-errors';
+import { startLearningEpisode, type startLearningEpisodeResponse } from '../../../api/sqlmodule/student-episodes/student-episodes';
+import { mapStudentApiError, problemCode, type StudentErrorView } from '../../student-errors';
 
 export type StudentEpisodeMode = 'standalone' | 'platform';
 export type StudentEpisodePhase =
@@ -31,7 +32,8 @@ type StudentEpisodeAction =
   | { type: 'episode-received'; episode: LearningEpisodeResponse }
   | { type: 'finalization-requested'; mode: LearningEpisodeFinalizationMode }
   | { type: 'terminal-episode-received'; episode: LearningEpisodeResponse }
-  | { type: 'expired'; episode?: LearningEpisodeResponse }
+  | { type: 'finalized'; error?: StudentErrorView }
+  | { type: 'expired'; episode?: LearningEpisodeResponse; error?: StudentErrorView }
   | { type: 'failed'; error: StudentErrorView };
 
 function initialState(taskId: string, mode: StudentEpisodeMode): StudentEpisodeState {
@@ -58,8 +60,7 @@ function studentEpisodeReducer(state: StudentEpisodeState, action: StudentEpisod
     case 'reset':
       return initialState(action.taskId, action.mode);
     case 'start-requested':
-      if (isTerminal(state.phase)) return state;
-      return { ...state, error: null, phase: 'starting' };
+      return { ...state, episode: null, error: null, finalizationMode: null, phase: 'starting' };
     case 'episode-received': {
       const nextPhase = episodePhase(action.episode);
       if (isTerminal(state.phase) && nextPhase === 'active') return state;
@@ -71,8 +72,10 @@ function studentEpisodeReducer(state: StudentEpisodeState, action: StudentEpisod
     case 'terminal-episode-received':
       if (action.episode.status !== LearningEpisodeStatusResponse.Finalized) return state;
       return { ...state, episode: action.episode, error: null, phase: 'finalized' };
+    case 'finalized':
+      return { ...state, error: action.error ?? null, phase: 'finalized' };
     case 'expired':
-      return { ...state, episode: action.episode ?? state.episode, error: null, phase: 'expired' };
+      return { ...state, episode: action.episode ?? state.episode, error: action.error ?? null, phase: 'expired' };
     case 'failed':
       if (isTerminal(state.phase)) return state;
       return { ...state, error: action.error, phase: 'error' };
@@ -80,20 +83,60 @@ function studentEpisodeReducer(state: StudentEpisodeState, action: StudentEpisod
 }
 
 type Options = {
+  enabled?: boolean;
   mode: StudentEpisodeMode;
   taskId: string;
 };
 
-export function useStudentEpisode({ mode, taskId }: Options) {
+const pendingStarts = new Map<string, Promise<startLearningEpisodeResponse>>();
+
+function startEpisodeOnce(taskId: string, mode: StudentEpisodeMode) {
+  const key = `${mode}:${taskId}`;
+  const pending = pendingStarts.get(key);
+  if (pending) return pending;
+
+  const request = startLearningEpisode(taskId).finally(() => pendingStarts.delete(key));
+  pendingStarts.set(key, request);
+  return request;
+}
+
+export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
   const [state, dispatch] = useReducer(studentEpisodeReducer, undefined, () => initialState(taskId, mode));
   const currentState = state.taskId === taskId && state.mode === mode ? state : initialState(taskId, mode);
+  const activeContext = useRef({ mode, taskId });
+  activeContext.current = { mode, taskId };
 
   useEffect(() => {
     if (state.taskId === taskId && state.mode === mode) return;
     dispatch({ type: 'reset', taskId, mode });
   }, [mode, state.mode, state.taskId, taskId]);
 
-  const retryStart = useCallback(() => dispatch({ type: 'start-requested' }), []);
+  const retryStart = useCallback(async () => {
+    if (!enabled || !taskId) return;
+    dispatch({ type: 'start-requested' });
+
+    try {
+      const response = await startEpisodeOnce(taskId, mode);
+      if (activeContext.current.taskId !== taskId || activeContext.current.mode !== mode) return;
+      if (response.status === 200) {
+        dispatch({ type: 'episode-received', episode: response.data });
+        return;
+      }
+
+      const error = mapStudentApiError(response.status, response.data);
+      const code = problemCode(response.data);
+      if (code === 'LearningEpisode.Finalized') {
+        dispatch({ type: 'finalized', error });
+      } else if (code === 'LearningEpisode.HeartbeatExpired') {
+        dispatch({ type: 'expired', error });
+      } else {
+        dispatch({ type: 'failed', error });
+      }
+    } catch (error) {
+      if (activeContext.current.taskId !== taskId || activeContext.current.mode !== mode) return;
+      dispatch({ type: 'failed', error: mapStudentApiError(undefined, error) });
+    }
+  }, [enabled, mode, taskId]);
   const acceptPartialResult = useCallback(() => dispatch({
     type: 'finalization-requested',
     mode: LearningEpisodeFinalizationMode.AcceptPartialResult,
@@ -106,6 +149,11 @@ export function useStudentEpisode({ mode, taskId }: Options) {
   const applyTerminalEpisode = useCallback((episode: LearningEpisodeResponse) => dispatch({ type: 'terminal-episode-received', episode }), []);
   const markExpired = useCallback((episode?: LearningEpisodeResponse) => dispatch({ type: 'expired', episode }), []);
   const setError = useCallback((error: StudentErrorView) => dispatch({ type: 'failed', error }), []);
+
+  useEffect(() => {
+    if (!enabled || currentState.phase !== 'idle') return;
+    void retryStart();
+  }, [currentState.phase, enabled, retryStart]);
 
   return {
     abandon,
@@ -124,4 +172,3 @@ export function useStudentEpisode({ mode, taskId }: Options) {
     setError,
   };
 }
-
