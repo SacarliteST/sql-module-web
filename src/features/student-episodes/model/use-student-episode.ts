@@ -3,8 +3,10 @@ import {
   LearningEpisodeFinalizationMode,
   LearningEpisodeStatusResponse,
   type LearningEpisodeResponse,
+  type SubmitAttemptResponse,
 } from '../../../api/sqlmodule/model';
 import {
+  finalizeLearningEpisode,
   heartbeatLearningEpisode,
   startLearningEpisode,
   type startLearningEpisodeResponse,
@@ -24,6 +26,8 @@ export type StudentEpisodePhase =
 const HEARTBEAT_INTERVAL_MS = 30_000;
 
 type StudentEpisodeState = {
+  attemptsUsed: number;
+  bestScore: number | null;
   error: StudentErrorView | null;
   episode: LearningEpisodeResponse | null;
   finalizationMode: LearningEpisodeFinalizationMode | null;
@@ -37,6 +41,8 @@ type StudentEpisodeAction =
   | { type: 'start-requested' }
   | { type: 'episode-received'; episode: LearningEpisodeResponse }
   | { type: 'finalization-requested'; mode: LearningEpisodeFinalizationMode }
+  | { type: 'attempt-received'; result: SubmitAttemptResponse }
+  | { type: 'finalization-failed'; error: StudentErrorView }
   | { type: 'terminal-episode-received'; episode: LearningEpisodeResponse }
   | { type: 'finalized'; error?: StudentErrorView }
   | { type: 'expired'; episode?: LearningEpisodeResponse; error?: StudentErrorView }
@@ -44,6 +50,8 @@ type StudentEpisodeAction =
 
 function initialState(taskId: string, mode: StudentEpisodeMode): StudentEpisodeState {
   return {
+    attemptsUsed: 0,
+    bestScore: null,
     error: null,
     episode: null,
     finalizationMode: null,
@@ -75,6 +83,14 @@ function studentEpisodeReducer(state: StudentEpisodeState, action: StudentEpisod
     case 'finalization-requested':
       if (state.phase !== 'active') return state;
       return { ...state, error: null, finalizationMode: action.mode, phase: 'finalizing' };
+    case 'attempt-received':
+      return {
+        ...state,
+        attemptsUsed: action.result.attemptsUsed ?? state.attemptsUsed,
+        bestScore: action.result.bestScore ?? state.bestScore,
+      };
+    case 'finalization-failed':
+      return { ...state, error: action.error, phase: 'active' };
     case 'terminal-episode-received':
       if (action.episode.status !== LearningEpisodeStatusResponse.Finalized) return state;
       return { ...state, episode: action.episode, error: null, phase: 'finalized' };
@@ -111,6 +127,8 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
   const currentState = state.taskId === taskId && state.mode === mode ? state : initialState(taskId, mode);
   const activeContext = useRef({ mode, taskId });
   const heartbeatInFlight = useRef(false);
+  const finalizationInFlight = useRef(false);
+  const pendingFinalization = useRef<{ key: string; mode: LearningEpisodeFinalizationMode } | null>(null);
   activeContext.current = { mode, taskId };
 
   useEffect(() => {
@@ -144,14 +162,50 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
       dispatch({ type: 'failed', error: mapStudentApiError(undefined, error) });
     }
   }, [enabled, mode, taskId]);
-  const acceptPartialResult = useCallback(() => dispatch({
-    type: 'finalization-requested',
-    mode: LearningEpisodeFinalizationMode.AcceptPartialResult,
-  }), []);
-  const abandon = useCallback(() => dispatch({
-    type: 'finalization-requested',
-    mode: LearningEpisodeFinalizationMode.Abandon,
-  }), []);
+  const finalizeStandalone = useCallback(async (finalizationMode: LearningEpisodeFinalizationMode) => {
+    const episodeId = currentState.episode?.episodeId;
+    if (mode !== 'standalone' || !episodeId || currentState.phase !== 'active' || finalizationInFlight.current) return false;
+    if (finalizationMode === LearningEpisodeFinalizationMode.AcceptPartialResult && currentState.attemptsUsed === 0) return false;
+
+    const pending = pendingFinalization.current?.mode === finalizationMode
+      ? pendingFinalization.current
+      : { key: crypto.randomUUID(), mode: finalizationMode };
+    pendingFinalization.current = pending;
+    finalizationInFlight.current = true;
+    dispatch({ type: 'finalization-requested', mode: finalizationMode });
+
+    try {
+      const response = await finalizeLearningEpisode(
+        episodeId,
+        { mode: finalizationMode },
+        { 'Idempotency-Key': pending.key },
+      );
+      if (activeContext.current.taskId !== taskId || activeContext.current.mode !== mode) return false;
+      if (response.status === 200) {
+        pendingFinalization.current = null;
+        dispatch({ type: 'terminal-episode-received', episode: response.data });
+        return true;
+      }
+
+      pendingFinalization.current = null;
+      dispatch({ type: 'finalization-failed', error: mapStudentApiError(response.status, response.data) });
+      return false;
+    } catch (error) {
+      dispatch({ type: 'finalization-failed', error: mapStudentApiError(undefined, error) });
+      return false;
+    } finally {
+      finalizationInFlight.current = false;
+    }
+  }, [currentState.attemptsUsed, currentState.episode?.episodeId, currentState.phase, mode, taskId]);
+  const acceptPartialResult = useCallback(
+    () => finalizeStandalone(LearningEpisodeFinalizationMode.AcceptPartialResult),
+    [finalizeStandalone],
+  );
+  const abandon = useCallback(
+    () => finalizeStandalone(LearningEpisodeFinalizationMode.Abandon),
+    [finalizeStandalone],
+  );
+  const recordAttempt = useCallback((result: SubmitAttemptResponse) => dispatch({ type: 'attempt-received', result }), []);
   const applyEpisode = useCallback((episode: LearningEpisodeResponse) => dispatch({ type: 'episode-received', episode }), []);
   const applyTerminalEpisode = useCallback((episode: LearningEpisodeResponse) => dispatch({ type: 'terminal-episode-received', episode }), []);
   const markExpired = useCallback((episode?: LearningEpisodeResponse) => dispatch({ type: 'expired', episode }), []);
@@ -213,8 +267,10 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
   return {
     abandon,
     acceptPartialResult,
+    attemptsUsed: currentState.attemptsUsed,
     applyEpisode,
     applyTerminalEpisode,
+    bestScore: currentState.bestScore,
     episode: currentState.episode,
     error: currentState.error,
     finalizationMode: currentState.finalizationMode,
@@ -223,6 +279,7 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
     markExpired,
     mode: currentState.mode,
     phase: currentState.phase,
+    recordAttempt,
     retryStart,
     setError,
   };

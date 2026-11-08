@@ -9,7 +9,7 @@ import { SqlCodeEditor } from '../../features/sql-tasks';
 import { RecentStudentAttempts, StudentAttemptResult, SubmitStudentAttempt } from '../../features/student-attempts';
 import { StudentContourTabs } from '../../features/student-contour';
 import { useStudentSqlDraft } from '../../features/student-drafts';
-import { useStudentEpisode } from '../../features/student-episodes';
+import { StandaloneEpisodeActions, useStudentEpisode } from '../../features/student-episodes';
 import { mapStudentApiError, StudentErrorAlert, type StudentErrorView } from '../../features/student-errors';
 import { StudentTaskSchema } from '../../features/student-schema';
 import { StudentTaskValidation } from '../../features/student-tasks/ui/StudentTaskValidation';
@@ -128,6 +128,7 @@ export function StudentTaskPage() {
 
   const handleAttemptResult = (result: SubmitAttemptResponse) => {
     setLastAttempt(result);
+    episode.recordAttempt(result);
     void query.refetch();
   };
 
@@ -166,7 +167,15 @@ export function StudentTaskPage() {
     {draft.restored ? <Alert color="blue" title="Черновик восстановлен">Локальный SQL-черновик этого задания восстановлен для текущего студента.</Alert> : null}
     {draft.storageError ? <Alert color="yellow" title="Черновик не сохраняется">{draft.storageError}</Alert> : null}
     {episode.phase === 'idle' || episode.phase === 'starting' ? <Alert color="blue" title="Подготавливаем выполнение задания">Создаём или восстанавливаем учебный эпизод. Условие и черновик уже доступны, отправка решения включится после подготовки.</Alert> : null}
-    {episode.error ? <StudentErrorAlert error={episode.error} onRetry={episode.error.canRetry ? () => void episode.retryStart() : undefined} /> : null}
+    {episode.error ? <StudentErrorAlert error={episode.error} onRetry={episode.error.canRetry && episode.phase === 'error' ? () => void episode.retryStart() : undefined} /> : null}
+    {!isPlatformSession && (episode.phase === 'active' || episode.phase === 'finalizing') ? <StandaloneEpisodeActions
+      attemptsUsed={episode.attemptsUsed}
+      bestScore={episode.bestScore}
+      isFinalizing={episode.phase === 'finalizing'}
+      onAbandon={episode.abandon}
+      onAcceptPartialResult={episode.acceptPartialResult}
+      onFinalized={() => void navigate(catalogUrl)}
+    /> : null}
     <Group gap="xs">
       {task.topicName ? <Badge variant="light">{task.topicName}</Badge> : null}
       {task.difficultyLevel ? <Badge color="orange" variant="light">{formatStudentDifficulty(task.difficultyLevel)}</Badge> : null}

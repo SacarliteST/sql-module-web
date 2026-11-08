@@ -42,6 +42,7 @@ export function mapStudentApiError(status?: number, problem?: unknown): StudentE
   if (resolvedStatus === 409) {
     if (code === 'LearningEpisode.Finalized') return { canRetry: true, color: 'yellow', status: 409, title: 'Учебный эпизод завершён', message: 'Предыдущий эпизод уже завершён. Повторите запуск, чтобы начать новое выполнение задания.', traceId };
     if (code === 'LearningEpisode.HeartbeatExpired') return { canRetry: true, color: 'yellow', status: 409, title: 'Время активности истекло', message: 'Предыдущий эпизод завершён из-за отсутствия активности. Запустите выполнение задания заново.', traceId };
+    if (code === 'LearningEpisode.AttemptRequired') return { canRetry: false, color: 'yellow', status: 409, title: 'Сначала отправьте решение', message: 'Частичный результат можно принять только после хотя бы одной засчитанной попытки.', traceId };
     if (code === 'ModuleSession.AttemptsExhausted') return { canRetry: false, color: 'yellow', status: 409, title: 'Попытки закончились', message: 'Лимит попыток для этой сессии исчерпан.', traceId };
     if (code === 'ModuleSession.Expired') return { canRetry: false, color: 'yellow', status: 409, title: 'Срок выполнения вышел', message: 'Время выполнения задания закончилось. Новые решения отправить нельзя.', traceId };
     if (code === 'ModuleSession.Closed') return { canRetry: false, color: 'yellow', status: 409, title: 'Сессия уже завершена', message: 'Итог сессии уже зафиксирован. Новые решения отправить нельзя.', traceId };
