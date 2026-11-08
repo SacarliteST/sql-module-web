@@ -10,6 +10,7 @@ import { useFinalizeCurrentModuleSession } from '../../../api/sqlmodule/module-i
 import { clearActiveLaunchContext, clearActiveTokens, getActiveLaunchContext, resetActiveTokenProvider, useSessionStore } from '../../../session';
 import { ConfirmModal } from '../../../shared/ui';
 import { mapStudentApiError, StudentErrorAlert, type StudentErrorView } from '../../student-errors';
+import { completePlatformReturn } from '../model/complete-platform-return';
 
 type Props = {
   session: StudentSessionStateResponse;
@@ -27,17 +28,17 @@ export function StudentTaskFinalization({ session, passingScore, onFinalized }: 
   const isFinal = session.status !== 'Active';
 
   const returnToEducation = async (finalizationResult: SessionFinalizationResponse | null = result) => {
-    if (!finalizationResult?.canReturnToEducation) return;
-    const context = getActiveLaunchContext();
-    if (!context || !finalizationResult.returnUrl || finalizationResult.returnUrl !== context.returnUrl) {
+    if (!finalizationResult) return;
+    const outcome = await completePlatformReturn(finalizationResult, getActiveLaunchContext(), {
+      clearContext: clearActiveLaunchContext,
+      clearSession: () => useSessionStore.getState().clearSession(),
+      clearTokens: clearActiveTokens,
+      navigate: (url) => window.location.assign(url),
+      resetTokenProvider: resetActiveTokenProvider,
+    });
+    if (outcome === 'untrusted-url') {
       setError('Адрес возврата не совпадает с адресом исходной сессии. Не перенаправляем автоматически.');
-      return;
     }
-    await clearActiveTokens();
-    clearActiveLaunchContext();
-    useSessionStore.getState().clearSession();
-    resetActiveTokenProvider();
-    window.location.assign(context.returnUrl);
   };
 
   const finalize = async (mode: FinalizationMode) => {
