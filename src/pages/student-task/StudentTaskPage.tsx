@@ -15,7 +15,6 @@ import { StudentTaskSchema } from '../../features/student-schema';
 import { StudentTaskValidation } from '../../features/student-tasks/ui/StudentTaskValidation';
 import { StudentBankHelp } from '../../features/student-tasks/ui/StudentBankHelp';
 import { StudentTaskFinalization } from '../../features/student-tasks/ui/StudentTaskFinalization';
-import { StudentPlatformExit } from '../../features/student-tasks/ui/StudentPlatformExit';
 import { PlatformSessionTimer } from '../../features/student-tasks/ui/PlatformSessionTimer';
 import { useSessionStore } from '../../session';
 import { formatStudentDifficulty } from '../../shared/lib/student-display';
@@ -156,11 +155,10 @@ export function StudentTaskPage() {
       description="Изучите условие, подготовьте read-only SQL-запрос и отправьте его на проверку."
       actions={isPlatformSession ? <Group gap="sm">
         <PlatformSessionTimer expiresAt={platformExpiresAt} onExpired={() => void query.refetch()} />
-        <StudentPlatformExit />
         {validation?.session && episode.isReadyForSubmission ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
       </Group> : <Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button>}
     />
-    {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Отправляйте попытки на проверку и завершите сессию, когда закончите. Если нужно отвлечься (например, пройти тест), вернитесь на платформу кнопкой в заголовке — сессия останется открытой, продолжить можно там же кнопкой «Продолжить».</Alert> : <StudentContourTabs />}
+    {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Когда закончите, примите лучший результат или явно откажитесь от задания. Оба действия завершают текущее прохождение и возвращают на платформу.</Alert> : <StudentContourTabs />}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'applied' ? <Alert color="blue" title="SQL загружен из истории">Текст выбранной попытки подставлен один раз. Reload не заменит более свежий черновик.</Alert> : null}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'cancelled' ? <Alert color="yellow" title="Перенос отменён">Текущий черновик оставлен без изменений.</Alert> : null}
     {transferStatus?.taskId === taskId && transferStatus.kind === 'invalid' ? <Alert color="yellow" title="SQL не перенесён">Данные перехода из истории устарели или имеют неверный формат.</Alert> : null}

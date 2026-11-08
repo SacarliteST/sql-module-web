@@ -7,7 +7,6 @@ export {
 export type { ActiveLaunchContext } from './launch-context';
 export { consumeLaunchToken } from './consume-launch-token';
 export {
-  buildStudentPlatformLeaveUrl,
   clearPlatformReturnPath,
   parsePlatformReturnPath,
   parseTaskRef,
