@@ -4,7 +4,11 @@ import {
   LearningEpisodeStatusResponse,
   type LearningEpisodeResponse,
 } from '../../../api/sqlmodule/model';
-import { startLearningEpisode, type startLearningEpisodeResponse } from '../../../api/sqlmodule/student-episodes/student-episodes';
+import {
+  heartbeatLearningEpisode,
+  startLearningEpisode,
+  type startLearningEpisodeResponse,
+} from '../../../api/sqlmodule/student-episodes/student-episodes';
 import { mapStudentApiError, problemCode, type StudentErrorView } from '../../student-errors';
 
 export type StudentEpisodeMode = 'standalone' | 'platform';
@@ -16,6 +20,8 @@ export type StudentEpisodePhase =
   | 'finalized'
   | 'expired'
   | 'error';
+
+const HEARTBEAT_INTERVAL_MS = 30_000;
 
 type StudentEpisodeState = {
   error: StudentErrorView | null;
@@ -104,6 +110,7 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
   const [state, dispatch] = useReducer(studentEpisodeReducer, undefined, () => initialState(taskId, mode));
   const currentState = state.taskId === taskId && state.mode === mode ? state : initialState(taskId, mode);
   const activeContext = useRef({ mode, taskId });
+  const heartbeatInFlight = useRef(false);
   activeContext.current = { mode, taskId };
 
   useEffect(() => {
@@ -155,6 +162,54 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
     void retryStart();
   }, [currentState.phase, enabled, retryStart]);
 
+  const episodeId = currentState.episode?.episodeId;
+  const heartbeatEnabled = currentState.phase === 'active' && Boolean(episodeId);
+
+  useEffect(() => {
+    if (!heartbeatEnabled || !episodeId) return;
+    let disposed = false;
+
+    const sendHeartbeat = async () => {
+      if (heartbeatInFlight.current) return;
+      heartbeatInFlight.current = true;
+
+      try {
+        const response = await heartbeatLearningEpisode(episodeId);
+        if (disposed || activeContext.current.taskId !== taskId || activeContext.current.mode !== mode) return;
+        if (response.status === 200) {
+          dispatch({ type: 'episode-received', episode: response.data });
+          return;
+        }
+
+        const code = problemCode(response.data);
+        const error = mapStudentApiError(response.status, response.data);
+        if (code === 'LearningEpisode.Finalized') {
+          dispatch({ type: 'finalized', error });
+        } else if (code === 'LearningEpisode.HeartbeatExpired') {
+          dispatch({ type: 'expired', error });
+        } else if (response.status < 500) {
+          dispatch({ type: 'failed', error });
+        }
+      } catch {
+        // Сетевой сбой не завершает эпизод: следующий плановый heartbeat повторит запрос.
+      } finally {
+        heartbeatInFlight.current = false;
+      }
+    };
+
+    const intervalId = window.setInterval(() => void sendHeartbeat(), HEARTBEAT_INTERVAL_MS);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') void sendHeartbeat();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [episodeId, heartbeatEnabled, mode, taskId]);
+
   return {
     abandon,
     acceptPartialResult,
@@ -163,7 +218,7 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
     episode: currentState.episode,
     error: currentState.error,
     finalizationMode: currentState.finalizationMode,
-    isHeartbeatEnabled: currentState.phase === 'active',
+    isHeartbeatEnabled: heartbeatEnabled,
     isReadyForSubmission: currentState.phase === 'active',
     markExpired,
     mode: currentState.mode,
