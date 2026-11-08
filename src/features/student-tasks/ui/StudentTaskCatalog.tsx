@@ -45,7 +45,14 @@ export function StudentTaskCatalog({ topicId, topicName }: StudentTaskCatalogPro
   const page = readPage(searchParams.get('page'));
   const difficulty = readDifficulty(searchParams.get('difficulty'));
   const solved = searchParams.get('status') === 'solved' ? true : searchParams.get('status') === 'unsolved' ? false : undefined;
-  const sortBy = searchParams.get('sort') === 'difficulty' ? BankTaskSort.Difficulty : searchParams.get('sort') === 'published' ? BankTaskSort.PublishedAt : BankTaskSort.BankNumber;
+  const sortParam = searchParams.get('sort');
+  const sortBy = sortParam === 'difficulty'
+    ? BankTaskSort.Difficulty
+    : sortParam === 'published'
+      ? BankTaskSort.PublishedAt
+      : sortParam === 'recommended'
+        ? BankTaskSort.Recommended
+        : BankTaskSort.BankNumber;
   const [searchValue, setSearchValue] = useState(urlSearch);
   const [debouncedSearch] = useDebouncedValue(searchValue.trim(), SEARCH_DELAY_MS);
 
@@ -105,7 +112,9 @@ export function StudentTaskCatalog({ topicId, topicName }: StudentTaskCatalogPro
   return <Stack gap="md">
     <Stack gap={4}>
       <Title order={2} size="h4">{topicName || 'Все опубликованные задания'}</Title>
-      <Text c="dimmed" size="sm">Решайте задания без лимита попыток. Прогресс сохраняется в личной истории.</Text>
+      <Text c="dimmed" size="sm">{sortBy === BankTaskSort.Recommended
+        ? 'Рекомендуемый порядок подобран по истории завершённых заданий.'
+        : 'Решайте задания без лимита попыток. Прогресс сохраняется в личной истории.'}</Text>
     </Stack>
     <Group align="flex-end" grow wrap="wrap">
       <TextInput
@@ -118,7 +127,7 @@ export function StudentTaskCatalog({ topicId, topicName }: StudentTaskCatalogPro
         }}
       />
       <Select clearable label="Статус" placeholder="Любой" data={[{ value: 'solved', label: 'Решено' }, { value: 'unsolved', label: 'Не решено' }]} value={searchParams.get('status')} onChange={(value) => setFilter('status', value)} />
-      <Select label="Сортировка" data={[{ value: 'number', label: 'По номеру' }, { value: 'difficulty', label: 'По сложности' }, { value: 'published', label: 'Сначала новые' }]} value={searchParams.get('sort') ?? 'number'} onChange={(value) => setFilter('sort', value === 'number' ? null : value)} />
+      <Select label="Сортировка" data={[{ value: 'number', label: 'По номеру' }, { value: 'recommended', label: 'Рекомендуемые' }, { value: 'difficulty', label: 'По сложности' }, { value: 'published', label: 'Сначала новые' }]} value={searchParams.get('sort') ?? 'number'} onChange={(value) => setFilter('sort', value === 'number' ? null : value)} />
       <Select
         clearable
         label="Сложность"
