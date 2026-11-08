@@ -1100,6 +1100,20 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FinalizeLearningEpisodeRequest"
+                  }
+                ],
+                "description": "Явное решение студента окончательно закрыть текущий учебный эпизод."
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -4018,6 +4032,336 @@
         }
       }
     },
+    "/api/v1/skills": {
+      "post": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Создать преподавательский навык",
+        "operationId": "CreateSkill",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateSkillRequest"
+                  }
+                ],
+                "description": "Создание преподавательского навыка."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Получить каталог навыков",
+        "operationId": "GetSkills",
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SkillOriginResponse"
+                }
+              ]
+            }
+          },
+          {
+            "name": "IncludeDeleted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResponsePageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/skills/{id}": {
+      "delete": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Мягко удалить навык",
+        "operationId": "DeleteSkill",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Получить навык по идентификатору",
+        "operationId": "GetSkillById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Изменить название и описание навыка",
+        "operationId": "UpdateSkill",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateSkillRequest"
+                  }
+                ],
+                "description": "Изменение отображаемых данных навыка."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/skills/{id}/restore": {
+      "post": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Восстановить мягко удалённый навык",
+        "operationId": "RestoreSkill",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/student/topics": {
       "get": {
         "tags": [
@@ -4146,7 +4490,8 @@
               "enum": [
                 "BankNumber",
                 "Difficulty",
-                "PublishedAt"
+                "PublishedAt",
+                "Recommended"
               ],
               "type": "string",
               "allOf": [
@@ -4865,6 +5210,257 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/tasks/{taskId}/episodes": {
+      "post": {
+        "tags": [
+          "Student Episodes"
+        ],
+        "summary": "Начать или продолжить учебный эпизод",
+        "operationId": "StartLearningEpisode",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningEpisodeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/episodes/{episodeId}/heartbeat": {
+      "post": {
+        "tags": [
+          "Student Episodes"
+        ],
+        "summary": "Подтвердить активность текущего учебного эпизода",
+        "operationId": "HeartbeatLearningEpisode",
+        "parameters": [
+          {
+            "name": "episodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningEpisodeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/episodes/{episodeId}/finalize": {
+      "post": {
+        "tags": [
+          "Student Episodes"
+        ],
+        "summary": "Окончательно закрыть учебный эпизод",
+        "operationId": "FinalizeLearningEpisode",
+        "parameters": [
+          {
+            "name": "episodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "UUID операции финализации в формате D.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FinalizeLearningEpisodeRequest"
+                  }
+                ],
+                "description": "Явное решение студента окончательно закрыть текущий учебный эпизод."
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningEpisodeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
                 }
               }
             }
@@ -8544,7 +9140,8 @@
         "enum": [
           "BankNumber",
           "Difficulty",
-          "PublishedAt"
+          "PublishedAt",
+          "Recommended"
         ],
         "type": "string",
         "description": "Поле сортировки каталога открытого банка."
@@ -9048,6 +9645,25 @@
         "additionalProperties": false,
         "description": "Ответ на успешное создание схемы."
       },
+      "CreateSkillRequest": {
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Создание преподавательского навыка."
+      },
       "CreateSqlQueryRequest": {
         "type": "object",
         "properties": {
@@ -9465,6 +10081,21 @@
         ],
         "type": "string"
       },
+      "FinalizeLearningEpisodeRequest": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LearningEpisodeFinalizationMode"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Явное решение студента окончательно закрыть текущий учебный эпизод."
+      },
       "HintGroup": {
         "enum": [
           "Result",
@@ -9540,6 +10171,67 @@
           }
         },
         "additionalProperties": { }
+      },
+      "LearningEpisodeFinalizationMode": {
+        "enum": [
+          "AcceptPartialResult",
+          "Abandon"
+        ],
+        "type": "string"
+      },
+      "LearningEpisodeResponse": {
+        "type": "object",
+        "properties": {
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "taskId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "validationVersionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LearningEpisodeStatusResponse"
+              }
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastHeartbeatAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finalizedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "finalAttemptId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "producesObservation": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Безопасное состояние текущего учебного эпизода."
+      },
+      "LearningEpisodeStatusResponse": {
+        "enum": [
+          "Active",
+          "Finalized"
+        ],
+        "type": "string"
       },
       "LookupValueItemResponse": {
         "required": [
@@ -10728,6 +11420,77 @@
           "Expired"
         ],
         "type": "string"
+      },
+      "SkillOriginResponse": {
+        "enum": [
+          "System",
+          "TeacherDefined"
+        ],
+        "type": "string",
+        "description": "Источник определения навыка."
+      },
+      "SkillResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "skillId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "origin": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SkillOriginResponse"
+              }
+            ],
+            "description": "Источник определения навыка."
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "semanticChangeWarning": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Навык SQL-модуля."
+      },
+      "SkillResponsePageResponse": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Количество элементов",
+            "format": "int32",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillResponse"
+            },
+            "description": "Список элементов"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Ответ в виде страницы с информацией о элементах и их кол-ве"
       },
       "SqlConstruct": {
         "enum": [
@@ -12628,6 +13391,14 @@
               "$ref": "#/components/schemas/ValidationCheckRequest"
             },
             "nullable": true
+          },
+          "skillTagIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -12640,6 +13411,8 @@
           "hasUnpublishedChanges",
           "passingScore",
           "publishedAt",
+          "skillTags",
+          "skillTagsWarning",
           "state",
           "taskId",
           "updatedAt",
@@ -12722,6 +13495,19 @@
             "description": "Дата публикации активной версии; `null`, если версии нет.",
             "format": "date-time",
             "nullable": true
+          },
+          "skillTags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationSkillResponse"
+            },
+            "description": "Дополнительные навыки-теги задания.",
+            "nullable": true
+          },
+          "skillTagsWarning": {
+            "type": "string",
+            "description": "Предупреждение о приблизительной природе навыков-тегов.",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -12746,6 +13532,14 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ValidationCheckPreviewRequest"
+            },
+            "nullable": true
+          },
+          "skillTagIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
             },
             "nullable": true
           }
@@ -13350,6 +14144,21 @@
         "additionalProperties": false,
         "description": "Запрос на обновление физического типа данных."
       },
+      "UpdateSkillRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Изменение отображаемых данных навыка."
+      },
       "UpdateSqlQueryRequest": {
         "type": "object",
         "properties": {
@@ -13874,6 +14683,7 @@
           "id",
           "kind",
           "order",
+          "skill",
           "value",
           "valueDisplayName",
           "weight"
@@ -13914,6 +14724,15 @@
           "order": {
             "type": "integer",
             "format": "int32"
+          },
+          "skill": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ValidationSkillResponse"
+              }
+            ],
+            "description": "Навык, закреплённый за правилом или добавленный как тег.",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -13933,6 +14752,31 @@
           "Published"
         ],
         "type": "string"
+      },
+      "ValidationSkillResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "skillId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "origin": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SkillOriginResponse"
+              }
+            ],
+            "description": "Источник определения навыка."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Навык, закреплённый за правилом или добавленный как тег."
       },
       "ValidationViolationResponse": {
         "required": [
@@ -14010,7 +14854,13 @@
       "name": "Schema Data"
     },
     {
+      "name": "Skills"
+    },
+    {
       "name": "Student"
+    },
+    {
+      "name": "Student Episodes"
     },
     {
       "name": "Training"

@@ -6,6 +6,7 @@
  * OpenAPI spec version: v1
  */
 import type { ValidationCheckResponseKind } from './validationCheckResponseKind';
+import type { ValidationSkillResponse } from './validationSkillResponse';
 
 /**
  * Сохранённый критерий проверки.
@@ -19,4 +20,6 @@ export interface ValidationCheckResponse {
   valueDisplayName: string | null;
   weight: number;
   order: number;
+  /** Навык, закреплённый за правилом или добавленный как тег. */
+  skill: ValidationSkillResponse | null;
 }

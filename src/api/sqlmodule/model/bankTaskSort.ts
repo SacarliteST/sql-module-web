@@ -16,4 +16,5 @@ export const BankTaskSort = {
   BankNumber: 'BankNumber',
   Difficulty: 'Difficulty',
   PublishedAt: 'PublishedAt',
+  Recommended: 'Recommended',
 } as const;

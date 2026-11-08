@@ -8,6 +8,7 @@
 import type { HintGroup } from './hintGroup';
 import type { TaskValidationConfigurationResponseState } from './taskValidationConfigurationResponseState';
 import type { ValidationCheckResponse } from './validationCheckResponse';
+import type { ValidationSkillResponse } from './validationSkillResponse';
 
 /**
  * Текущая конфигурация проверки и активная опубликованная версия.
@@ -50,4 +51,14 @@ export interface TaskValidationConfigurationResponse {
      * @nullable
      */
   publishedAt: string | null;
+  /**
+     * Дополнительные навыки-теги задания.
+     * @nullable
+     */
+  skillTags: ValidationSkillResponse[] | null;
+  /**
+     * Предупреждение о приблизительной природе навыков-тегов.
+     * @nullable
+     */
+  skillTagsWarning: string | null;
 }

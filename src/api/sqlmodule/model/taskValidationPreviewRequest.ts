@@ -18,4 +18,6 @@ export interface TaskValidationPreviewRequest {
   visibleHintGroups?: HintGroup[] | null;
   /** @nullable */
   checks?: ValidationCheckPreviewRequest[] | null;
+  /** @nullable */
+  skillTagIds?: string[] | null;
 }

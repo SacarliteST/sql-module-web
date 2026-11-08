@@ -20,4 +20,6 @@ export interface TaskValidationConfigurationRequest {
   visibleHintGroups?: HintGroup[] | null;
   /** @nullable */
   checks?: ValidationCheckRequest[] | null;
+  /** @nullable */
+  skillTagIds?: string[] | null;
 }

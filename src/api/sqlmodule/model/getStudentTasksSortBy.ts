@@ -13,4 +13,5 @@ export const GetStudentTasksSortBy = {
   BankNumber: 'BankNumber',
   Difficulty: 'Difficulty',
   PublishedAt: 'PublishedAt',
+  Recommended: 'Recommended',
 } as const;

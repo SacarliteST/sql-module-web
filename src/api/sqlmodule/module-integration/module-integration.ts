@@ -27,6 +27,7 @@ import type {
 import type {
   CurrentModuleSessionResponse,
   FinalizeCurrentModuleSessionHeaders,
+  FinalizeLearningEpisodeRequest,
   GetModuleTasksCatalogHeaders,
   HttpValidationProblemDetails,
   ModuleTaskCatalogItemResponse,
@@ -109,14 +110,15 @@ export const getFinalizeCurrentModuleSessionUrl = () => {
  * Фиксирует фактический BestScore и атомарно ставит один итог в outbox Education.
  * @summary Завершить текущую платформенную сессию
  */
-export const finalizeCurrentModuleSession = async (headers: FinalizeCurrentModuleSessionHeaders, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<finalizeCurrentModuleSessionResponse> => {
+export const finalizeCurrentModuleSession = async (headers: FinalizeCurrentModuleSessionHeaders,
+    finalizeLearningEpisodeRequest?: FinalizeLearningEpisodeRequest, options?: Parameters<typeof sqlmoduleFetch>[1]): Promise<finalizeCurrentModuleSessionResponse> => {
 
   return sqlmoduleFetch<finalizeCurrentModuleSessionResponse>(getFinalizeCurrentModuleSessionUrl(),
   {
     ...options,
     method: 'POST',
-    headers: { ...headers, ...options?.headers }
-
+    headers: { 'Content-Type': 'application/json',...headers, ...options?.headers },
+    body: JSON.stringify(finalizeLearningEpisodeRequest)
   }
 );}
 
@@ -125,8 +127,8 @@ export const finalizeCurrentModuleSession = async (headers: FinalizeCurrentModul
 
 
 export const getFinalizeCurrentModuleSessionMutationOptions = <TError = ProblemDetails | HttpValidationProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, TError,{headers: FinalizeCurrentModuleSessionHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, TError,{headers: FinalizeCurrentModuleSessionHeaders}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, TError,{headers: FinalizeCurrentModuleSessionHeaders;data?: FinalizeLearningEpisodeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, TError,{headers: FinalizeCurrentModuleSessionHeaders;data?: FinalizeLearningEpisodeRequest}, TContext> => {
 
 const mutationKey = ['finalizeCurrentModuleSession'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -138,10 +140,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, {headers: FinalizeCurrentModuleSessionHeaders}> = (props) => {
-          const {headers} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, {headers: FinalizeCurrentModuleSessionHeaders;data?: FinalizeLearningEpisodeRequest}> = (props) => {
+          const {headers,data} = props ?? {};
 
-          return  finalizeCurrentModuleSession(headers,requestOptions)
+          return  finalizeCurrentModuleSession(headers,data,requestOptions)
         }
 
 
@@ -152,18 +154,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type FinalizeCurrentModuleSessionMutationResult = NonNullable<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>>
-
+    export type FinalizeCurrentModuleSessionMutationBody = FinalizeLearningEpisodeRequest | undefined
     export type FinalizeCurrentModuleSessionMutationError = ProblemDetails | HttpValidationProblemDetails
 
     /**
  * @summary Завершить текущую платформенную сессию
  */
 export const useFinalizeCurrentModuleSession = <TError = ProblemDetails | HttpValidationProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, TError,{headers: FinalizeCurrentModuleSessionHeaders}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finalizeCurrentModuleSession>>, TError,{headers: FinalizeCurrentModuleSessionHeaders;data?: FinalizeLearningEpisodeRequest}, TContext>, request?: SecondParameter<typeof sqlmoduleFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof finalizeCurrentModuleSession>>,
         TError,
-        {headers: FinalizeCurrentModuleSessionHeaders},
+        {headers: FinalizeCurrentModuleSessionHeaders;data?: FinalizeLearningEpisodeRequest},
         TContext
       > => {
       return useMutation(getFinalizeCurrentModuleSessionMutationOptions(options), queryClient);
