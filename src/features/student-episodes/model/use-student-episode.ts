@@ -88,6 +88,7 @@ function studentEpisodeReducer(state: StudentEpisodeState, action: StudentEpisod
         ...state,
         attemptsUsed: action.result.attemptsUsed ?? state.attemptsUsed,
         bestScore: action.result.bestScore ?? state.bestScore,
+        phase: action.result.canSubmit === false ? 'finalized' : state.phase,
       };
     case 'finalization-failed':
       return { ...state, error: action.error, phase: 'active' };
@@ -209,6 +210,7 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
   const applyEpisode = useCallback((episode: LearningEpisodeResponse) => dispatch({ type: 'episode-received', episode }), []);
   const applyTerminalEpisode = useCallback((episode: LearningEpisodeResponse) => dispatch({ type: 'terminal-episode-received', episode }), []);
   const markExpired = useCallback((episode?: LearningEpisodeResponse) => dispatch({ type: 'expired', episode }), []);
+  const markFinalized = useCallback(() => dispatch({ type: 'finalized' }), []);
   const setError = useCallback((error: StudentErrorView) => dispatch({ type: 'failed', error }), []);
 
   useEffect(() => {
@@ -277,6 +279,7 @@ export function useStudentEpisode({ enabled = true, mode, taskId }: Options) {
     isHeartbeatEnabled: heartbeatEnabled,
     isReadyForSubmission: currentState.phase === 'active',
     markExpired,
+    markFinalized,
     mode: currentState.mode,
     phase: currentState.phase,
     recordAttempt,

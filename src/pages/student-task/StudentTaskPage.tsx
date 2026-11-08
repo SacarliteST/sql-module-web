@@ -2,7 +2,11 @@ import { Alert, Badge, Button, Divider, Grid, Group, List, Skeleton, Stack, Text
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import type { SubmitAttemptResponse } from '../../api/sqlmodule/model';
+import {
+  StudentSessionStateResponseFinalizationReason,
+  type StudentSessionStateResponse,
+  type SubmitAttemptResponse,
+} from '../../api/sqlmodule/model';
 import { useGetCurrentModuleSession } from '../../api/sqlmodule/module-integration/module-integration';
 import { useGetStudentTaskById } from '../../api/sqlmodule/student/student';
 import { SqlCodeEditor } from '../../features/sql-tasks';
@@ -46,6 +50,27 @@ function StudentTaskLoading() {
   </Stack></Page>;
 }
 
+function EpisodeTerminalAlert({
+  lastAttempt,
+  phase,
+  session,
+}: {
+  lastAttempt: SubmitAttemptResponse | null;
+  phase: 'finalized' | 'expired';
+  session?: StudentSessionStateResponse | null;
+}) {
+  if (session?.finalizationReason === StudentSessionStateResponseFinalizationReason.PerfectScore || lastAttempt?.score === 100) {
+    return <Alert color="green" title="Задание завершено">Получен максимальный результат — 100 из 100. Новые отправки не требуются.</Alert>;
+  }
+  if (session?.finalizationReason === StudentSessionStateResponseFinalizationReason.AttemptsExhausted) {
+    return <Alert color="yellow" title="Попытки закончились">Учебный эпизод завершён. Зафиксирован лучший результат: {session.finalScore ?? session.bestScore} из 100.</Alert>;
+  }
+  if (phase === 'expired' || session?.finalizationReason === StudentSessionStateResponseFinalizationReason.Expired) {
+    return <Alert color="yellow" title="Время выполнения закончилось">Новые отправки недоступны. Зафиксирован лучший подтверждённый результат.</Alert>;
+  }
+  return <Alert color="blue" title="Учебный эпизод завершён">Новые отправки недоступны. Показан фактический результат последней проверки; техническая ошибка выполнения не означает, что навык не освоен.</Alert>;
+}
+
 type TaskUnavailableProps = { catalogUrl: string; error: StudentErrorView; isPlatformSession: boolean; retry: () => void };
 
 function TaskUnavailable({ catalogUrl, error, isPlatformSession, retry }: TaskUnavailableProps) {
@@ -87,6 +112,15 @@ export function StudentTaskPage() {
     : response && response.status !== 200 ? mapStudentApiError(response.status, response.data) : !response && !query.isPending ? mapStudentApiError() : null;
 
   useEffect(() => setLastAttempt(null), [taskId]);
+  useEffect(() => {
+    const session = response?.status === 200 ? response.data.validation?.session : null;
+    if (!isPlatformSession || !session || session.status === 'Active') return;
+    if (session.finalizationReason === StudentSessionStateResponseFinalizationReason.Expired) {
+      episode.markExpired();
+    } else {
+      episode.markFinalized();
+    }
+  }, [episode.markExpired, episode.markFinalized, isPlatformSession, response]);
   useEffect(() => {
     if (transferState.kind === 'none' || query.isPending || consumedLocationKey.current === location.key) return;
     consumedLocationKey.current = location.key;
@@ -155,7 +189,7 @@ export function StudentTaskPage() {
       description="Изучите условие, подготовьте read-only SQL-запрос и отправьте его на проверку."
       actions={isPlatformSession ? <Group gap="sm">
         <PlatformSessionTimer expiresAt={platformExpiresAt} onExpired={() => void query.refetch()} />
-        {validation?.session && episode.isReadyForSubmission ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
+        {validation?.session && episode.phase !== 'idle' && episode.phase !== 'starting' && episode.phase !== 'error' ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
       </Group> : <Button component={Link} to={catalogUrl} variant="default">Назад к каталогу</Button>}
     />
     {isPlatformSession ? <Alert color="blue" title="Задание открыто с платформы">В этой сессии доступно только назначенное задание. Когда закончите, примите лучший результат или явно откажитесь от задания. Оба действия завершают текущее прохождение и возвращают на платформу.</Alert> : <StudentContourTabs />}
@@ -166,6 +200,11 @@ export function StudentTaskPage() {
     {draft.storageError ? <Alert color="yellow" title="Черновик не сохраняется">{draft.storageError}</Alert> : null}
     {episode.phase === 'idle' || episode.phase === 'starting' ? <Alert color="blue" title="Подготавливаем выполнение задания">Создаём или восстанавливаем учебный эпизод. Условие и черновик уже доступны, отправка решения включится после подготовки.</Alert> : null}
     {episode.error ? <StudentErrorAlert error={episode.error} onRetry={episode.error.canRetry && episode.phase === 'error' ? () => void episode.retryStart() : undefined} /> : null}
+    {episode.phase === 'finalized' || episode.phase === 'expired' ? <EpisodeTerminalAlert
+      lastAttempt={lastAttempt}
+      phase={episode.phase}
+      session={validation?.session}
+    /> : null}
     {!isPlatformSession && (episode.phase === 'active' || episode.phase === 'finalizing') ? <StandaloneEpisodeActions
       attemptsUsed={episode.attemptsUsed}
       bestScore={episode.bestScore}
@@ -222,7 +261,7 @@ export function StudentTaskPage() {
     <AppCard>{lastAttempt
       ? <StudentAttemptResult
         result={lastAttempt}
-        actions={isPlatformSession && lastAttempt.isPassed && validation?.session && episode.isReadyForSubmission ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
+        actions={isPlatformSession && lastAttempt.isPassed && validation?.session ? <StudentTaskFinalization session={validation.session} passingScore={validation.passingScore} onFinalized={() => void query.refetch()} /> : null}
       />
       : <EmptyState title="Результат проверки" description="Здесь появится безопасный вердикт и фактический результат после отправки решения." />}
     </AppCard>
