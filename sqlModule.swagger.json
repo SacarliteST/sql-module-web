@@ -7217,7 +7217,7 @@
           "Training"
         ],
         "summary": "Список попыток с пагинацией",
-        "description": "Возвращает 200 OK со страницей попыток, отсортированных по убыванию даты начала. offset — количество пропускаемых записей (>= 0, по умолчанию 0). limit — размер страницы (1–100, по умолчанию 20). taskId — необязательный фильтр по заданию. userId — необязательный фильтр по студенту. validationVersionId — фильтр по версии проверки. scoreFrom/scoreTo — включительный диапазон баллов 0–100. finalizationReason — причина финализации платформенной сессии. 422 — некорректные параметры фильтрации или пагинации.",
+        "description": "Возвращает 200 OK со страницей попыток, отсортированных по убыванию даты начала. offset — количество пропускаемых записей (>= 0, по умолчанию 0). limit — размер страницы (1–100, по умолчанию 20). taskId — необязательный фильтр по заданию. userId — необязательный фильтр по студенту. validationVersionId — фильтр по версии проверки. scoreFrom/scoreTo — включительный диапазон баллов 0–100. finalizationReason — причина финализации платформенной сессии. moduleSessionId — фильтр по платформенной сессии. 422 — некорректные параметры фильтрации или пагинации.",
         "operationId": "GetAllAttempts",
         "parameters": [
           {
@@ -7371,6 +7371,15 @@
                   "$ref": "#/components/schemas/AttemptOrigin"
                 }
               ]
+            }
+          },
+          {
+            "name": "ModuleSessionId",
+            "in": "query",
+            "description": "Необязательный фильтр по платформенной сессии.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -10521,6 +10530,20 @@
           "description": {
             "type": "string",
             "description": "Краткое описание задания."
+          },
+          "difficultyLevel": {
+            "type": "integer",
+            "description": "Уровень сложности задания (шкала модуля 1–5).",
+            "format": "int32"
+          },
+          "topicId": {
+            "type": "string",
+            "description": "Идентификатор темы задания.",
+            "format": "uuid"
+          },
+          "topicName": {
+            "type": "string",
+            "description": "Название темы задания."
           }
         },
         "additionalProperties": false,

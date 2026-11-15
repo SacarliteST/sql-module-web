@@ -66,4 +66,8 @@ FinalizationReason?: GetAllAttemptsFinalizationReason;
  * Источник попытки: тренировка или платформенная сессия.
  */
 Origin?: GetAllAttemptsOrigin;
+/**
+ * Необязательный фильтр по платформенной сессии.
+ */
+ModuleSessionId?: string;
 };

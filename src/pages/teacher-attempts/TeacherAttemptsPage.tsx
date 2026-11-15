@@ -79,6 +79,7 @@ export function TeacherAttemptsPage() {
   const versionId = searchParams.get('versionId') ?? '';
   const scoreFrom = searchParams.get('scoreFrom') ?? '';
   const scoreTo = searchParams.get('scoreTo') ?? '';
+  const moduleSessionId = searchParams.get('moduleSessionId') ?? '';
   const reason = Object.values(GetAllAttemptsFinalizationReason).find((value) => value === searchParams.get('reason'));
   const selectedQuery = useGetAttemptById(selected?.id ?? '', { query: { enabled: Boolean(selected?.id) } });
   const selectedDetail = selectedQuery.data?.status === 200 ? selectedQuery.data.data : null;
@@ -109,6 +110,7 @@ export function TeacherAttemptsPage() {
     ScoreFrom: scoreFrom === '' ? undefined : Number(scoreFrom),
     ScoreTo: scoreTo === '' ? undefined : Number(scoreTo),
     FinalizationReason: reason,
+    ModuleSessionId: moduleSessionId || undefined,
   });
 
   const studentOptionsQuery = useGetAttemptStudentFilterOptions({
@@ -204,11 +206,26 @@ export function TeacherAttemptsPage() {
     .some((item) => item.isError || (item.data && item.data.status !== 200));
   const hasFilters = Boolean(taskId || userId || topicId || status || correctParam || dateFrom || dateTo || versionId || scoreFrom || scoreTo || reason);
 
+  const resetFilters = () => {
+    setSearchParams(moduleSessionId ? { moduleSessionId } : {});
+  };
+
   return (
     <Page>
       <Stack gap="lg">
         <PageBreadcrumbs items={[{ label: 'Главная', to: '/' }, { label: 'Преподаватель', to: '/teacher' }, { label: 'Попытки' }]} />
-        <PageHeader title="Попытки студентов" description="Журнал решений с серверной пагинацией и поиском по понятным названиям." />
+        <PageHeader
+          title={moduleSessionId ? 'Попытки выбранного прохождения' : 'Попытки студентов'}
+          description={moduleSessionId
+            ? 'Все решения, отправленные студентом в рамках выбранного прохождения на платформе.'
+            : 'Журнал решений с серверной пагинацией и поиском по понятным названиям.'}
+        />
+
+        {moduleSessionId ? (
+          <Alert color="blue">
+            Показаны только попытки платформенной сессии <Code>{moduleSessionId}</Code>.
+          </Alert>
+        ) : null}
 
         <AppCard>
           <Stack gap="md">
@@ -227,7 +244,7 @@ export function TeacherAttemptsPage() {
               <Group grow align="flex-end"><TextInput label="Балл от" type="number" min={0} max={100} value={scoreFrom} onChange={(event) => setFilters({ scoreFrom: event.currentTarget.value || null })} /><TextInput label="Балл до" type="number" min={0} max={100} value={scoreTo} onChange={(event) => setFilters({ scoreTo: event.currentTarget.value || null })} /></Group>
               <Select clearable label="Причина завершения" value={reason ?? null} data={Object.values(GetAllAttemptsFinalizationReason).map((value) => ({ value, label: getFinalizationReasonLabel(value) }))} onChange={(value) => setFilters({ reason: value })} />
             </SimpleGrid>
-            <Group justify="flex-end"><Button disabled={!hasFilters} variant="default" onClick={() => setSearchParams({})}>Сбросить все фильтры</Button></Group>
+            <Group justify="flex-end"><Button disabled={!hasFilters} variant="default" onClick={resetFilters}>Сбросить дополнительные фильтры</Button></Group>
           </Stack>
         </AppCard>
 
@@ -251,7 +268,14 @@ export function TeacherAttemptsPage() {
               </Table.ScrollContainer>
               {pageCount > 1 ? <Pagination value={page} total={pageCount} onChange={(value) => setFilters({ page: value > 1 ? String(value) : null })} /> : null}
             </Stack>
-          ) : <EmptyState title="Попыток нет" description="Измените фильтры или дождитесь решений студентов." />}
+          ) : (
+            <EmptyState
+              title="Попыток нет"
+              description={moduleSessionId
+                ? 'В выбранном прохождении студент не отправлял решения.'
+                : 'Измените фильтры или дождитесь решений студентов.'}
+            />
+          )}
         </AppCard>
       </Stack>
 

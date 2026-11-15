@@ -16,4 +16,10 @@ export interface ModuleTaskCatalogItemResponse {
   name?: string;
   /** Краткое описание задания. */
   description?: string;
+  /** Уровень сложности задания (шкала модуля 1–5). */
+  difficultyLevel?: number;
+  /** Идентификатор темы задания. */
+  topicId?: string;
+  /** Название темы задания. */
+  topicName?: string;
 }

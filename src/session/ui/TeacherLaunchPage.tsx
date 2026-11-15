@@ -22,8 +22,12 @@ type LaunchState = 'loading' | 'invalid-link';
 
 const DEFAULT_TEACHER_ROUTE = '/teacher/topics';
 
-/** Открывает сразу задание из ссылки платформы; при любой неудаче — обычная стартовая страница. */
-async function resolveTeacherRoute(taskRef: string | null): Promise<string> {
+/** Открывает журнал прохождения или задание из ссылки платформы; при любой неудаче — стартовую страницу. */
+async function resolveTeacherRoute(taskRef: string | null, moduleSessionId: string | null): Promise<string> {
+  if (moduleSessionId) {
+    return `/teacher/attempts?moduleSessionId=${encodeURIComponent(moduleSessionId)}`;
+  }
+
   if (!taskRef) return DEFAULT_TEACHER_ROUTE;
   try {
     const response = await getSqlTaskById(taskRef);
@@ -70,7 +74,10 @@ export function TeacherLaunchPage() {
         clearPlatformReturnPath();
       }
 
-      navigate(await resolveTeacherRoute(parseTaskRef(params.get('task'))), { replace: true });
+      navigate(await resolveTeacherRoute(
+        parseTaskRef(params.get('task')),
+        params.get('moduleSessionId'),
+      ), { replace: true });
     }
 
     void launch();
