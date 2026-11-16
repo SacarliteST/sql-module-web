@@ -67,10 +67,16 @@ export function decodeSessionUser(accessToken: string): SessionUser | null {
 
 /** Токен платформенной сессии несёт claim `session_id`; токен входа в банк заданий — нет. */
 export function hasPlatformSessionClaim(accessToken: string): boolean {
+  return getPlatformSessionId(accessToken) !== null;
+}
+
+export function getPlatformSessionId(accessToken: string): string | null {
   try {
     const payload = jwtDecode<{ session_id?: unknown }>(accessToken);
-    return typeof payload.session_id === 'string' && payload.session_id.length > 0;
+    return typeof payload.session_id === 'string' && payload.session_id.length > 0
+      ? payload.session_id
+      : null;
   } catch {
-    return false;
+    return null;
   }
 }

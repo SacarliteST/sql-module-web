@@ -29,6 +29,7 @@ const BANK_ROUTE = '/student/tasks';
 export function TrainingLaunchPage() {
   const navigate = useNavigate();
   const setTransientSession = useSessionStore((state) => state.setTransientSession);
+  const clearStandaloneSession = useSessionStore((state) => state.clearStandaloneSession);
   const [state, setState] = useState<LaunchState>('loading');
   const [returnPath, setReturnPath] = useState<string | null>(null);
 
@@ -60,6 +61,17 @@ export function TrainingLaunchPage() {
         return;
       }
 
+      const standaloneUser = useSessionStore.getState().standaloneUser;
+      const sameId = standaloneUser?.id === user.id;
+      const sameEmail = Boolean(
+        standaloneUser?.email &&
+        user.email &&
+        standaloneUser.email.toLocaleLowerCase() === user.email.toLocaleLowerCase(),
+      );
+      if (standaloneUser && !sameId && !sameEmail) {
+        clearStandaloneSession();
+      }
+
       await provider.setTokens?.({ accessToken });
       setActiveTokenProvider(provider);
       markTrainingLaunch();
@@ -73,7 +85,7 @@ export function TrainingLaunchPage() {
     }
 
     void launch();
-  }, [navigate, setTransientSession]);
+  }, [clearStandaloneSession, navigate, setTransientSession]);
 
   if (state === 'loading') {
     return (

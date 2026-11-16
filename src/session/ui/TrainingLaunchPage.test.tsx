@@ -103,4 +103,28 @@ describe('TrainingLaunchPage', () => {
     await waitFor(() => expect(screen.getByText('Ссылка недействительна')).toBeInTheDocument());
     expect(useSessionStore.getState().status).toBe('anonymous');
   });
+
+  it('удаляет standalone-сессию другого пользователя на общем компьютере', async () => {
+    useSessionStore.setState({
+      accessToken: 'standalone-token',
+      user: { id: 'student-previous', email: 'previous@scoodle.local', roles: ['Student'] },
+      status: 'authenticated',
+      mode: 'standalone',
+      handoffKind: null,
+      standaloneAccessToken: 'standalone-token',
+      standaloneUser: { id: 'student-previous', email: 'previous@scoodle.local', roles: ['Student'] },
+      standaloneRefreshToken: 'standalone-refresh',
+    });
+
+    openLaunch('?return=%2Fstudent%2Ftraining', studentToken());
+
+    await screen.findByText('bank-catalog');
+    const state = useSessionStore.getState();
+    expect(state.handoffKind).toBe('student-training');
+    expect(state.standaloneAccessToken).toBeNull();
+    expect(state.standaloneRefreshToken).toBeNull();
+    expect(state.standaloneUser).toBeNull();
+    expect(window.localStorage.getItem('sql-module-session')).not.toContain('standalone-token');
+    expect(window.localStorage.getItem('sql-module-session')).not.toContain('standalone-refresh');
+  });
 });

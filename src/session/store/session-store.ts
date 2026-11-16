@@ -32,6 +32,7 @@ type SessionState = {
   setStandaloneTokens(payload: { accessToken: string; refreshToken: string; user?: SessionUser }): void;
   setTransientSession(payload: SetTransientSessionPayload): void;
   setSessionIssue(issue: SessionState['sessionIssue']): void;
+  clearStandaloneSession(): void;
   clearSession(): void;
 };
 
@@ -149,6 +150,19 @@ export const useSessionStore = create<SessionState>()(
           sessionIssue: null,
         }),
       setSessionIssue: (sessionIssue) => set({ sessionIssue }),
+      clearStandaloneSession: () =>
+        set((state) => ({
+          standaloneAccessToken: null,
+          standaloneUser: null,
+          standaloneRefreshToken: null,
+          ...(state.mode === 'standalone' ? {
+            accessToken: null,
+            user: null,
+            status: 'anonymous' as const,
+            mode: null,
+            handoffKind: null,
+          } : {}),
+        })),
       clearSession: () =>
         set((state) => {
           const restoreStandalone = state.mode === 'handoff' && state.standaloneAccessToken && state.standaloneUser;

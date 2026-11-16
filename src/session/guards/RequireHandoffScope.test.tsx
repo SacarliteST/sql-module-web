@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { clearActiveLaunchContext, setActiveLaunchContext } from '../launch';
+import { clearActiveLaunchContext, markTrainingLaunch, setActiveLaunchContext } from '../launch';
 import { useSessionStore } from '../store';
 import { RequireHandoffScope } from './RequireHandoffScope';
 
@@ -53,6 +53,13 @@ describe('RequireHandoffScope', () => {
         expect(renderAt(path)).toBe('/student/tasks');
       },
     );
+  });
+
+  it('устаревший training-флаг без валидной handoff-сессии не удерживает студента в банке', () => {
+    markTrainingLaunch();
+    useSessionStore.setState({ status: 'anonymous', mode: null, handoffKind: null, user: null });
+
+    expect(renderAt('/teacher/topics')).toBe('/teacher/topics');
   });
 
   describe('платформенное задание (student) — ограничение не ослаблено', () => {

@@ -8,7 +8,7 @@ import {
   consumeLaunchToken,
   setActiveLaunchContext,
 } from '../launch';
-import { decodeSessionUser } from '../lib';
+import { decodeSessionUser, getPlatformSessionId } from '../lib';
 import {
   createHandoffTokenProvider,
   resetActiveTokenProvider,
@@ -30,15 +30,27 @@ export function LaunchPage() {
     async function launch() {
       const requestedSessionId = new URLSearchParams(window.location.search).get('session');
       const handoffProvider = createHandoffTokenProvider();
-      const accessToken = consumeLaunchToken() ?? await handoffProvider.getAccessToken();
+      const freshAccessToken = consumeLaunchToken();
+      const accessToken = freshAccessToken ?? await handoffProvider.getAccessToken();
       const user = accessToken ? decodeSessionUser(accessToken) : null;
+      const tokenSessionId = accessToken ? getPlatformSessionId(accessToken) : null;
 
       clearActiveLaunchContext();
       // Вход в платформенное задание отменяет прежний вход в банк заданий в этой вкладке.
       clearTrainingLaunch();
 
-      if (!requestedSessionId || !accessToken || !user || !user.roles.includes('Student')) {
+      if (
+        !requestedSessionId ||
+        !accessToken ||
+        !user ||
+        !user.roles.includes('Student') ||
+        tokenSessionId !== requestedSessionId
+      ) {
         await handoffProvider.clear?.();
+        if (useSessionStore.getState().mode === 'handoff') {
+          clearSession();
+        }
+        resetActiveTokenProvider();
         setState('invalid-link');
         return;
       }
